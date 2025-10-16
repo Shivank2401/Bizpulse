@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import FilterBar from '@/components/FilterBar';
+import InsightModal from '@/components/InsightModal';
+import AIInsightModal from '@/components/AIInsightModal';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -13,6 +16,17 @@ const CustomerAnalysis = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState(null);
+  const [selectedFilters, setSelectedFilters] = useState({
+    year: 'all',
+    month: 'all',
+    business: 'all',
+    channel: 'all',
+    brand: 'all',
+    category: 'all'
+  });
+  const [insightModal, setInsightModal] = useState({ isOpen: false, chartTitle: '', insights: [], recommendations: [] });
+  const [aiModal, setAiModal] = useState({ isOpen: false, chartTitle: '' });
 
   useEffect(() => {
     fetchData();
