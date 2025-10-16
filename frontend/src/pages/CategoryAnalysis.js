@@ -5,7 +5,8 @@ import InsightModal from '@/components/InsightModal';
 import AIInsightModal from '@/components/AIInsightModal';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
-import { Bar, Pie } from 'react-chartjs-2';
+import ChartComponent from '@/components/ChartComponent';
+import { formatNumber, formatChartValue, formatCurrency } from '@/utils/formatters';
 import { Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -127,14 +128,14 @@ const CategoryAnalysis = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <ChartCard title="Category Performance" onViewInsight={() => handleViewInsight('Category Performance', [{ type: 'positive', text: 'Beauty category leads with 45% market share' }, { type: 'neutral', text: 'Category mix diversified across segments' }], ['Focus on high-margin categories', 'Expand product range in top categories', 'Optimize category portfolio'])}>
-            <div style={{ height: '280px' }}>
-              <Bar data={categoryChartData} options={chartOptions} />
+            <div className="chart-container">
+              {categoryData.length > 0 && <ChartComponent type="bar" data={categoryChartData} options={chartOptions} />}
             </div>
           </ChartCard>
 
           <ChartCard title="Board Category Distribution" onViewInsight={() => handleViewInsight('Board Category Distribution', [{ type: 'positive', text: 'Balanced portfolio across board categories' }, { type: 'attention', text: 'Opportunity to expand in emerging categories' }], ['Review category strategy', 'Invest in growth categories', 'Optimize underperforming segments'])}>
-            <div style={{ height: '280px' }}>
-              <Pie data={boardCategoryPieData} options={pieOptions} />
+            <div className="chart-container">
+              {boardCategoryData.length > 0 && <ChartComponent type="pie" data={boardCategoryPieData} options={pieOptions} />}
             </div>
           </ChartCard>
 
