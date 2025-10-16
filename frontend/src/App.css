@@ -9,8 +9,8 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #0a1628 0%, #162a45 100%);
-  color: #e5e7eb;
+  background: #ffffff;
+  color: #1a202c;
   min-height: 100vh;
 }
 
@@ -20,6 +20,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .App {
   min-height: 100vh;
+  background: #f8fafc;
 }
 
 /* Scrollbar Styling */
@@ -29,16 +30,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #538EB7;
+  background: #3b82f6;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #0091A7;
+  background: #2563eb;
 }
 
 /* Card Animations */
@@ -59,20 +60,22 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Gradient Text */
 .gradient-text {
-  background: linear-gradient(135deg, #538EB7 0%, #0091A7 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Glass Effect */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Professional Card */
+.professional-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
-/* Custom Shadows */
-.shadow-custom {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(83, 142, 183, 0.1);
+.professional-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
