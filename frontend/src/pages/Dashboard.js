@@ -310,8 +310,8 @@ const Dashboard = () => {
               )
             }
           >
-            <div style={{ height: '280px' }}>
-              <Pie data={businessChartData} options={pieOptions} />
+            <div className="chart-container">
+              {businessData.length > 0 && <Pie key="business-chart" data={businessChartData} options={pieOptions} />}
             </div>
           </ChartCard>
 
