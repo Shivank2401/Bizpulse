@@ -287,7 +287,7 @@ const Dashboard = () => {
             }
           >
             <div className="chart-container">
-              {businessData.length > 0 && <Pie key="business-chart" data={businessChartData} options={pieOptions} />}
+              {businessData.length > 0 && <ChartComponent type="pie" data={businessChartData} options={pieOptions} />}
             </div>
           </ChartCard>
 
