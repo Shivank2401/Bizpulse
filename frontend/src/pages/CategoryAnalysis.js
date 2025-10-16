@@ -99,11 +99,25 @@ const CategoryAnalysis = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: true, position: 'bottom', labels: { font: { size: 11 }, padding: 10 } },
-      tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.95)', titleColor: '#1f2937', bodyColor: '#1f2937', borderColor: '#e5e7eb', borderWidth: 1 },
+      tooltip: { 
+        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+        titleColor: '#1f2937', 
+        bodyColor: '#1f2937', 
+        borderColor: '#e5e7eb', 
+        borderWidth: 1,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) label += ': ';
+            label += formatChartValue(context.parsed.y || context.parsed);
+            return label;
+          }
+        }
+      },
     },
     scales: {
       x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-      y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 11 }, callback: (value) => formatNumber(value) } },
     },
   };
 
@@ -112,7 +126,21 @@ const CategoryAnalysis = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: true, position: 'right', labels: { font: { size: 11 }, padding: 10 } },
-      tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.95)', titleColor: '#1f2937', bodyColor: '#1f2937', borderColor: '#e5e7eb', borderWidth: 1 },
+      tooltip: { 
+        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+        titleColor: '#1f2937', 
+        bodyColor: '#1f2937', 
+        borderColor: '#e5e7eb', 
+        borderWidth: 1,
+        callbacks: {
+          label: function(context) {
+            let label = context.label || '';
+            if (label) label += ': ';
+            label += formatChartValue(context.parsed);
+            return label;
+          }
+        }
+      },
     },
   };
 
