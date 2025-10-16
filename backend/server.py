@@ -139,7 +139,12 @@ async def sync_azure_data():
         logger.info(f"Loaded {len(df)} records from Azure Blob")
         
         # Clean column names (remove spaces, special characters)
-        df.columns = df.columns.str.replace(' ', '_').str.replace('.', '_').str.replace('+', '')
+        df.columns = (df.columns.str.replace(' ', '_')
+                                .str.replace('.', '_')
+                                .str.replace('+', '')
+                                .str.replace('-', '_')
+                                .str.replace('__', '_')
+                                .str.replace('&', 'and'))
         
         # Convert to dict and prepare for MongoDB
         records = df.to_dict('records')
