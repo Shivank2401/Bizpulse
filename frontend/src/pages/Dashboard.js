@@ -5,6 +5,7 @@ import FilterBar from '@/components/FilterBar';
 import InsightModal from '@/components/InsightModal';
 import AIInsightModal from '@/components/AIInsightModal';
 import ChartComponent from '@/components/ChartComponent';
+import { formatNumber, formatChartValue } from '@/utils/formatters';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
 import { TrendingUp, DollarSign, Package, Eye } from 'lucide-react';
