@@ -218,6 +218,16 @@ const Dashboard = () => {
         bodyColor: '#1f2937',
         borderColor: '#e5e7eb',
         borderWidth: 1,
+        callbacks: {
+          label: function(context) {
+            let label = context.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += formatChartValue(context.parsed);
+            return label;
+          }
+        }
       },
     },
   };
