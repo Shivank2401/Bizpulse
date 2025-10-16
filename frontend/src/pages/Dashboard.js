@@ -333,8 +333,8 @@ const Dashboard = () => {
               )
             }
           >
-            <div style={{ height: '280px' }}>
-              <Line data={monthlyChartData} options={chartOptions} />
+            <div className="chart-container">
+              {monthlyData.length > 0 && <Line key="monthly-chart" data={monthlyChartData} options={chartOptions} />}
             </div>
           </ChartCard>
         </div>
