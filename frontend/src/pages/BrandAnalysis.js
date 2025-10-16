@@ -5,7 +5,8 @@ import InsightModal from '@/components/InsightModal';
 import AIInsightModal from '@/components/AIInsightModal';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
-import { Bar, Line } from 'react-chartjs-2';
+import ChartComponent from '@/components/ChartComponent';
+import { formatNumber, formatChartValue, formatCurrency } from '@/utils/formatters';
 import { Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -126,14 +127,14 @@ const BrandAnalysis = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <ChartCard title="Overall Brand Performance" onViewInsight={() => handleViewInsight('Overall Brand Performance', [{ type: 'positive', text: 'Top 5 brands contribute to 73% of total revenue' }, { type: 'neutral', text: 'Brand portfolio diversification on track' }], ['Focus on high-performing brands', 'Invest in brand building', 'Explore new brand opportunities'])}>
-            <div style={{ height: '280px' }}>
-              <Bar data={brandChartData} options={chartOptions} />
+            <div className="chart-container">
+              {brandData.length > 0 && <ChartComponent type="bar" data={brandChartData} options={chartOptions} />}
             </div>
           </ChartCard>
 
           <ChartCard title="Brand Year-over-Year Growth" onViewInsight={() => handleViewInsight('Brand Year-over-Year Growth', [{ type: 'positive', text: 'Emerging brands show 42% growth trajectory' }, { type: 'attention', text: 'Monitor legacy brands for market share retention' }], ['Analyze growth drivers', 'Scale successful brands', 'Optimize underperforming brands'])}>
-            <div style={{ height: '280px' }}>
-              <Line data={brandYoYChartData} options={chartOptions} />
+            <div className="chart-container">
+              {brandYoYData.length > 0 && <ChartComponent type="line" data={brandYoYChartData} options={chartOptions} />}
             </div>
           </ChartCard>
 
