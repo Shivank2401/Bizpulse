@@ -37,38 +37,33 @@ const Reports = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-400">Loading reports...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading reports...</p>
           </div>
         </div>
       </Layout>
     );
-  }
+  };
 
   return (
     <Layout>
       <div className="space-y-6" data-testid="reports-page">
         <div>
-          <h1 className="text-3xl font-bold text-white" style={{ fontFamily: 'Space Grotesk' }}>
+          <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
             Reports
           </h1>
-          <p className="text-gray-400 mt-1">Generate and download custom reports</p>
+          <p className="text-gray-600 mt-1">Generate and download custom reports</p>
         </div>
 
         {/* Report Generator */}
-        <div
-          className="glass-effect rounded-xl p-8 shadow-custom"
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)'
-          }}
-        >
+        <div className="professional-card p-8">
           <div className="flex items-center gap-3 mb-6">
-            <FileText className="w-6 h-6 text-blue-400" />
-            <h2 className="text-xl font-semibold text-white" style={{ fontFamily: 'Space Grotesk' }}>
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <FileText className="w-6 h-6 text-blue-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
               Report Generator
             </h2>
           </div>
@@ -76,9 +71,9 @@ const Reports = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {/* Year Filter */}
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">Year</label>
+              <label className="text-gray-700 text-sm mb-2 block font-medium">Year</label>
               <Select onValueChange={(value) => setSelectedFilters({ ...selectedFilters, year: value })}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select Year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -93,9 +88,9 @@ const Reports = () => {
 
             {/* Business Filter */}
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">Business</label>
+              <label className="text-gray-700 text-sm mb-2 block font-medium">Business</label>
               <Select onValueChange={(value) => setSelectedFilters({ ...selectedFilters, business: value })}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select Business" />
                 </SelectTrigger>
                 <SelectContent>
@@ -110,9 +105,9 @@ const Reports = () => {
 
             {/* Brand Filter */}
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">Brand</label>
+              <label className="text-gray-700 text-sm mb-2 block font-medium">Brand</label>
               <Select onValueChange={(value) => setSelectedFilters({ ...selectedFilters, brand: value })}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select Brand" />
                 </SelectTrigger>
                 <SelectContent>
@@ -127,9 +122,9 @@ const Reports = () => {
 
             {/* Channel Filter */}
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">Channel</label>
+              <label className="text-gray-700 text-sm mb-2 block font-medium">Channel</label>
               <Select onValueChange={(value) => setSelectedFilters({ ...selectedFilters, channel: value })}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select Channel" />
                 </SelectTrigger>
                 <SelectContent>
@@ -144,9 +139,9 @@ const Reports = () => {
 
             {/* Category Filter */}
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">Category</label>
+              <label className="text-gray-700 text-sm mb-2 block font-medium">Category</label>
               <Select onValueChange={(value) => setSelectedFilters({ ...selectedFilters, category: value })}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,11 +157,7 @@ const Reports = () => {
 
           <Button
             onClick={handleGenerateReport}
-            className="w-full md:w-auto"
-            style={{
-              background: 'linear-gradient(135deg, #538EB7 0%, #0091A7 100%)',
-              color: '#fff'
-            }}
+            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
             data-testid="generate-report-button"
           >
             <Download className="mr-2 w-5 h-5" />
@@ -176,7 +167,7 @@ const Reports = () => {
 
         {/* Pre-defined Reports */}
         <div>
-          <h2 className="text-xl font-semibold text-white mb-4" style={{ fontFamily: 'Space Grotesk' }}>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Space Grotesk' }}>
             Pre-defined Reports
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -190,17 +181,12 @@ const Reports = () => {
             ].map((report) => (
               <div
                 key={report}
-                className="glass-effect rounded-xl p-6 shadow-custom cursor-pointer hover:bg-white/10 transition"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}
+                className="professional-card p-6 cursor-pointer hover:shadow-lg transition"
                 onClick={() => toast.info(`${report} will be available soon`)}
               >
-                <FileText className="w-8 h-8 text-blue-400 mb-3" />
-                <h3 className="text-white font-semibold">{report}</h3>
-                <p className="text-gray-400 text-sm mt-2">Download pre-configured report</p>
+                <FileText className="w-8 h-8 text-blue-600 mb-3" />
+                <h3 className="text-gray-900 font-semibold mb-2">{report}</h3>
+                <p className="text-gray-600 text-sm">Download pre-configured report</p>
               </div>
             ))}
           </div>

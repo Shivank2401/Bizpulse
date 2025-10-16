@@ -8,6 +8,7 @@ import CustomerAnalysis from '@/pages/CustomerAnalysis';
 import BrandAnalysis from '@/pages/BrandAnalysis';
 import CategoryAnalysis from '@/pages/CategoryAnalysis';
 import Reports from '@/pages/Reports';
+import ChartInsight from '@/pages/ChartInsight';
 import { Toaster } from '@/components/ui/sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -97,6 +98,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Reports />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/chart-insight"
+            element={
+              <PrivateRoute>
+                <ChartInsight />
               </PrivateRoute>
             }
           />
