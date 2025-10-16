@@ -171,6 +171,16 @@ const Dashboard = () => {
         borderWidth: 1,
         padding: 10,
         displayColors: true,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += formatChartValue(context.parsed.y || context.parsed);
+            return label;
+          }
+        }
       },
     },
     scales: {
@@ -180,7 +190,12 @@ const Dashboard = () => {
       },
       y: {
         grid: { color: '#f3f4f6' },
-        ticks: { font: { size: 11 } },
+        ticks: { 
+          font: { size: 11 },
+          callback: function(value) {
+            return formatNumber(value);
+          }
+        },
       },
     },
   };
