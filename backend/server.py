@@ -254,19 +254,30 @@ async def trigger_sync(email: str = Depends(get_current_user)):
 async def get_executive_overview(email: str = Depends(get_current_user)):
     """Executive Overview - YoY comparison, KPIs"""
     try:
-        # Get all data
-        data = await db.business_data.find({}, {"_id": 0}).to_list(10000)
+        # Get all data (increased limit to get all records)
+        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
         df = pd.DataFrame(data)
         
         if df.empty:
             return {"error": "No data available"}
         
-        # Group by Year
+        # Ensure numeric columns
+        for col in ['fGP', 'gSales', 'Cases', 'Year']:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        
+        # Group by Year and sort
         yearly = df.groupby('Year').agg({
             'fGP': 'sum',
             'gSales': 'sum',
             'Cases': 'sum'
-        }).reset_index()
+        }).reset_index().sort_values('Year')
+        
+        # Convert to regular Python types for JSON serialization
+        yearly['Year'] = yearly['Year'].astype(int)
+        yearly['fGP'] = yearly['fGP'].astype(float).round(2)
+        yearly['gSales'] = yearly['gSales'].astype(float).round(2)
+        yearly['Cases'] = yearly['Cases'].astype(float).round(2)
         
         # Business-wise performance
         business_perf = df.groupby('Business').agg({
@@ -275,13 +286,29 @@ async def get_executive_overview(email: str = Depends(get_current_user)):
             'Cases': 'sum'
         }).reset_index()
         
-        # Month-wise trend for current year
-        current_year = df['Year'].max()
+        business_perf['fGP'] = business_perf['fGP'].astype(float).round(2)
+        business_perf['gSales'] = business_perf['gSales'].astype(float).round(2)
+        business_perf['Cases'] = business_perf['Cases'].astype(float).round(2)
+        
+        # Month-wise trend for current year with proper month ordering
+        current_year = int(df['Year'].max())
+        month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        
         monthly_trend = df[df['Year'] == current_year].groupby('Month_Name').agg({
             'fGP': 'sum',
             'gSales': 'sum',
             'Cases': 'sum'
         }).reset_index()
+        
+        # Sort by month order
+        monthly_trend['month_sort'] = monthly_trend['Month_Name'].apply(
+            lambda x: month_order.index(x) if x in month_order else 999
+        )
+        monthly_trend = monthly_trend.sort_values('month_sort').drop('month_sort', axis=1)
+        
+        monthly_trend['fGP'] = monthly_trend['fGP'].astype(float).round(2)
+        monthly_trend['gSales'] = monthly_trend['gSales'].astype(float).round(2)
+        monthly_trend['Cases'] = monthly_trend['Cases'].astype(float).round(2)
         
         return {
             "yearly_performance": yearly.to_dict('records'),
@@ -292,6 +319,7 @@ async def get_executive_overview(email: str = Depends(get_current_user)):
             "total_cases": float(df['Cases'].sum())
         }
     except Exception as e:
+        logger.error(f"Executive overview error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/customer-analysis")
