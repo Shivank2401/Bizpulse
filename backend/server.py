@@ -326,11 +326,16 @@ async def get_executive_overview(email: str = Depends(get_current_user)):
 async def get_customer_analysis(email: str = Depends(get_current_user)):
     """Customer Analysis - Channel and customer drilldowns"""
     try:
-        data = await db.business_data.find({}, {"_id": 0}).to_list(10000)
+        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
         df = pd.DataFrame(data)
         
         if df.empty:
             return {"error": "No data available"}
+        
+        # Ensure numeric columns
+        for col in ['fGP', 'gSales', 'Cases']:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         
         # Channel-wise analysis
         channel_analysis = df.groupby('Channel').agg({
@@ -339,12 +344,20 @@ async def get_customer_analysis(email: str = Depends(get_current_user)):
             'Cases': 'sum'
         }).reset_index()
         
+        channel_analysis['fGP'] = channel_analysis['fGP'].astype(float).round(2)
+        channel_analysis['gSales'] = channel_analysis['gSales'].astype(float).round(2)
+        channel_analysis['Cases'] = channel_analysis['Cases'].astype(float).round(2)
+        
         # Customer-wise analysis
         customer_analysis = df.groupby('Customer').agg({
             'fGP': 'sum',
             'gSales': 'sum',
             'Cases': 'sum'
         }).reset_index()
+        
+        customer_analysis['fGP'] = customer_analysis['fGP'].astype(float).round(2)
+        customer_analysis['gSales'] = customer_analysis['gSales'].astype(float).round(2)
+        customer_analysis['Cases'] = customer_analysis['Cases'].astype(float).round(2)
         
         # Top 10 customers
         top_customers = customer_analysis.nlargest(10, 'gSales')
@@ -355,6 +368,7 @@ async def get_customer_analysis(email: str = Depends(get_current_user)):
             "top_customers": top_customers.to_dict('records')
         }
     except Exception as e:
+        logger.error(f"Customer analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/brand-analysis")
