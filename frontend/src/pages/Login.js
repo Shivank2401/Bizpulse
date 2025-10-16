@@ -32,33 +32,31 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #0a1628 0%, #162a45 100%)' }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' }}>
       <div className="w-full max-w-md">
         {/* Logo Section */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4" style={{ background: 'linear-gradient(135deg, #538EB7 0%, #0091A7 100%)' }}>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4" style={{ background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' }}>
             <Sparkles className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'Space Grotesk', color: '#fff' }}>
+          <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'Space Grotesk', color: '#1e40af' }}>
             ThriveBrands
           </h1>
-          <p className="text-lg" style={{ color: '#B1864E' }}>
+          <p className="text-lg text-blue-600 font-medium">
             BIZ Pulse Portal
           </p>
         </div>
 
         {/* Login Card */}
         <div
-          className="glass-effect rounded-2xl p-8 shadow-custom"
+          className="bg-white rounded-2xl p-8 shadow-xl"
           style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)'
+            border: '1px solid #e5e7eb'
           }}
         >
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <Label htmlFor="email" className="text-gray-200 mb-2 block">
+              <Label htmlFor="email" className="text-gray-700 mb-2 block font-medium">
                 Email Address
               </Label>
               <Input
@@ -69,12 +67,12 @@ const Login = () => {
                 placeholder="data.admin@thrivebrands.ai"
                 required
                 data-testid="login-email-input"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                className="bg-white border-gray-300"
               />
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-gray-200 mb-2 block">
+              <Label htmlFor="password" className="text-gray-700 mb-2 block font-medium">
                 Password
               </Label>
               <Input
@@ -85,7 +83,7 @@ const Login = () => {
                 placeholder="Enter your password"
                 required
                 data-testid="login-password-input"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                className="bg-white border-gray-300"
               />
             </div>
 
@@ -93,11 +91,7 @@ const Login = () => {
               type="submit"
               disabled={loading}
               data-testid="login-submit-button"
-              className="w-full h-12 text-lg font-semibold"
-              style={{
-                background: 'linear-gradient(135deg, #538EB7 0%, #0091A7 100%)',
-                color: '#fff'
-              }}
+              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
             >
               {loading ? (
                 'Signing In...'
@@ -110,9 +104,9 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-400">
-            <p>Demo Credentials:</p>
-            <p className="mt-1">data.admin@thrivebrands.ai / 123456User</p>
+          <div className="mt-6 text-center text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+            <p className="font-medium">Demo Credentials:</p>
+            <p className="mt-1 text-gray-700">data.admin@thrivebrands.ai / 123456User</p>
           </div>
         </div>
       </div>
