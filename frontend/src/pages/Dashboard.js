@@ -310,7 +310,7 @@ const Dashboard = () => {
             }
           >
             <div className="chart-container">
-              {monthlyData.length > 0 && <Line key="monthly-chart" data={monthlyChartData} options={chartOptions} />}
+              {monthlyData.length > 0 && <ChartComponent type="line" data={monthlyChartData} options={chartOptions} />}
             </div>
           </ChartCard>
         </div>
