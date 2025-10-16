@@ -1,28 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import FilterBar from '@/components/FilterBar';
+import InsightModal from '@/components/InsightModal';
+import AIInsightModal from '@/components/AIInsightModal';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const BrandAnalysis = () => {
   const { token } = useAuth();
-  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState(null);
+  const [selectedFilters, setSelectedFilters] = useState({
+    year: 'all', month: 'all', business: 'all', channel: 'all', brand: 'all', category: 'all'
+  });
+  const [insightModal, setInsightModal] = useState({ isOpen: false, chartTitle: '', insights: [], recommendations: [] });
+  const [aiModal, setAiModal] = useState({ isOpen: false, chartTitle: '' });
 
   useEffect(() => {
+    fetchFilters();
     fetchData();
   }, []);
 
+  const fetchFilters = async () => {
+    try {
+      const response = await axios.get(`${API}/filters/options`, { headers: { Authorization: `Bearer ${token}` } });
+      setFilters(response.data);
+    } catch (error) {
+      console.error('Failed to load filters');
+    }
+  };
+
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${API}/analytics/brand-analysis`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(`${API}/analytics/brand-analysis`, { headers: { Authorization: `Bearer ${token}` } });
       setData(response.data);
     } catch (error) {
       toast.error('Failed to load brand data');
@@ -31,10 +46,17 @@ const BrandAnalysis = () => {
     }
   };
 
-  const handleViewInsight = (chartTitle, insights, data) => {
-    navigate('/chart-insight', {
-      state: { chartTitle, insights, data }
-    });
+  const handleFilterChange = (filterName, value) => {
+    setSelectedFilters(prev => ({ ...prev, [filterName]: value }));
+  };
+
+  const handleViewInsight = (chartTitle, insights, recommendations) => {
+    setInsightModal({ isOpen: true, chartTitle, insights, recommendations });
+  };
+
+  const handleExploreDeep = () => {
+    setInsightModal({ isOpen: false, chartTitle: '', insights: [], recommendations: [] });
+    setAiModal({ isOpen: true, chartTitle: insightModal.chartTitle });
   };
 
   if (loading) {
@@ -48,126 +70,103 @@ const BrandAnalysis = () => {
         </div>
       </Layout>
     );
-  };
+  }
+
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+  const channelData = (data?.channel_performance || []).filter(item => item && item.Channel);
+  const topBrands = (data?.top_brands || []).filter(item => item && item.Brand && item.gSales > 0);
 
   return (
     <Layout>
-      <div className="space-y-6" data-testid="brand-analysis-page">
+      <div className="space-y-5" data-testid="brand-analysis-page">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
             Brand Analysis
           </h1>
-          <p className="text-gray-600 mt-1">Brand performance across categories and channels</p>
+          <p className="text-gray-600 text-sm mt-1">Channel-wise and brand drilldowns</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Brand Performance */}
+        <FilterBar filters={filters} selectedFilters={selectedFilters} onFilterChange={handleFilterChange} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <ChartCard
-            title="Overall Brand Performance"
-            onViewInsight={() =>
-              handleViewInsight(
-                'Overall Brand Performance',
-                [
-                  { type: 'positive', text: 'Top 5 brands contribute to 73% of total revenue' },
-                  { type: 'neutral', text: 'Brand portfolio diversification on track' }
-                ],
-                data?.brand_performance
-              )
-            }
+            title="Channel Performance"
+            onViewInsight={() => handleViewInsight(
+              'Channel Performance',
+              [
+                { type: 'positive', text: 'Grocery channel shows strong performance' },
+                { type: 'attention', text: 'Convenience channel needs strategic attention' }
+              ],
+              ['Optimize channel mix', 'Focus on high-margin channels', 'Expand distribution network']
+            )}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={(data?.brand_performance || []).slice(0, 10)}>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={channelData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="Brand" stroke="#6b7280" angle={-45} textAnchor="end" height={100} style={{ fontSize: '11px' }} />
+                <XAxis dataKey="Channel" stroke="#6b7280" style={{ fontSize: '12px' }} />
                 <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="gSales" fill="#3b82f6" name="Sales" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="fGP" fill="#10b981" name="fGP" radius={[8, 8, 0, 0]} />
+                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Bar dataKey="gSales" fill="#3b82f6" name="Sales" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="fGP" fill="#10b981" name="fGP" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
 
-          {/* Brand YoY Growth */}
           <ChartCard
-            title="Brand Year-over-Year Growth"
-            onViewInsight={() =>
-              handleViewInsight(
-                'Brand Year-over-Year Growth',
-                [
-                  { type: 'positive', text: 'Emerging brands show 42% growth trajectory' },
-                  { type: 'attention', text: 'Monitor legacy brands for market share retention' }
-                ],
-                data?.brand_yoy_growth
-              )
-            }
+            title="Top 10 Brands"
+            onViewInsight={() => handleViewInsight(
+              'Top 10 Brands',
+              [
+                { type: 'positive', text: 'Strong brand base with loyal repeat buyers' },
+                { type: 'neutral', text: 'Brand concentration within acceptable range' }
+              ],
+              ['Strengthen top brand relationships', 'Develop loyalty programs', 'Expand brand acquisition']
+            )}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data?.brand_yoy_growth || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="Year" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend />
-                {[...new Set((data?.brand_yoy_growth || []).map(d => d.Brand))].slice(0, 5).map((brand, idx) => (
-                  <Line
-                    key={brand}
-                    type="monotone"
-                    dataKey="gSales"
-                    data={(data?.brand_yoy_growth || []).filter(d => d.Brand === brand)}
-                    stroke={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][idx]}
-                    strokeWidth={2}
-                    name={brand}
-                    dot={{ r: 3 }}
-                  />
-                ))}
-              </LineChart>
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={topBrands}
+                  dataKey="gSales"
+                  nameKey="Brand"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  label={(entry) => `${entry.Brand?.substring(0, 12)}...`}
+                  labelLine={false}
+                >
+                  {topBrands.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+              </PieChart>
             </ResponsiveContainer>
           </ChartCard>
 
-          {/* Brand by Business Table */}
           <div className="lg:col-span-2">
-            <div className="professional-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-                  Brand Performance by Business
-                </h3>
-              </div>
+            <div className="professional-card p-5">
+              <h3 className="text-base font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Space Grotesk' }}>
+                Brand Performance Overview
+              </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="text-left py-3 px-4 text-gray-700 font-semibold">Brand</th>
-                      <th className="text-left py-3 px-4 text-gray-700 font-semibold">Business</th>
-                      <th className="text-right py-3 px-4 text-gray-700 font-semibold">Sales</th>
-                      <th className="text-right py-3 px-4 text-gray-700 font-semibold">fGP</th>
+                      <th className="text-left py-2 px-3 text-gray-700 font-semibold text-xs">Brand</th>
+                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Sales</th>
+                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">fGP</th>
+                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Cases</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {(data?.brand_by_business || []).slice(0, 15).map((item, idx) => (
+                    {(data?.brand_performance || []).slice(0, 10).map((brand, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                        <td className="py-3 px-4 text-gray-900 font-medium">{item.Brand}</td>
-                        <td className="py-3 px-4 text-gray-700">{item.Business}</td>
-                        <td className="text-right py-3 px-4 text-gray-700">
-                          ${(item.gSales || 0).toLocaleString()}
-                        </td>
-                        <td className="text-right py-3 px-4 text-gray-700">
-                          ${(item.fGP || 0).toLocaleString()}
-                        </td>
+                        <td className="py-2 px-3 text-gray-900 font-medium text-sm">{brand.Brand}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(brand.gSales || 0).toLocaleString()}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(brand.fGP || 0).toLocaleString()}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{(brand.Cases || 0).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -177,24 +176,38 @@ const BrandAnalysis = () => {
           </div>
         </div>
       </div>
+
+      <InsightModal
+        isOpen={insightModal.isOpen}
+        onClose={() => setInsightModal({ isOpen: false, chartTitle: '', insights: [], recommendations: [] })}
+        chartTitle={insightModal.chartTitle}
+        insights={insightModal.insights}
+        recommendations={insightModal.recommendations}
+        onExploreDeep={handleExploreDeep}
+      />
+
+      <AIInsightModal
+        isOpen={aiModal.isOpen}
+        onClose={() => setAiModal({ isOpen: false, chartTitle: '' })}
+        chartTitle={aiModal.chartTitle}
+      />
     </Layout>
   );
 };
 
 const ChartCard = ({ title, children, onViewInsight }) => (
-  <div className="professional-card p-6">
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+  <div className="professional-card p-5">
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="text-base font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
         {title}
       </h3>
       <Button
         onClick={onViewInsight}
         size="sm"
         variant="outline"
-        className="border-blue-200 text-blue-600 hover:bg-blue-50"
-        data-testid={`view-insight-${title.toLowerCase().replace(/\s+/g, '-')}`}
+        className="h-8 text-xs border-blue-200 text-blue-600 hover:bg-blue-50"
       >
-        <Eye className="w-4 h-4 mr-2" />
+        <Eye className="w-3 h-3 mr-1.5" />
         View Insight
       </Button>
     </div>
