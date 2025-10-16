@@ -71,7 +71,7 @@ const AIAssistant = () => {
           onClick={() => setIsOpen(true)}
           className="fixed bottom-8 right-8 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 transition"
           style={{
-            background: 'linear-gradient(135deg, #538EB7 0%, #0091A7 100%)'
+            background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)'
           }}
           data-testid="ai-assistant-button"
         >
