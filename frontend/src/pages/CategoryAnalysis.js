@@ -184,8 +184,8 @@ const CategoryAnalysis = () => {
                     {(data?.subcategory_performance || []).slice(0, 15).map((item, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
                         <td className="py-2 px-3 text-gray-900 font-medium text-sm">{item.Sub_Cat}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(item.gSales || 0).toLocaleString()}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(item.fGP || 0).toLocaleString()}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.gSales || 0)}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.fGP || 0)}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{(item.Cases || 0).toLocaleString()}</td>
                       </tr>
                     ))}
