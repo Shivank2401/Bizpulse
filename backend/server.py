@@ -121,8 +121,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 async def sync_azure_data():
     """Sync data from Azure Blob Storage to MongoDB"""
     try:
-        logger.info("Starting Azure Blob sync...")
+        logger.info("Starting data sync...")
         
+        # For now, use local file. Azure Blob Storage code commented below
+        # Uncomment the code below to sync from Azure Blob Storage
+        '''
         # Connect to Azure Blob Storage
         blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
         blob_client = blob_service_client.get_blob_client(
@@ -133,6 +136,11 @@ async def sync_azure_data():
         # Download blob content
         blob_data = blob_client.download_blob()
         content = blob_data.readall().decode('utf-8')
+        '''
+        
+        # Load from local file (new filtered CSV)
+        with open('/app/backend/yearly_data.csv', 'r', encoding='utf-8') as f:
+            content = f.read()
         
         # Parse CSV
         df = pd.read_csv(StringIO(content))
