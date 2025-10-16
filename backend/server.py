@@ -146,6 +146,13 @@ async def sync_azure_data():
                                 .str.replace('__', '_')
                                 .str.replace('&', 'and'))
         
+        # Convert numeric columns that might have formatting
+        numeric_cols = ['Cases', 'gSales', 'Price_Downs', 'Perm_Disc_', 'Group_Cost', 'LTA', 'fGP']
+        for col in numeric_cols:
+            if col in df.columns:
+                # Remove commas and convert to float
+                df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+        
         # Convert to dict and prepare for MongoDB
         records = df.to_dict('records')
         
