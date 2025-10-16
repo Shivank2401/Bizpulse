@@ -170,8 +170,8 @@ const BrandAnalysis = () => {
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
                         <td className="py-2 px-3 text-gray-900 font-medium text-sm">{item.Brand}</td>
                         <td className="py-2 px-3 text-gray-700 text-sm">{item.Business}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(item.gSales || 0).toLocaleString()}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(item.fGP || 0).toLocaleString()}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.gSales || 0)}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.fGP || 0)}</td>
                       </tr>
                     ))}
                   </tbody>
