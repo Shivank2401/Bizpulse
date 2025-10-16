@@ -166,14 +166,14 @@ const CustomerAnalysis = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <ChartCard title="Channel Performance" onViewInsight={() => handleViewInsight('Channel Performance', [{ type: 'positive', text: 'Grocery channel shows strong performance' }, { type: 'attention', text: 'Convenience channel needs strategic attention' }], ['Optimize channel mix', 'Focus on high-margin channels', 'Expand distribution network'])}>
-            <div style={{ height: '280px' }}>
-              <Bar data={channelChartData} options={chartOptions} />
+            <div className="chart-container">
+              {channelData.length > 0 && <ChartComponent type="bar" data={channelChartData} options={chartOptions} />}
             </div>
           </ChartCard>
 
           <ChartCard title="Top 10 Customers" onViewInsight={() => handleViewInsight('Top 10 Customers', [{ type: 'positive', text: 'Strong customer base with loyal repeat buyers' }, { type: 'neutral', text: 'Customer concentration within acceptable range' }], ['Strengthen top customer relationships', 'Develop loyalty programs', 'Expand customer acquisition'])}>
-            <div style={{ height: '280px' }}>
-              <Pie data={customerPieData} options={pieOptions} />
+            <div className="chart-container">
+              {topCustomers.length > 0 && <ChartComponent type="pie" data={customerPieData} options={pieOptions} />}
             </div>
           </ChartCard>
 
