@@ -4,36 +4,12 @@ import Layout from '@/components/Layout';
 import FilterBar from '@/components/FilterBar';
 import InsightModal from '@/components/InsightModal';
 import AIInsightModal from '@/components/AIInsightModal';
+import ChartComponent from '@/components/ChartComponent';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Bar, Line, Pie } from 'react-chartjs-2';
 import { TrendingUp, DollarSign, Package, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 const Dashboard = () => {
   const { token } = useAuth();
