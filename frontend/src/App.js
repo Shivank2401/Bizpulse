@@ -1,53 +1,109 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import '@/App.css';
+import Login from '@/pages/Login';
+import Dashboard from '@/pages/Dashboard';
+import CustomerAnalysis from '@/pages/CustomerAnalysis';
+import BrandAnalysis from '@/pages/BrandAnalysis';
+import CategoryAnalysis from '@/pages/CategoryAnalysis';
+import Reports from '@/pages/Reports';
+import { Toaster } from '@/components/ui/sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+export const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
+// Auth Context
+export const AuthContext = React.createContext(null);
+
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+const AuthProvider = ({ children }) => {
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [user, setUser] = useState(localStorage.getItem('user'));
+
+  const login = (newToken, email) => {
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', email);
+    setToken(newToken);
+    setUser(email);
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+  };
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
+    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated: !!token }}>
+      {children}
+    </AuthContext.Provider>
   );
+};
+
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 function App() {
   return (
-    <div className="App">
+    <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/customer-analysis"
+            element={
+              <PrivateRoute>
+                <CustomerAnalysis />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/brand-analysis"
+            element={
+              <PrivateRoute>
+                <BrandAnalysis />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/category-analysis"
+            element={
+              <PrivateRoute>
+                <CategoryAnalysis />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <PrivateRoute>
+                <Reports />
+              </PrivateRoute>
+            }
+          />
         </Routes>
+        <Toaster position="top-right" />
       </BrowserRouter>
-    </div>
+    </AuthProvider>
   );
 }
 
