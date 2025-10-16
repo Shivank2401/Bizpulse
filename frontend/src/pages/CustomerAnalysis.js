@@ -194,8 +194,8 @@ const CustomerAnalysis = () => {
                     {(data?.customer_performance || []).slice(0, 10).map((customer, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
                         <td className="py-2 px-3 text-gray-900 font-medium text-sm">{customer.Customer}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(customer.gSales || 0).toLocaleString()}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(customer.fGP || 0).toLocaleString()}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(customer.gSales || 0)}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(customer.fGP || 0)}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{(customer.Cases || 0).toLocaleString()}</td>
                       </tr>
                     ))}
