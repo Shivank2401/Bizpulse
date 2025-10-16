@@ -251,14 +251,14 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <KPICard
             title="Total fGP"
-            value={`$${(data?.total_fgp || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+            value={formatNumber(data?.total_fgp || 0)}
             icon={<DollarSign className="w-5 h-5" />}
             color="#10b981"
             bgColor="#d1fae5"
           />
           <KPICard
             title="Total Sales"
-            value={`$${(data?.total_sales || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+            value={formatNumber(data?.total_sales || 0)}
             icon={<TrendingUp className="w-5 h-5" />}
             color="#3b82f6"
             bgColor="#dbeafe"
