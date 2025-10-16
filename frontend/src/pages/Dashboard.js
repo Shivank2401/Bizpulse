@@ -288,8 +288,8 @@ const Dashboard = () => {
               )
             }
           >
-            <div style={{ height: '280px' }}>
-              <Bar data={yearlyChartData} options={chartOptions} />
+            <div className="chart-container">
+              {yearlyData.length > 0 && <Bar key="yearly-chart" data={yearlyChartData} options={chartOptions} />}
             </div>
           </ChartCard>
 
