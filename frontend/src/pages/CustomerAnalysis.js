@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import FilterBar from '@/components/FilterBar';
 import InsightModal from '@/components/InsightModal';
@@ -13,30 +12,32 @@ import { toast } from 'sonner';
 
 const CustomerAnalysis = () => {
   const { token } = useAuth();
-  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
-    year: 'all',
-    month: 'all',
-    business: 'all',
-    channel: 'all',
-    brand: 'all',
-    category: 'all'
+    year: 'all', month: 'all', business: 'all', channel: 'all', brand: 'all', category: 'all'
   });
   const [insightModal, setInsightModal] = useState({ isOpen: false, chartTitle: '', insights: [], recommendations: [] });
   const [aiModal, setAiModal] = useState({ isOpen: false, chartTitle: '' });
 
   useEffect(() => {
+    fetchFilters();
     fetchData();
   }, []);
 
+  const fetchFilters = async () => {
+    try {
+      const response = await axios.get(`${API}/filters/options`, { headers: { Authorization: `Bearer ${token}` } });
+      setFilters(response.data);
+    } catch (error) {
+      console.error('Failed to load filters');
+    }
+  };
+
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${API}/analytics/customer-analysis`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(`${API}/analytics/customer-analysis`, { headers: { Authorization: `Bearer ${token}` } });
       setData(response.data);
     } catch (error) {
       toast.error('Failed to load customer data');
@@ -45,10 +46,17 @@ const CustomerAnalysis = () => {
     }
   };
 
-  const handleViewInsight = (chartTitle, insights, data) => {
-    navigate('/chart-insight', {
-      state: { chartTitle, insights, data }
-    });
+  const handleFilterChange = (filterName, value) => {
+    setSelectedFilters(prev => ({ ...prev, [filterName]: value }));
+  };
+
+  const handleViewInsight = (chartTitle, insights, recommendations) => {
+    setInsightModal({ isOpen: true, chartTitle, insights, recommendations });
+  };
+
+  const handleExploreDeep = () => {
+    setInsightModal({ isOpen: false, chartTitle: '', insights: [], recommendations: [] });
+    setAiModal({ isOpen: true, chartTitle: insightModal.chartTitle });
   };
 
   if (loading) {
@@ -65,125 +73,100 @@ const CustomerAnalysis = () => {
   }
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+  const channelData = (data?.channel_performance || []).filter(item => item && item.Channel);
+  const topCustomers = (data?.top_customers || []).filter(item => item && item.Customer && item.gSales > 0);
 
   return (
     <Layout>
-      <div className="space-y-6" data-testid="customer-analysis-page">
+      <div className="space-y-5" data-testid="customer-analysis-page">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
             Customer Analysis
           </h1>
-          <p className="text-gray-600 mt-1">Channel-wise and customer drilldowns</p>
+          <p className="text-gray-600 text-sm mt-1">Channel-wise and customer drilldowns</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Channel Performance */}
+        <FilterBar filters={filters} selectedFilters={selectedFilters} onFilterChange={handleFilterChange} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <ChartCard
             title="Channel Performance"
-            onViewInsight={() =>
-              handleViewInsight(
-                'Channel Performance',
-                [
-                  { type: 'positive', text: 'Grocery channel shows 35% growth YoY' },
-                  { type: 'attention', text: 'Convenience channel needs attention with declining margins' }
-                ],
-                data?.channel_performance
-              )
-            }
+            onViewInsight={() => handleViewInsight(
+              'Channel Performance',
+              [
+                { type: 'positive', text: 'Grocery channel shows strong performance' },
+                { type: 'attention', text: 'Convenience channel needs strategic attention' }
+              ],
+              ['Optimize channel mix', 'Focus on high-margin channels', 'Expand distribution network']
+            )}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data?.channel_performance || []}>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={channelData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="Channel" stroke="#6b7280" style={{ fontSize: '12px' }} />
                 <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="gSales" fill="#3b82f6" name="Sales" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="fGP" fill="#10b981" name="fGP" radius={[8, 8, 0, 0]} />
+                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Bar dataKey="gSales" fill="#3b82f6" name="Sales" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="fGP" fill="#10b981" name="fGP" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
 
-          {/* Top 10 Customers */}
           <ChartCard
             title="Top 10 Customers"
-            onViewInsight={() =>
-              handleViewInsight(
-                'Top 10 Customers',
-                [
-                  { type: 'positive', text: 'Top 3 customers account for 62% of total revenue' },
-                  { type: 'neutral', text: 'Customer concentration risk within acceptable range' }
-                ],
-                data?.top_customers
-              )
-            }
+            onViewInsight={() => handleViewInsight(
+              'Top 10 Customers',
+              [
+                { type: 'positive', text: 'Strong customer base with loyal repeat buyers' },
+                { type: 'neutral', text: 'Customer concentration within acceptable range' }
+              ],
+              ['Strengthen top customer relationships', 'Develop loyalty programs', 'Expand customer acquisition']
+            )}
           >
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
-                  data={data?.top_customers || []}
+                  data={topCustomers}
                   dataKey="gSales"
                   nameKey="Customer"
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
-                  label={(entry) => entry.Customer}
+                  outerRadius={90}
+                  label={(entry) => `${entry.Customer?.substring(0, 12)}...`}
                   labelLine={false}
                 >
-                  {(data?.top_customers || []).map((entry, index) => (
+                  {topCustomers.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
+                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
               </PieChart>
             </ResponsiveContainer>
           </ChartCard>
 
-          {/* All Customers Table */}
           <div className="lg:col-span-2">
-            <div className="professional-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-                  Customer Performance Overview
-                </h3>
-              </div>
+            <div className="professional-card p-5">
+              <h3 className="text-base font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Space Grotesk' }}>
+                Customer Performance Overview
+              </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="text-left py-3 px-4 text-gray-700 font-semibold">Customer</th>
-                      <th className="text-right py-3 px-4 text-gray-700 font-semibold">Sales</th>
-                      <th className="text-right py-3 px-4 text-gray-700 font-semibold">fGP</th>
-                      <th className="text-right py-3 px-4 text-gray-700 font-semibold">Cases</th>
+                      <th className="text-left py-2 px-3 text-gray-700 font-semibold text-xs">Customer</th>
+                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Sales</th>
+                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">fGP</th>
+                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Cases</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(data?.customer_performance || []).slice(0, 10).map((customer, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                        <td className="py-3 px-4 text-gray-900 font-medium">{customer.Customer}</td>
-                        <td className="text-right py-3 px-4 text-gray-700">
-                          ${(customer.gSales || 0).toLocaleString()}
-                        </td>
-                        <td className="text-right py-3 px-4 text-gray-700">
-                          ${(customer.fGP || 0).toLocaleString()}
-                        </td>
-                        <td className="text-right py-3 px-4 text-gray-700">
-                          {(customer.Cases || 0).toLocaleString()}
-                        </td>
+                        <td className="py-2 px-3 text-gray-900 font-medium text-sm">{customer.Customer}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(customer.gSales || 0).toLocaleString()}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">${(customer.fGP || 0).toLocaleString()}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{(customer.Cases || 0).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -193,24 +176,38 @@ const CustomerAnalysis = () => {
           </div>
         </div>
       </div>
+
+      <InsightModal
+        isOpen={insightModal.isOpen}
+        onClose={() => setInsightModal({ isOpen: false, chartTitle: '', insights: [], recommendations: [] })}
+        chartTitle={insightModal.chartTitle}
+        insights={insightModal.insights}
+        recommendations={insightModal.recommendations}
+        onExploreDeep={handleExploreDeep}
+      />
+
+      <AIInsightModal
+        isOpen={aiModal.isOpen}
+        onClose={() => setAiModal({ isOpen: false, chartTitle: '' })}
+        chartTitle={aiModal.chartTitle}
+      />
     </Layout>
   );
 };
 
 const ChartCard = ({ title, children, onViewInsight }) => (
-  <div className="professional-card p-6">
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+  <div className="professional-card p-5">
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="text-base font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
         {title}
       </h3>
       <Button
         onClick={onViewInsight}
         size="sm"
         variant="outline"
-        className="border-blue-200 text-blue-600 hover:bg-blue-50"
-        data-testid={`view-insight-${title.toLowerCase().replace(/\s+/g, '-')}`}
+        className="h-8 text-xs border-blue-200 text-blue-600 hover:bg-blue-50"
       >
-        <Eye className="w-4 h-4 mr-2" />
+        <Eye className="w-3 h-3 mr-1.5" />
         View Insight
       </Button>
     </div>
