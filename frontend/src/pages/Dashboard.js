@@ -265,7 +265,7 @@ const Dashboard = () => {
             }
           >
             <div className="chart-container">
-              {yearlyData.length > 0 && <Bar key="yearly-chart" data={yearlyChartData} options={chartOptions} />}
+              {yearlyData.length > 0 && <ChartComponent type="bar" data={yearlyChartData} options={chartOptions} />}
             </div>
           </ChartCard>
 
