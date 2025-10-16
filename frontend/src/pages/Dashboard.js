@@ -6,10 +6,34 @@ import InsightModal from '@/components/InsightModal';
 import AIInsightModal from '@/components/AIInsightModal';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar, Line, Pie } from 'react-chartjs-2';
 import { TrendingUp, DollarSign, Package, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Dashboard = () => {
   const { token } = useAuth();
@@ -59,7 +83,6 @@ const Dashboard = () => {
 
   const handleFilterChange = (filterName, value) => {
     setSelectedFilters(prev => ({ ...prev, [filterName]: value }));
-    // TODO: Apply filters to data
   };
 
   const handleViewInsight = (chartTitle, insights, recommendations) => {
@@ -84,17 +107,132 @@ const Dashboard = () => {
     );
   }
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-
-  // Ensure data exists and has values
   const yearlyData = (data?.yearly_performance || []).filter(item => item && item.Year);
   const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.gSales > 0);
   const monthlyData = (data?.monthly_trend || []).filter(item => item && item.Month_Name);
 
+  // Yearly Performance Chart Data
+  const yearlyChartData = {
+    labels: yearlyData.map(item => item.Year),
+    datasets: [
+      {
+        label: 'Sales',
+        data: yearlyData.map(item => item.gSales),
+        backgroundColor: '#3b82f6',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+        borderRadius: 6,
+      },
+      {
+        label: 'fGP',
+        data: yearlyData.map(item => item.fGP),
+        backgroundColor: '#10b981',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        borderRadius: 6,
+      },
+    ],
+  };
+
+  // Business Performance Pie Chart Data
+  const businessChartData = {
+    labels: businessData.map(item => item.Business),
+    datasets: [
+      {
+        data: businessData.map(item => item.gSales),
+        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+        borderWidth: 2,
+        borderColor: '#fff',
+      },
+    ],
+  };
+
+  // Monthly Trend Line Chart Data
+  const monthlyChartData = {
+    labels: monthlyData.map(item => item.Month_Name),
+    datasets: [
+      {
+        label: 'Sales',
+        data: monthlyData.map(item => item.gSales),
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#3b82f6',
+      },
+      {
+        label: 'fGP',
+        data: monthlyData.map(item => item.fGP),
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#10b981',
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: {
+          font: { size: 11 },
+          padding: 10,
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: '#1f2937',
+        bodyColor: '#1f2937',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        padding: 10,
+        displayColors: true,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 11 } },
+      },
+      y: {
+        grid: { color: '#f3f4f6' },
+        ticks: { font: { size: 11 } },
+      },
+    },
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'right',
+        labels: {
+          font: { size: 11 },
+          padding: 10,
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: '#1f2937',
+        bodyColor: '#1f2937',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+      },
+    },
+  };
+
   return (
     <Layout>
       <div className="space-y-5" data-testid="dashboard-page">
-        {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
             Executive Overview
@@ -102,14 +240,12 @@ const Dashboard = () => {
           <p className="text-gray-600 text-sm mt-1">Year-over-year performance and key metrics</p>
         </div>
 
-        {/* Filters */}
         <FilterBar
           filters={filters}
           selectedFilters={selectedFilters}
           onFilterChange={handleFilterChange}
         />
 
-        {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <KPICard
             title="Total fGP"
@@ -134,9 +270,7 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Yearly Performance */}
           <ChartCard
             title="Yearly Performance"
             onViewInsight={() =>
@@ -154,27 +288,11 @@ const Dashboard = () => {
               )
             }
           >
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={yearlyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="Year" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="gSales" fill="#3b82f6" name="Sales" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="fGP" fill="#10b981" name="fGP" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div style={{ height: '280px' }}>
+              <Bar data={yearlyChartData} options={chartOptions} />
+            </div>
           </ChartCard>
 
-          {/* Business Performance */}
           <ChartCard
             title="Business Performance"
             onViewInsight={() =>
@@ -192,35 +310,11 @@ const Dashboard = () => {
               )
             }
           >
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={businessData}
-                  dataKey="gSales"
-                  nameKey="Business"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={(entry) => `${entry.Business?.substring(0, 15)}...`}
-                  labelLine={false}
-                >
-                  {businessData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <div style={{ height: '280px' }}>
+              <Pie data={businessChartData} options={pieOptions} />
+            </div>
           </ChartCard>
 
-          {/* Monthly Trend */}
           <ChartCard
             title="Monthly Trend (Current Year)"
             className="lg:col-span-2"
@@ -239,43 +333,13 @@ const Dashboard = () => {
               )
             }
           >
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="Month_Name" stroke="#6b7280" style={{ fontSize: '11px' }} />
-                <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Line
-                  type="monotone"
-                  dataKey="gSales"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  name="Sales"
-                  dot={{ fill: '#3b82f6', r: 3 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="fGP"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  name="fGP"
-                  dot={{ fill: '#10b981', r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div style={{ height: '280px' }}>
+              <Line data={monthlyChartData} options={chartOptions} />
+            </div>
           </ChartCard>
         </div>
       </div>
 
-      {/* Insight Modal */}
       <InsightModal
         isOpen={insightModal.isOpen}
         onClose={() => setInsightModal({ isOpen: false, chartTitle: '', insights: [], recommendations: [] })}
@@ -285,7 +349,6 @@ const Dashboard = () => {
         onExploreDeep={handleExploreDeep}
       />
 
-      {/* AI Modal */}
       <AIInsightModal
         isOpen={aiModal.isOpen}
         onClose={() => setAiModal({ isOpen: false, chartTitle: '' })}
@@ -296,19 +359,13 @@ const Dashboard = () => {
 };
 
 const KPICard = ({ title, value, icon, color, bgColor }) => (
-  <div
-    className="professional-card p-5"
-    data-testid={`kpi-card-${title.toLowerCase().replace(/\s+/g, '-')}`}
-  >
+  <div className="professional-card p-5" data-testid={`kpi-card-${title.toLowerCase().replace(/\s+/g, '-')}`}>
     <div className="flex items-center justify-between">
       <div>
         <p className="text-gray-600 text-xs mb-1">{title}</p>
         <p className="text-2xl font-bold text-gray-900">{value}</p>
       </div>
-      <div
-        className="p-2.5 rounded-xl"
-        style={{ backgroundColor: bgColor, color }}
-      >
+      <div className="p-2.5 rounded-xl" style={{ backgroundColor: bgColor, color }}>
         {icon}
       </div>
     </div>
