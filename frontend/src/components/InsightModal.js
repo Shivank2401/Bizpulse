@@ -119,7 +119,7 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
           <p className="text-sm text-gray-600">Want to explore deeper insights with AI?</p>
           <Button
             onClick={onExploreDeep}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
             data-testid="explore-deep-button"
           >
             <Sparkles className="w-4 h-4 mr-2" />
