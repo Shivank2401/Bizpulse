@@ -186,15 +186,21 @@ frontend:
 
   - task: "Enhanced Insight Modal with AI Chat"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/InsightModal.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Redesigned InsightModal with two-column layout: Recommendations (left) and Chat Analysis (right). Integrated AI chat functionality with suggested prompts"
+      - working: false
+        agent: "testing"
+        comment: "❌ Modal error detected: 'Cannot read properties of undefined (reading 'bg')' - Issue with color object properties in recommendations array"
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED and FULLY FUNCTIONAL! Two-column layout verified: Left column shows 3 color-coded recommendation cards (green/yellow/blue), Right column shows AI chat with working input/send functionality. AI chat provides detailed business insights. Suggested prompts working (Show trends, Identify issues, Recommendations, Forecast). Modal opens/closes correctly. Fixed by handling both string and object recommendation formats."
 
   - task: "Login Page"
     implemented: true
