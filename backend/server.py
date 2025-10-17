@@ -431,16 +431,18 @@ async def get_category_analysis(email: str = Depends(get_current_user)):
             'Cases': 'sum'
         }).reset_index()
         
-        # Board Category
-        board_category_perf = df.groupby('Board_Category').agg({
-            'fGP': 'sum',
-            'gSales': 'sum'
-        }).reset_index()
+        # Board Category (check if column exists)
+        board_category_perf = []
+        if 'Board_Category' in df.columns:
+            board_category_perf = df.groupby('Board_Category').agg({
+                'fGP': 'sum',
+                'gSales': 'sum'
+            }).reset_index().to_dict('records')
         
         return {
             "category_performance": category_perf.to_dict('records'),
             "subcategory_performance": subcategory_perf.to_dict('records'),
-            "board_category_performance": board_category_perf.to_dict('records')
+            "board_category_performance": board_category_perf
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
