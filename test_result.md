@@ -228,11 +228,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Login Authentication API"
-    - "Data Sync and Analytics APIs"
-    - "Filter Data API"
+    - "Enhanced Insight Modal with AI Chat"
     - "Cockpit Page - Campaign Management"
     - "Projects Page - Project Management"
+    - "Dashboard and Analytics Pages"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -250,7 +249,7 @@ agent_communication:
       3. Verify navigation between pages works correctly
       4. Test filter integration across all pages
       
-      Login credentials: data.admin@thrivebrands.ai / 123456
+      Login credentials: data.admin@thrivebrands.ai / 123456User
       Input selectors: data-testid="login-email-input", data-testid="login-password-input"
 
   - agent: "testing"
@@ -275,3 +274,34 @@ agent_communication:
       - Fixed data limit issue (10K→100K) to include all 2025 data in filters
       
       Backend is production-ready. All /api routes working correctly with Kubernetes ingress.
+
+  - agent: "main"
+    message: |
+      ✅ INSIGHT MODAL REDESIGNED - TWO-COLUMN LAYOUT IMPLEMENTED
+      
+      Redesigned InsightModal.js to match the user's requirement:
+      
+      Left Column - Recommendations:
+      - Color-coded AI recommendations (green=positive, yellow=warning, red=urgent)
+      - Each card has icon, title, description, and action button
+      - Scrollable list of insights
+      
+      Right Column - Chat Analysis:
+      - AI conversation interface integrated
+      - Suggested prompt buttons (Show trends, Identify issues, Recommendations, Forecast)
+      - Follow-up prompts after AI responses
+      - Text input for custom questions
+      - Real-time AI chat using /api/ai/chat endpoint
+      
+      Changes:
+      - Combined InsightModal and AIInsightModal functionality
+      - Removed separate "Explore with AI" flow
+      - Two-column responsive layout
+      - Integrated chat directly in the modal
+      
+      FRONTEND TESTING NEEDED:
+      - Test "View Insight" button functionality
+      - Verify modal rendering with two-column layout
+      - Test AI chat interactions
+      - Test Cockpit and Projects page rendering
+      - Verify navigation between pages
