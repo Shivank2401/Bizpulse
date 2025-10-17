@@ -65,7 +65,7 @@ const AIInsightModal = ({ isOpen, onClose, chartTitle, data }) => {
         {/* Header */}
         <div
           className="p-6 border-b flex items-center justify-between rounded-t-2xl"
-          style={{ background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)' }}
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
