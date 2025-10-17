@@ -133,7 +133,7 @@ const AIInsightModal = ({ isOpen, onClose, chartTitle, data }) => {
             <Button
               onClick={handleSendMessage}
               disabled={loading || !input.trim()}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
               data-testid="ai-modal-send-button"
             >
               <Send className="w-5 h-5" />
