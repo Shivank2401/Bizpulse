@@ -375,7 +375,7 @@ async def get_customer_analysis(email: str = Depends(get_current_user)):
 async def get_brand_analysis(email: str = Depends(get_current_user)):
     """Brand Analysis - Brand performance by category and channel"""
     try:
-        data = await db.business_data.find({}, {"_id": 0}).to_list(10000)
+        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
         df = pd.DataFrame(data)
         
         if df.empty:
@@ -411,7 +411,7 @@ async def get_brand_analysis(email: str = Depends(get_current_user)):
 async def get_category_analysis(email: str = Depends(get_current_user)):
     """Category Analysis - Category and sub-category deep dives"""
     try:
-        data = await db.business_data.find({}, {"_id": 0}).to_list(10000)
+        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
         df = pd.DataFrame(data)
         
         if df.empty:
@@ -451,7 +451,7 @@ async def get_category_analysis(email: str = Depends(get_current_user)):
 async def get_filter_options(email: str = Depends(get_current_user)):
     """Get all unique filter options"""
     try:
-        data = await db.business_data.find({}, {"_id": 0}).to_list(10000)
+        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
         df = pd.DataFrame(data)
         
         if df.empty:
