@@ -104,6 +104,22 @@ function App() {
             }
           />
           <Route
+            path="/cockpit"
+            element={
+              <PrivateRoute>
+                <Cockpit />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/projects"
+            element={
+              <PrivateRoute>
+                <Projects />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/chart-insight"
             element={
               <PrivateRoute>
