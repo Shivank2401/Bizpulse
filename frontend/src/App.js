@@ -8,6 +8,8 @@ import CustomerAnalysis from '@/pages/CustomerAnalysis';
 import BrandAnalysis from '@/pages/BrandAnalysis';
 import CategoryAnalysis from '@/pages/CategoryAnalysis';
 import Reports from '@/pages/Reports';
+import Cockpit from '@/pages/Cockpit';
+import Projects from '@/pages/Projects';
 import ChartInsight from '@/pages/ChartInsight';
 import { Toaster } from '@/components/ui/sonner';
 
