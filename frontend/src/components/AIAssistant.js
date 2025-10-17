@@ -89,7 +89,7 @@ const AIAssistant = () => {
           <div
             className="p-4 border-b flex items-center justify-between rounded-t-2xl"
             style={{
-              background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)'
+              background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)'
             }}
           >
             <div className="flex items-center gap-3">
