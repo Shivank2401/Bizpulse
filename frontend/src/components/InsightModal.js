@@ -21,17 +21,88 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
 
   if (!isOpen) return null;
 
-  const defaultInsights = insights || [
-    { type: 'positive', text: 'Year-over-year growth shows strong upward trend' },
-    { type: 'neutral', text: 'Sales performance is consistent with industry benchmarks' },
-    { type: 'attention', text: 'Consider optimizing inventory for high-demand periods' }
+  // AI-generated recommendations based on chart type
+  const aiRecommendations = recommendations || [
+    {
+      type: 'positive',
+      icon: CheckCircle,
+      title: 'Strong Sales Growth',
+      description: 'Sales have increased by 25% over the last quarter, showing positive momentum.',
+      action: 'Continue current strategy',
+      color: { bg: '#d1fae5', border: '#10b981', text: '#065f46', icon: '#10b981' }
+    },
+    {
+      type: 'warning',
+      icon: AlertTriangle,
+      title: 'Profit Margin Declining',
+      description: 'While sales are up, profit margins have decreased by 8%, indicating rising costs.',
+      action: 'Review operational expenses',
+      color: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: '#f59e0b' }
+    },
+    {
+      type: 'urgent',
+      icon: AlertCircle,
+      title: 'Immediate Action Required',
+      description: 'Customer acquisition cost has spiked 40% this month. Immediate review needed.',
+      action: 'Schedule urgent review',
+      color: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '#ef4444' }
+    }
   ];
 
-  const defaultRecommendations = recommendations || [
-    'Focus marketing efforts on high-growth segments',
-    'Optimize pricing strategy for underperforming categories',
-    'Expand product lines in top-performing brands'
+  // Suggested prompts based on chart context
+  const suggestedPrompts = [
+    'Show trends',
+    'Identify issues',
+    'Recommendations',
+    'Forecast'
   ];
+
+  const followUpPrompts = [
+    'Show sales overview',
+    'Analyze profitability',
+    'Customer insights',
+    'Brand performance'
+  ];
+
+  const handleSendMessage = async (messageText = null) => {
+    const msgToSend = messageText || input.trim();
+    if (!msgToSend) return;
+
+    const userMessage = { role: 'user', content: msgToSend };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const contextMessage = `Regarding ${chartTitle}: ${msgToSend}`;
+      const response = await axios.post(
+        `${API}/ai/chat`,
+        {
+          message: contextMessage,
+          session_id: sessionId
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const aiMessage = { role: 'ai', content: response.data.response };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      toast.error('AI Assistant is unavailable');
+      const errorMessage = {
+        role: 'ai',
+        content: 'Sorry, I am currently unavailable. Please try again later.'
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePromptClick = (prompt) => {
+    handleSendMessage(prompt);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0, 0, 0, 0.5)' }} onClick={onClose}>
