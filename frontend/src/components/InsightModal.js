@@ -105,9 +105,13 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0, 0, 0, 0.5)' }} onClick={onClose}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+      style={{ background: 'rgba(0, 0, 0, 0.5)' }} 
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[85vh]"
+        className="w-full max-w-6xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
         data-testid="insight-modal"
       >
@@ -116,98 +120,174 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
           className="p-5 border-b flex items-center justify-between rounded-t-2xl"
           style={{ background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' }}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-white font-semibold text-lg" style={{ fontFamily: 'Space Grotesk' }}>
-                {chartTitle} - Insights
-              </h3>
-              <p className="text-sm text-blue-100">Detailed analysis and recommendations</p>
-            </div>
+          <div>
+            <h3 className="text-white font-bold text-xl" style={{ fontFamily: 'Space Grotesk' }}>
+              {chartTitle} - Insights & Analysis
+            </h3>
+            <p className="text-sm text-blue-100">AI-powered recommendations and chat analysis</p>
           </div>
           <button
             onClick={onClose}
             className="text-white hover:bg-white/20 rounded-lg p-2 transition"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Content */}
-        <ScrollArea className="flex-1 p-6 overflow-y-auto">
-          {/* Insights Section */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-                Key Insights
-              </h3>
-            </div>
-
-            <div className="space-y-3">
-              {defaultInsights.map((insight, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start gap-3 p-4 rounded-lg"
-                  style={{
-                    background: insight.type === 'positive' ? '#f0fdf4' :
-                               insight.type === 'attention' ? '#fef3c7' : '#f8fafc',
-                    border: '1px solid',
-                    borderColor: insight.type === 'positive' ? '#86efac' :
-                                 insight.type === 'attention' ? '#fde047' : '#e2e8f0'
-                  }}
-                >
-                  <div className="mt-0.5">
-                    {insight.type === 'positive' ? (
-                      <div className="w-2 h-2 bg-green-500 rounded-full" />
-                    ) : insight.type === 'attention' ? (
-                      <AlertCircle className="w-5 h-5 text-yellow-600" />
-                    ) : (
-                      <div className="w-2 h-2 bg-gray-400 rounded-full" />
-                    )}
-                  </div>
-                  <p className="text-gray-700 text-sm flex-1">{insight.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recommendations Section */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Lightbulb className="w-5 h-5 text-amber-600" />
-              <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+        {/* Two Column Layout */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Column - Recommendations */}
+          <div className="w-2/5 border-r bg-gray-50 flex flex-col">
+            <div className="p-5">
+              <h3 className="text-lg font-bold text-gray-900 mb-1" style={{ fontFamily: 'Space Grotesk' }}>
                 Recommendations
               </h3>
             </div>
 
-            <div className="space-y-3">
-              {defaultRecommendations.map((rec, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
-                    {idx + 1}
-                  </span>
-                  <p className="text-gray-700 text-sm flex-1">{rec}</p>
+            <ScrollArea className="flex-1 px-5 pb-5">
+              <div className="space-y-4">
+                {aiRecommendations.map((rec, idx) => {
+                  const Icon = rec.icon;
+                  return (
+                    <div
+                      key={idx}
+                      className="rounded-lg p-4 border-l-4"
+                      style={{
+                        background: rec.color.bg,
+                        borderColor: rec.color.border
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Icon className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: rec.color.icon }} />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm mb-1" style={{ color: rec.color.text }}>
+                            {rec.title}
+                          </h4>
+                          <p className="text-xs mb-3" style={{ color: rec.color.text, opacity: 0.8 }}>
+                            {rec.description}
+                          </p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs h-8 border"
+                            style={{ 
+                              borderColor: rec.color.border,
+                              color: rec.color.text
+                            }}
+                          >
+                            {rec.action}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* Right Column - Chat Analysis */}
+          <div className="flex-1 flex flex-col bg-white">
+            <div className="p-5">
+              <h3 className="text-lg font-bold text-gray-900 mb-1" style={{ fontFamily: 'Space Grotesk' }}>
+                Chat Analysis
+              </h3>
+            </div>
+
+            {/* Chat Messages */}
+            <ScrollArea className="flex-1 px-5">
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`mb-4 ${msg.role === 'user' ? 'flex justify-end' : ''}`}
+                >
+                  {msg.role === 'ai' && (
+                    <div className="bg-gray-100 rounded-lg p-4 border border-gray-200">
+                      <p className="text-sm text-gray-800 mb-3">{msg.content}</p>
+                      
+                      {/* Suggested Prompts */}
+                      {idx === 0 && (
+                        <div className="grid grid-cols-1 gap-2">
+                          {suggestedPrompts.map((prompt, pidx) => (
+                            <button
+                              key={pidx}
+                              onClick={() => handlePromptClick(prompt)}
+                              className="text-left px-3 py-2 rounded text-sm transition hover:bg-amber-100"
+                              style={{ background: '#fef3c7', color: '#92400e' }}
+                            >
+                              {prompt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Follow-up prompts after first response */}
+                      {idx > 1 && idx === messages.length - 1 && msg.role === 'ai' && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <p className="text-xs text-gray-600 mb-2">
+                            I can help you analyze your business data. Try asking about sales trends, profit margins, customer performance, or brand analysis. What would you like to know?
+                          </p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {followUpPrompts.map((prompt, pidx) => (
+                              <button
+                                key={pidx}
+                                onClick={() => handlePromptClick(prompt)}
+                                className="text-left px-3 py-2 rounded text-xs transition hover:bg-amber-100"
+                                style={{ background: '#fef3c7', color: '#92400e' }}
+                              >
+                                {prompt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {msg.role === 'user' && (
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg px-4 py-3 max-w-[80%]">
+                      <p className="text-sm">{msg.content}</p>
+                    </div>
+                  )}
                 </div>
               ))}
+
+              {loading && (
+                <div className="mb-4">
+                  <div className="bg-gray-100 px-4 py-3 rounded-lg border border-gray-200 inline-block">
+                    <div className="flex gap-2">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </ScrollArea>
+
+            {/* Chat Input */}
+            <div className="p-5 border-t bg-white">
+              <div className="flex gap-3">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !loading && handleSendMessage()}
+                  placeholder="Ask about this chart..."
+                  disabled={loading}
+                  className="flex-1"
+                  data-testid="insight-chat-input"
+                />
+                <Button
+                  onClick={() => handleSendMessage()}
+                  disabled={loading || !input.trim()}
+                  className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+                  data-testid="insight-send-button"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
-        </ScrollArea>
-
-        {/* Footer */}
-        <div className="p-5 border-t bg-gray-50 rounded-b-2xl flex justify-between items-center">
-          <p className="text-sm text-gray-600">Want to explore deeper insights with AI?</p>
-          <Button
-            onClick={onExploreDeep}
-            className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
-            data-testid="explore-deep-button"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Explore with AI
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
         </div>
       </div>
     </div>
