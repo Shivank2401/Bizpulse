@@ -22,7 +22,7 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
   if (!isOpen) return null;
 
   // AI-generated recommendations based on chart type
-  const aiRecommendations = recommendations || [
+  const defaultRecommendations = [
     {
       type: 'positive',
       icon: CheckCircle,
@@ -48,6 +48,33 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
       color: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '#ef4444' }
     }
   ];
+
+  // Convert string recommendations to proper format if needed
+  const aiRecommendations = recommendations && recommendations.length > 0 
+    ? recommendations.map((rec, index) => {
+        if (typeof rec === 'string') {
+          // Convert string to recommendation object
+          const colors = [
+            { bg: '#d1fae5', border: '#10b981', text: '#065f46', icon: '#10b981' },
+            { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: '#f59e0b' },
+            { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', icon: '#3b82f6' }
+          ];
+          return {
+            type: 'info',
+            icon: Lightbulb,
+            title: `Recommendation ${index + 1}`,
+            description: rec,
+            action: 'Review',
+            color: colors[index % colors.length]
+          };
+        }
+        // If it's already an object, ensure it has color property
+        return {
+          ...rec,
+          color: rec.color || { bg: '#d1fae5', border: '#10b981', text: '#065f46', icon: '#10b981' }
+        };
+      })
+    : defaultRecommendations;
 
   // Suggested prompts based on chart context
   const suggestedPrompts = [
