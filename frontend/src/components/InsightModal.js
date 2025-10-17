@@ -4,10 +4,21 @@ import { API, useAuth } from '@/App';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Send, Sparkles, TrendingUp, AlertCircle, Lightbulb, ArrowRight } from 'lucide-react';
+import { X, Send, Sparkles, TrendingUp, AlertCircle, Lightbulb, ArrowRight, CheckCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, onExploreDeep }) => {
+  const { token } = useAuth();
+  const [messages, setMessages] = useState([
+    {
+      role: 'ai',
+      content: `I'm analyzing ${chartTitle}. What would you like to know about this data?`
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const sessionId = `insight-${Date.now()}`;
+
   if (!isOpen) return null;
 
   const defaultInsights = insights || [
