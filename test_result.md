@@ -167,7 +167,7 @@ frontend:
         comment: "Fixed syntax error - escaped newlines replaced with actual newlines"
       - working: "NA"
         agent: "main"
-        comment: "Syntax error fixed. Page should now render with AI-recommended, active, and archived campaign tabs"
+        comment: "Syntax error fixed. Webpack compiled successfully. Page needs UI testing"
 
   - task: "Projects Page - Project Management"
     implemented: true
@@ -182,7 +182,19 @@ frontend:
         comment: "Fixed syntax error - escaped newlines replaced with actual newlines"
       - working: "NA"
         agent: "main"
-        comment: "Syntax error fixed. Page should now render with project cards, tasks, and AI recommendations"
+        comment: "Syntax error fixed. Webpack compiled successfully. Page needs UI testing"
+
+  - task: "Enhanced Insight Modal with AI Chat"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/InsightModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Redesigned InsightModal with two-column layout: Recommendations (left) and Chat Analysis (right). Integrated AI chat functionality with suggested prompts"
 
   - task: "Login Page"
     implemented: true
