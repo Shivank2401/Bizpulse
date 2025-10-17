@@ -200,4 +200,60 @@ const Cockpit = () => {
         )}
       </div>
     </div>
-  );\n\n  return (\n    <Layout>\n      <div className=\"space-y-5\">\n        <div>\n          <h1 className=\"text-2xl font-bold text-gray-900\" style={{ fontFamily: 'Space Grotesk' }}>\n            Campaign Cockpit\n          </h1>\n          <p className=\"text-gray-600 text-sm mt-1\">AI-powered campaign management and recommendations</p>\n        </div>\n\n        <FilterBar filters={filters} selectedFilters={selectedFilters} onFilterChange={handleFilterChange} />\n\n        {/* Tabs */}\n        <div className=\"flex gap-2 border-b border-gray-200\">\n          {[\n            { key: 'recommended', label: 'AI Recommended', count: campaigns.recommended.length },\n            { key: 'active', label: 'Active Campaigns', count: campaigns.active.length },\n            { key: 'archived', label: 'Archived', count: campaigns.archived.length }\n          ].map(tab => (\n            <button\n              key={tab.key}\n              onClick={() => setActiveTab(tab.key)}\n              className={`px-4 py-2 text-sm font-medium transition ${\n                activeTab === tab.key\n                  ? 'border-b-2 text-gray-900'\n                  : 'text-gray-600 hover:text-gray-900'\n              }`}\n              style={{\n                borderColor: activeTab === tab.key ? '#d97706' : 'transparent'\n              }}\n            >\n              {tab.label} ({tab.count})\n            </button>\n          ))}\n        </div>\n\n        {/* Campaign Grid */}\n        <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5\">\n          {campaigns[activeTab].length === 0 ? (\n            <div className=\"col-span-full text-center py-12\">\n              <Target className=\"w-12 h-12 text-gray-400 mx-auto mb-3\" />\n              <p className=\"text-gray-600\">No campaigns in this category</p>\n            </div>\n          ) : (\n            campaigns[activeTab].map(campaign => (\n              <CampaignCard key={campaign.id} campaign={campaign} type={activeTab} />\n            ))\n          )}\n        </div>\n      </div>\n    </Layout>\n  );\n};\n\nexport default Cockpit;
+  );
+
+  return (
+    <Layout>
+      <div className="space-y-5">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+            Campaign Cockpit
+          </h1>
+          <p className="text-gray-600 text-sm mt-1">AI-powered campaign management and recommendations</p>
+        </div>
+
+        <FilterBar filters={filters} selectedFilters={selectedFilters} onFilterChange={handleFilterChange} />
+
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-gray-200">
+          {[
+            { key: 'recommended', label: 'AI Recommended', count: campaigns.recommended.length },
+            { key: 'active', label: 'Active Campaigns', count: campaigns.active.length },
+            { key: 'archived', label: 'Archived', count: campaigns.archived.length }
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2 text-sm font-medium transition ${
+                activeTab === tab.key
+                  ? 'border-b-2 text-gray-900'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              style={{
+                borderColor: activeTab === tab.key ? '#d97706' : 'transparent'
+              }}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          ))}
+        </div>
+
+        {/* Campaign Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {campaigns[activeTab].length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <Target className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600">No campaigns in this category</p>
+            </div>
+          ) : (
+            campaigns[activeTab].map(campaign => (
+              <CampaignCard key={campaign.id} campaign={campaign} type={activeTab} />
+            ))
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default Cockpit;
