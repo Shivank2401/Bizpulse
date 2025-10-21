@@ -83,17 +83,19 @@ const Dashboard = () => {
     setSelectedFilters(prev => ({ ...prev, [filterName]: value }));
   };
   
-  const handleChartFilterChange = (chartName, filterName, value) => {
+  const handleChartFilterChange = async (chartName, filterName, value) => {
+    const updatedFilters = {
+      ...chartFilters[chartName],
+      [filterName]: value
+    };
+    
     setChartFilters(prev => ({
       ...prev,
-      [chartName]: {
-        ...prev[chartName],
-        [filterName]: value
-      }
+      [chartName]: updatedFilters
     }));
     
-    // Fetch data with the new chart-specific filters
-    fetchData(chartFilters[chartName]);
+    // Fetch data with the chart-specific filters
+    await fetchData(updatedFilters);
   };
 
   const handleViewInsight = (chartTitle, insights, recommendations) => {
