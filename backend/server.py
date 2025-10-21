@@ -118,66 +118,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-async def sync_azure_data():
-    """Sync data from Azure Blob Storage to MongoDB"""
-    try:
-        logger.info("Starting data sync...")
-        
-        # For now, use local file. Azure Blob Storage code commented below
-        # Uncomment the code below to sync from Azure Blob Storage
-        '''
-        # Connect to Azure Blob Storage
-        blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
-        blob_client = blob_service_client.get_blob_client(
-            container=AZURE_CONTAINER_NAME, 
-            blob=AZURE_BLOB_PATH
-        )
-        
-        # Download blob content
-        blob_data = blob_client.download_blob()
-        content = blob_data.readall().decode('utf-8')
-        '''
-        
-        # Load from local file (new filtered CSV)
-        with open('/app/backend/yearly_data.csv', 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Parse CSV
-        df = pd.read_csv(StringIO(content))
-        logger.info(f"Loaded {len(df)} records from Azure Blob")
-        
-        # Clean column names (remove spaces, special characters)
-        df.columns = (df.columns.str.replace(' ', '_')
-                                .str.replace('.', '_')
-                                .str.replace('+', '')
-                                .str.replace('-', '_')
-                                .str.replace('__', '_')
-                                .str.replace('&', 'and'))
-        
-        # Convert numeric columns that might have formatting
-        numeric_cols = ['Cases', 'gSales', 'Price_Downs', 'Perm_Disc_', 'Group_Cost', 'LTA', 'fGP']
-        for col in numeric_cols:
-            if col in df.columns:
-                # Remove commas and convert to float
-                df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-        
-        # Convert to dict and prepare for MongoDB
-        records = df.to_dict('records')
-        
-        # Clear existing data
-        await db.business_data.delete_many({})
-        
-        # Insert new data in batches
-        batch_size = 1000
-        for i in range(0, len(records), batch_size):
-            batch = records[i:i + batch_size]
-            await db.business_data.insert_many(batch, ordered=False)
-        
-        logger.info(f"Successfully synced {len(records)} records to MongoDB")
-        return len(records)
-    except Exception as e:
-        logger.error(f"Error syncing Azure data: {str(e)}")
-        raise
+# Removed sync_azure_data function - using dummy data instead
 
 # Lifespan context manager
 @asynccontextmanager
