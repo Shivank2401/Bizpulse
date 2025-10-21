@@ -42,6 +42,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchFilters();
+  }, []);
+  
+  useEffect(() => {
     fetchData();
   }, [selectedFilters]);
 
