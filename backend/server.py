@@ -251,11 +251,28 @@ async def trigger_sync(email: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/executive-overview")
-async def get_executive_overview(email: str = Depends(get_current_user)):
-    """Executive Overview - YoY comparison, KPIs"""
+async def get_executive_overview(
+    year: str = 'all',
+    month: str = 'all',
+    business: str = 'all',
+    channel: str = 'all',
+    email: str = Depends(get_current_user)
+):
+    """Executive Overview - YoY comparison, KPIs with filters"""
     try:
-        # Get all data (increased limit to get all records)
-        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
+        # Build query based on filters
+        query = {}
+        if year != 'all':
+            query['Year'] = int(year)
+        if month != 'all':
+            query['Month_Name'] = month
+        if business != 'all':
+            query['Business'] = business
+        if channel != 'all':
+            query['Channel'] = channel
+            
+        # Get filtered data
+        data = await db.business_data.find(query, {"_id": 0}).to_list(100000)
         df = pd.DataFrame(data)
         
         if df.empty:
