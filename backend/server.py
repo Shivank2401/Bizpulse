@@ -195,16 +195,22 @@ async def lifespan(app: FastAPI):
         await db.users.insert_one(user_dict)
         logger.info("Default user created")
     
-    # Initial data sync
-    try:
-        await sync_azure_data()
-    except Exception as e:
-        logger.warning(f"Initial sync failed: {str(e)}")
+    # Initial data sync - COMMENTED OUT TO USE DUMMY DATA
+    # try:
+    #     await sync_azure_data()
+    # except Exception as e:
+    #     logger.warning(f"Initial sync failed: {str(e)}")
     
-    # Start scheduler for periodic sync (every 6 hours)
-    scheduler.add_job(sync_azure_data, 'interval', hours=6)
-    scheduler.start()
-    logger.info("Scheduler started")
+    # Start scheduler for periodic sync (every 6 hours) - COMMENTED OUT TO USE DUMMY DATA
+    # scheduler.add_job(sync_azure_data, 'interval', hours=6)
+    # scheduler.start()
+    # logger.info("Scheduler started")
+    
+    logger.info("Using dummy data from MongoDB")
+    
+    # Verify data exists
+    count = await db.business_data.count_documents({})
+    logger.info(f"MongoDB has {count} records")
     
     yield
     
