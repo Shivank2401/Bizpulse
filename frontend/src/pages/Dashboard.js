@@ -26,13 +26,24 @@ const Dashboard = () => {
     brand: 'all',
     category: 'all'
   });
+  
+  // Individual chart filters
+  const [chartFilters, setChartFilters] = useState({
+    yearlyPerformance: { year: 'all', month: 'all', business: 'all', channel: 'all' },
+    businessPerformance: { year: 'all', month: 'all', business: 'all', channel: 'all' },
+    monthlyTrend: { year: 'all', month: 'all', business: 'all', channel: 'all' },
+    businessCases: { year: 'all', month: 'all', business: 'all', channel: 'all' },
+    businessSales: { year: 'all', month: 'all', business: 'all', channel: 'all' },
+    businessFGP: { year: 'all', month: 'all', business: 'all', channel: 'all' },
+  });
+  
   const [insightModal, setInsightModal] = useState({ isOpen: false, chartTitle: '', insights: [], recommendations: [] });
   const [aiModal, setAiModal] = useState({ isOpen: false, chartTitle: '' });
 
   useEffect(() => {
     fetchFilters();
     fetchData();
-  }, []);
+  }, [selectedFilters]);
 
   const fetchFilters = async () => {
     try {
@@ -41,17 +52,27 @@ const Dashboard = () => {
       });
       setFilters(response.data);
     } catch (error) {
-      console.error('Failed to load filters');
+      console.error('Failed to load filters', error);
+      toast.error('Failed to load filters');
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = async (customFilters = null) => {
     try {
-      const response = await axios.get(`${API}/analytics/executive-overview`, {
+      setLoading(true);
+      const filterParams = customFilters || selectedFilters;
+      const queryParams = new URLSearchParams();
+      if (filterParams.year !== 'all') queryParams.append('year', filterParams.year);
+      if (filterParams.month !== 'all') queryParams.append('month', filterParams.month);
+      if (filterParams.business !== 'all') queryParams.append('business', filterParams.business);
+      if (filterParams.channel !== 'all') queryParams.append('channel', filterParams.channel);
+      
+      const response = await axios.get(`${API}/analytics/executive-overview?${queryParams.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setData(response.data);
     } catch (error) {
+      console.error('Failed to load dashboard data', error);
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -60,6 +81,19 @@ const Dashboard = () => {
 
   const handleFilterChange = (filterName, value) => {
     setSelectedFilters(prev => ({ ...prev, [filterName]: value }));
+  };
+  
+  const handleChartFilterChange = (chartName, filterName, value) => {
+    setChartFilters(prev => ({
+      ...prev,
+      [chartName]: {
+        ...prev[chartName],
+        [filterName]: value
+      }
+    }));
+    
+    // Fetch data with the new chart-specific filters
+    fetchData(chartFilters[chartName]);
   };
 
   const handleViewInsight = (chartTitle, insights, recommendations) => {
