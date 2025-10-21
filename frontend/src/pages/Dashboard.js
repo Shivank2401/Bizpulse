@@ -117,6 +117,18 @@ const Dashboard = () => {
       </Layout>
     );
   }
+  
+  if (!data) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <p className="text-gray-600">No data available</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const yearlyData = (data?.yearly_performance || []).filter(item => item && item.Year);
   const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.gSales > 0);
@@ -151,9 +163,54 @@ const Dashboard = () => {
     datasets: [
       {
         data: businessData.map(item => item.gSales),
-        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'],
         borderWidth: 2,
         borderColor: '#fff',
+      },
+    ],
+  };
+  
+  // NEW: Business vs Cases Bar Chart
+  const businessCasesChartData = {
+    labels: businessData.map(item => item.Business),
+    datasets: [
+      {
+        label: 'Cases',
+        data: businessData.map(item => item.Cases),
+        backgroundColor: '#f59e0b',
+        borderColor: '#f59e0b',
+        borderWidth: 1,
+        borderRadius: 6,
+      },
+    ],
+  };
+  
+  // NEW: Business vs Sales Bar Chart
+  const businessSalesChartData = {
+    labels: businessData.map(item => item.Business),
+    datasets: [
+      {
+        label: 'Sales',
+        data: businessData.map(item => item.gSales),
+        backgroundColor: '#3b82f6',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+        borderRadius: 6,
+      },
+    ],
+  };
+  
+  // NEW: Business vs fGP Bar Chart
+  const businessFGPChartData = {
+    labels: businessData.map(item => item.Business),
+    datasets: [
+      {
+        label: 'fGP',
+        data: businessData.map(item => item.fGP),
+        backgroundColor: '#10b981',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        borderRadius: 6,
       },
     ],
   };
