@@ -182,7 +182,7 @@ async def sync_azure_data():
 # Lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize default user and sync data
+    # Startup: Initialize default user only
     logger.info("Application startup...")
     
     # Create default user if not exists
@@ -195,22 +195,12 @@ async def lifespan(app: FastAPI):
         await db.users.insert_one(user_dict)
         logger.info("Default user created")
     
-    # Initial data sync - COMMENTED OUT TO USE DUMMY DATA
-    # try:
-    #     await sync_azure_data()
-    # except Exception as e:
-    #     logger.warning(f"Initial sync failed: {str(e)}")
-    
-    # Start scheduler for periodic sync (every 6 hours) - COMMENTED OUT TO USE DUMMY DATA
-    # scheduler.add_job(sync_azure_data, 'interval', hours=6)
-    # scheduler.start()
-    # logger.info("Scheduler started")
-    
-    logger.info("Using dummy data from MongoDB")
-    
-    # Verify data exists
+    # Verify data exists in MongoDB
     count = await db.business_data.count_documents({})
-    logger.info(f"MongoDB has {count} records")
+    logger.info(f"Using dummy data from MongoDB - {count} records available")
+    
+    if count == 0:
+        logger.warning("⚠️ No data in MongoDB! Run generate_dummy_data.py to populate data")
     
     yield
     
