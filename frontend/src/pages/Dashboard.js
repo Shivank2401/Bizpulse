@@ -465,7 +465,7 @@ const KPICard = ({ title, value, icon, color, bgColor }) => (
   </div>
 );
 
-const ChartCard = ({ title, children, onViewInsight, className = '' }) => (
+const ChartCard = ({ title, children, onViewInsight, className = '', filters, chartName, onChartFilterChange, chartFilters }) => (
   <div className={`professional-card p-5 ${className}`}>
     <div className="flex items-center justify-between mb-3">
       <h3 className="text-base font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
@@ -482,6 +482,65 @@ const ChartCard = ({ title, children, onViewInsight, className = '' }) => (
         View Insight
       </Button>
     </div>
+    
+    {/* Chart Filters */}
+    {filters && chartFilters && (
+      <div className="grid grid-cols-4 gap-2 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+          <label className="text-xs text-gray-600 mb-1 block">Year</label>
+          <select
+            value={chartFilters.year}
+            onChange={(e) => onChartFilterChange(chartName, 'year', e.target.value)}
+            className="w-full text-xs border border-gray-300 rounded px-2 py-1.5"
+          >
+            <option value="all">All Years</option>
+            {filters?.years?.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-gray-600 mb-1 block">Month</label>
+          <select
+            value={chartFilters.month}
+            onChange={(e) => onChartFilterChange(chartName, 'month', e.target.value)}
+            className="w-full text-xs border border-gray-300 rounded px-2 py-1.5"
+          >
+            <option value="all">All Months</option>
+            {filters?.months?.map(month => (
+              <option key={month} value={month}>{month}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-gray-600 mb-1 block">Business</label>
+          <select
+            value={chartFilters.business}
+            onChange={(e) => onChartFilterChange(chartName, 'business', e.target.value)}
+            className="w-full text-xs border border-gray-300 rounded px-2 py-1.5"
+          >
+            <option value="all">All Businesses</option>
+            {filters?.businesses?.map(business => (
+              <option key={business} value={business}>{business}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-gray-600 mb-1 block">Channel</label>
+          <select
+            value={chartFilters.channel}
+            onChange={(e) => onChartFilterChange(chartName, 'channel', e.target.value)}
+            className="w-full text-xs border border-gray-300 rounded px-2 py-1.5"
+          >
+            <option value="all">All Channels</option>
+            {filters?.channels?.map(channel => (
+              <option key={channel} value={channel}>{channel}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+    )}
+    
     {children}
   </div>
 );
