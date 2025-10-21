@@ -366,12 +366,16 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <ChartCard
             title="Yearly Performance"
+            filters={filters}
+            chartName="yearlyPerformance"
+            chartFilters={chartFilters.yearlyPerformance}
+            onChartFilterChange={handleChartFilterChange}
             onViewInsight={() =>
               handleViewInsight(
                 'Yearly Performance',
                 [
-                  { type: 'positive', text: `Total revenue of $${(data?.total_sales || 0).toLocaleString()} across ${yearlyData.length} years` },
-                  { type: 'neutral', text: 'fGP margins remain stable at 29.5% average' }
+                  { type: 'positive', text: `Total revenue of €${formatNumber(data?.total_sales || 0)} across ${yearlyData.length} years` },
+                  { type: 'neutral', text: 'fGP margins remain stable' }
                 ],
                 [
                   'Monitor year-over-year growth trends',
@@ -382,12 +386,20 @@ const Dashboard = () => {
             }
           >
             <div className="chart-container">
-              {yearlyData.length > 0 && <ChartComponent type="bar" data={yearlyChartData} options={chartOptions} />}
+              {yearlyData.length > 0 ? (
+                <ChartComponent type="bar" data={yearlyChartData} options={chartOptions} />
+              ) : (
+                <p className="text-center text-gray-500 py-8">No data available for selected filters</p>
+              )}
             </div>
           </ChartCard>
 
           <ChartCard
             title="Business Performance"
+            filters={filters}
+            chartName="businessPerformance"
+            chartFilters={chartFilters.businessPerformance}
+            onChartFilterChange={handleChartFilterChange}
             onViewInsight={() =>
               handleViewInsight(
                 'Business Performance',
@@ -404,13 +416,111 @@ const Dashboard = () => {
             }
           >
             <div className="chart-container">
-              {businessData.length > 0 && <ChartComponent type="pie" data={businessChartData} options={pieOptions} />}
+              {businessData.length > 0 ? (
+                <ChartComponent type="pie" data={businessChartData} options={pieOptions} />
+              ) : (
+                <p className="text-center text-gray-500 py-8">No data available for selected filters</p>
+              )}
+            </div>
+          </ChartCard>
+
+          <ChartCard
+            title="Business vs Cases"
+            filters={filters}
+            chartName="businessCases"
+            chartFilters={chartFilters.businessCases}
+            onChartFilterChange={handleChartFilterChange}
+            onViewInsight={() =>
+              handleViewInsight(
+                'Business vs Cases',
+                [
+                  { type: 'positive', text: `Total ${formatNumber(data?.total_cases || 0)} cases across all businesses` },
+                  { type: 'neutral', text: 'Case volume shows business distribution patterns' }
+                ],
+                [
+                  'Optimize inventory based on case volume',
+                  'Focus on high-volume business segments',
+                  'Balance distribution efficiency'
+                ]
+              )
+            }
+          >
+            <div className="chart-container">
+              {businessData.length > 0 ? (
+                <ChartComponent type="bar" data={businessCasesChartData} options={chartOptions} />
+              ) : (
+                <p className="text-center text-gray-500 py-8">No data available for selected filters</p>
+              )}
+            </div>
+          </ChartCard>
+
+          <ChartCard
+            title="Business vs Sales"
+            filters={filters}
+            chartName="businessSales"
+            chartFilters={chartFilters.businessSales}
+            onChartFilterChange={handleChartFilterChange}
+            onViewInsight={() =>
+              handleViewInsight(
+                'Business vs Sales',
+                [
+                  { type: 'positive', text: `Total sales of €${formatNumber(data?.total_sales || 0)} across businesses` },
+                  { type: 'neutral', text: 'Sales distribution indicates market strength' }
+                ],
+                [
+                  'Invest in top-performing business units',
+                  'Develop strategies for underperforming segments',
+                  'Leverage successful business models'
+                ]
+              )
+            }
+          >
+            <div className="chart-container">
+              {businessData.length > 0 ? (
+                <ChartComponent type="bar" data={businessSalesChartData} options={chartOptions} />
+              ) : (
+                <p className="text-center text-gray-500 py-8">No data available for selected filters</p>
+              )}
+            </div>
+          </ChartCard>
+
+          <ChartCard
+            title="Business vs fGP"
+            filters={filters}
+            chartName="businessFGP"
+            chartFilters={chartFilters.businessFGP}
+            onChartFilterChange={handleChartFilterChange}
+            onViewInsight={() =>
+              handleViewInsight(
+                'Business vs fGP',
+                [
+                  { type: 'positive', text: `Total fGP of €${formatNumber(data?.total_fgp || 0)} generated` },
+                  { type: 'attention', text: 'Profit margin variations need analysis' }
+                ],
+                [
+                  'Focus on high-margin business units',
+                  'Review cost structures in lower-margin segments',
+                  'Optimize pricing strategies'
+                ]
+              )
+            }
+          >
+            <div className="chart-container">
+              {businessData.length > 0 ? (
+                <ChartComponent type="bar" data={businessFGPChartData} options={chartOptions} />
+              ) : (
+                <p className="text-center text-gray-500 py-8">No data available for selected filters</p>
+              )}
             </div>
           </ChartCard>
 
           <ChartCard
             title="Monthly Trend (Current Year)"
             className="lg:col-span-2"
+            filters={filters}
+            chartName="monthlyTrend"
+            chartFilters={chartFilters.monthlyTrend}
+            onChartFilterChange={handleChartFilterChange}
             onViewInsight={() =>
               handleViewInsight(
                 'Monthly Trend',
@@ -427,7 +537,11 @@ const Dashboard = () => {
             }
           >
             <div className="chart-container">
-              {monthlyData.length > 0 && <ChartComponent type="line" data={monthlyChartData} options={chartOptions} />}
+              {monthlyData.length > 0 ? (
+                <ChartComponent type="line" data={monthlyChartData} options={chartOptions} />
+              ) : (
+                <p className="text-center text-gray-500 py-8">No data available for selected filters</p>
+              )}
             </div>
           </ChartCard>
         </div>
