@@ -225,7 +225,7 @@ const Dashboard = () => {
     labels: monthlyData.map(item => item.Month_Name),
     datasets: [
       {
-        label: 'Sales',
+        label: 'Revenue',
         data: monthlyData.map(item => item.Revenue),
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -235,7 +235,7 @@ const Dashboard = () => {
         pointBackgroundColor: '#3b82f6',
       },
       {
-        label: 'Gross_Profit',
+        label: 'Profit',
         data: monthlyData.map(item => item.Gross_Profit),
         borderColor: '#10b981',
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
