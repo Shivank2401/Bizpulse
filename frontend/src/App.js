@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import axios from 'axios';
 import '@/App.css';
 import Login from '@/pages/Login';
-import Dashboard from '@/pages/Dashboard';
+import DashboardNew from '@/pages/DashboardNew';
 import CustomerAnalysisNew from '@/pages/CustomerAnalysisNew';
 import BrandAnalysisNew from '@/pages/BrandAnalysisNew';
 import CategoryAnalysisNew from '@/pages/CategoryAnalysisNew';
