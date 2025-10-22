@@ -146,7 +146,7 @@ async def generate_dummy_data():
                                 
                                 for sub_category in available_subcategories:
                                     # Generate realistic KPIs
-                                    base_cases = random.randint(100, 5000)
+                                    base_units = random.randint(100, 5000)
                                     
                                     # Add growth trend across years
                                     year_multiplier = 1.0 + (year - 2023) * 0.15
