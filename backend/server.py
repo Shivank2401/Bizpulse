@@ -259,7 +259,8 @@ async def get_executive_overview(
         
         # Month-wise trend for current year with proper month ordering
         current_year = int(df['Year'].max())
-        month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        month_order = ['January', 'February', 'March', 'April', 'May', 'June', 
+                      'July', 'August', 'September', 'October', 'November', 'December']
         
         monthly_trend = df[df['Year'] == current_year].groupby('Month_Name').agg({
             'Gross_Profit': 'sum',
