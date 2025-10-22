@@ -34,7 +34,7 @@ const Dashboard = () => {
     monthlyTrend: { year: 'all', month: 'all', business: 'all', channel: 'all' },
     businessUnits: { year: 'all', month: 'all', business: 'all', channel: 'all' },
     businessSales: { year: 'all', month: 'all', business: 'all', channel: 'all' },
-    businessFGP: { year: 'all', month: 'all', business: 'all', channel: 'all' },
+    businessProfit: { year: 'all', month: 'all', business: 'all', channel: 'all' },
   });
   
   const [insightModal, setInsightModal] = useState({ isOpen: false, chartTitle: '', insights: [], recommendations: [] });
