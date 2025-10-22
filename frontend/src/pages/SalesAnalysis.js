@@ -3,14 +3,11 @@ import Layout from '@/components/Layout';
 import MultiSelectFilter from '@/components/MultiSelectFilter';
 import ChartComponent from '@/components/ChartComponent';
 import { formatNumber } from '@/utils/formatters';
-import axios from 'axios';
-import { API, useAuth } from '@/App';
+import staticData from '@/data/staticData';
 import { TrendingUp, TrendingDown, DollarSign, Package, Eye, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 
 const SalesAnalysis = () => {
-  const { token } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(null);
@@ -22,42 +19,11 @@ const SalesAnalysis = () => {
   const [selectedChannels, setSelectedChannels] = useState([]);
 
   useEffect(() => {
-    fetchFilters();
-    fetchData();
-  }, [selectedYears, selectedMonths, selectedBusinesses, selectedChannels]);
-
-  const fetchFilters = async () => {
-    try {
-      const response = await axios.get(`${API}/filters/options`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setFilters(response.data);
-    } catch (error) {
-      console.error('Failed to load filters', error);
-    }
-  };
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const queryParams = new URLSearchParams();
-      
-      if (selectedYears.length > 0) queryParams.append('years', selectedYears.join(','));
-      if (selectedMonths.length > 0) queryParams.append('months', selectedMonths.join(','));
-      if (selectedBusinesses.length > 0) queryParams.append('businesses', selectedBusinesses.join(','));
-      if (selectedChannels.length > 0) queryParams.append('channels', selectedChannels.join(','));
-      
-      const response = await axios.get(`${API}/analytics/executive-overview?${queryParams.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setData(response.data);
-    } catch (error) {
-      console.error('Failed to load sales data', error);
-      toast.error('Failed to load sales data');
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Load static data
+    setFilters(staticData.filters);
+    setData(staticData.executiveOverview);
+    setLoading(false);
+  }, []);
 
   if (loading) {
     return (
