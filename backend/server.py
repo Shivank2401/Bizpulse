@@ -228,7 +228,7 @@ async def get_executive_overview(
             return {"error": "No data available"}
         
         # Ensure numeric columns
-        for col in ['fGP', 'gSales', 'Cases', 'Year']:
+        for col in ['Gross_Profit', 'Revenue', 'Units', 'Year']:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         
