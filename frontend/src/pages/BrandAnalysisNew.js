@@ -2,34 +2,18 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import ChartComponent from '@/components/ChartComponent';
 import { formatNumber } from '@/utils/formatters';
-import axios from 'axios';
-import { API, useAuth } from '@/App';
+import staticData from '@/data/staticData';
 import { Tag, TrendingUp, DollarSign, BarChart3 } from 'lucide-react';
-import { toast } from 'sonner';
 
 const BrandAnalysis = () => {
-  const { token } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    // Load static data
+    setData(staticData.brandAnalysis);
+    setLoading(false);
   }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${API}/analytics/brand-analysis`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setData(response.data);
-    } catch (error) {
-      console.error('Failed to load brand data', error);
-      toast.error('Failed to load brand data');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
