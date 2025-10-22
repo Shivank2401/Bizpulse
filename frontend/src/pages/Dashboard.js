@@ -380,7 +380,7 @@ const Dashboard = () => {
                 'Yearly Performance',
                 [
                   { type: 'positive', text: `Total revenue of €${formatNumber(data?.total_revenue || 0)} across ${yearlyData.length} years` },
-                  { type: 'neutral', text: 'Gross_Profit margins remain stable' }
+                  { type: 'neutral', text: 'Profit margins remain stable' }
                 ],
                 [
                   'Monitor year-over-year growth trends',
