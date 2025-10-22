@@ -2,34 +2,18 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import ChartComponent from '@/components/ChartComponent';
 import { formatNumber } from '@/utils/formatters';
-import axios from 'axios';
-import { API, useAuth } from '@/App';
+import staticData from '@/data/staticData';
 import { Layers, TrendingUp, DollarSign } from 'lucide-react';
-import { toast } from 'sonner';
 
 const CategoryAnalysis = () => {
-  const { token } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    // Load static data
+    setData(staticData.categoryAnalysis);
+    setLoading(false);
   }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${API}/analytics/category-analysis`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setData(response.data);
-    } catch (error) {
-      console.error('Failed to load category data', error);
-      toast.error('Failed to load category data');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
