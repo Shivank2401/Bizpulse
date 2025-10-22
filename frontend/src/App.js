@@ -117,7 +117,7 @@ function App() {
             path="/projects"
             element={
               <PrivateRoute>
-                <Projects />
+                <ProjectsNew />
               </PrivateRoute>
             }
           />
