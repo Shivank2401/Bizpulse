@@ -17,7 +17,7 @@ const BrandAnalysis = () => {
   }, []);
 
   const fetchData = async () => {
-    try:
+    try {
       setLoading(true);
       const response = await axios.get(`${API}/analytics/brand-analysis`, {
         headers: { Authorization: `Bearer ${token}` }
