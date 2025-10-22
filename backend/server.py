@@ -225,6 +225,10 @@ async def get_executive_overview(
         data = await db.business_data.find(query, {"_id": 0}).to_list(100000)
         df = pd.DataFrame(data)
         
+        # Debug logging
+        logger.info(f"Retrieved {len(data)} records from MongoDB")
+        logger.info(f"DataFrame columns: {list(df.columns) if not df.empty else 'Empty DataFrame'}")
+        
         if df.empty:
             return {"error": "No data available"}
         
