@@ -15,7 +15,7 @@ load_dotenv()
 # MongoDB connection
 MONGO_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
-db = client['thrivebrands_bi']
+db = client['thrive_biz_pulse']  # Use the correct database name
 
 # Generic Business Configuration
 YEARS = [2023, 2024, 2025]
