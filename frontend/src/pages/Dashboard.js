@@ -469,8 +469,8 @@ const Dashboard = () => {
               handleViewInsight(
                 'Business vs Revenue',
                 [
-                  { type: 'positive', text: `Total sales of €${formatNumber(data?.total_revenue || 0)} across businesses` },
-                  { type: 'neutral', text: 'Sales distribution indicates market strength' }
+                  { type: 'positive', text: `Total revenue of €${formatNumber(data?.total_revenue || 0)} across businesses` },
+                  { type: 'neutral', text: 'Revenue distribution indicates market strength' }
                 ],
                 [
                   'Invest in top-performing business units',
