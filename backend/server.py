@@ -189,24 +189,36 @@ async def trigger_sync(email: str = Depends(get_current_user)):
 
 @api_router.get("/analytics/executive-overview")
 async def get_executive_overview(
-    year: str = 'all',
-    month: str = 'all',
-    business: str = 'all',
-    channel: str = 'all',
+    years: str = None,
+    months: str = None,
+    businesses: str = None,
+    channels: str = None,
     email: str = Depends(get_current_user)
 ):
-    """Executive Overview - YoY comparison, KPIs with filters"""
+    """Executive Overview - YoY comparison, KPIs with multi-select filters"""
     try:
-        # Build query based on filters
+        # Build query based on multi-select filters
         query = {}
-        if year != 'all':
-            query['Year'] = int(year)
-        if month != 'all':
-            query['Month_Name'] = month
-        if business != 'all':
-            query['Business'] = business
-        if channel != 'all':
-            query['Channel'] = channel
+        
+        if years:
+            year_list = [int(y.strip()) for y in years.split(',') if y.strip()]
+            if year_list:
+                query['Year'] = {'$in': year_list}
+        
+        if months:
+            month_list = [m.strip() for m in months.split(',') if m.strip()]
+            if month_list:
+                query['Month_Name'] = {'$in': month_list}
+        
+        if businesses:
+            business_list = [b.strip() for b in businesses.split(',') if b.strip()]
+            if business_list:
+                query['Business'] = {'$in': business_list}
+        
+        if channels:
+            channel_list = [c.strip() for c in channels.split(',') if c.strip()]
+            if channel_list:
+                query['Channel'] = {'$in': channel_list}
             
         # Get filtered data
         data = await db.business_data.find(query, {"_id": 0}).to_list(100000)
