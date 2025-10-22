@@ -349,20 +349,20 @@ async def get_brand_analysis(email: str = Depends(get_current_user)):
         
         # Brand performance
         brand_perf = df.groupby('Brand').agg({
-            'fGP': 'sum',
-            'gSales': 'sum',
-            'Cases': 'sum'
+            'Gross_Profit': 'sum',
+            'Revenue': 'sum',
+            'Units': 'sum'
         }).reset_index()
         
         # Brand by Business
         brand_by_business = df.groupby(['Brand', 'Business']).agg({
-            'fGP': 'sum',
-            'gSales': 'sum'
+            'Gross_Profit': 'sum',
+            'Revenue': 'sum'
         }).reset_index()
         
         # YoY Brand Growth
         brand_yoy = df.groupby(['Brand', 'Year']).agg({
-            'gSales': 'sum'
+            'Revenue': 'sum'
         }).reset_index()
         
         return {
