@@ -354,7 +354,7 @@ const Dashboard = () => {
           />
           <KPICard
             title="Total Sales"
-            value={formatNumber(data?.total_sales || 0)}
+            value={formatNumber(data?.total_revenue || 0)}
             icon={<TrendingUp className="w-5 h-5" />}
             color="#3b82f6"
             bgColor="#dbeafe"
@@ -379,7 +379,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Yearly Performance',
                 [
-                  { type: 'positive', text: `Total revenue of €${formatNumber(data?.total_sales || 0)} across ${yearlyData.length} years` },
+                  { type: 'positive', text: `Total revenue of €${formatNumber(data?.total_revenue || 0)} across ${yearlyData.length} years` },
                   { type: 'neutral', text: 'Gross_Profit margins remain stable' }
                 ],
                 [
@@ -469,7 +469,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Business vs Sales',
                 [
-                  { type: 'positive', text: `Total sales of €${formatNumber(data?.total_sales || 0)} across businesses` },
+                  { type: 'positive', text: `Total sales of €${formatNumber(data?.total_revenue || 0)} across businesses` },
                   { type: 'neutral', text: 'Sales distribution indicates market strength' }
                 ],
                 [
