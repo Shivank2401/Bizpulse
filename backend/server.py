@@ -280,9 +280,9 @@ async def get_executive_overview(
             "yearly_performance": yearly.to_dict('records'),
             "business_performance": business_perf.to_dict('records'),
             "monthly_trend": monthly_trend.to_dict('records'),
-            "total_fgp": float(df['fGP'].sum()),
-            "total_sales": float(df['gSales'].sum()),
-            "total_cases": float(df['Cases'].sum())
+            "total_profit": float(df['Gross_Profit'].sum()),
+            "total_revenue": float(df['Revenue'].sum()),
+            "total_units": float(df['Units'].sum())
         }
     except Exception as e:
         logger.error(f"Executive overview error: {str(e)}")
