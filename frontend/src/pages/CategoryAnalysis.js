@@ -72,12 +72,12 @@ const CategoryAnalysis = () => {
   }
 
   const categoryData = (data?.category_performance || []).filter(item => item && item.Category);
-  const boardCategoryData = (data?.board_category_performance || []).filter(item => item && item.Board_Category && item.gSales > 0);
+  const boardCategoryData = (data?.board_category_performance || []).filter(item => item && item.Board_Category && item.Revenue > 0);
 
   const categoryChartData = {
     labels: categoryData.map(item => item.Category),
     datasets: [
-      { label: 'Sales', data: categoryData.map(item => item.gSales), backgroundColor: '#3b82f6', borderRadius: 6 },
+      { label: 'Sales', data: categoryData.map(item => item.Revenue), backgroundColor: '#3b82f6', borderRadius: 6 },
       { label: 'fGP', data: categoryData.map(item => item.fGP), backgroundColor: '#10b981', borderRadius: 6 },
     ],
   };
@@ -86,7 +86,7 @@ const CategoryAnalysis = () => {
     labels: boardCategoryData.map(item => item.Board_Category),
     datasets: [
       {
-        data: boardCategoryData.map(item => item.gSales),
+        data: boardCategoryData.map(item => item.Revenue),
         backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
         borderWidth: 2,
         borderColor: '#fff',
@@ -184,7 +184,7 @@ const CategoryAnalysis = () => {
                     {(data?.subcategory_performance || []).slice(0, 15).map((item, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
                         <td className="py-2 px-3 text-gray-900 font-medium text-sm">{item.Sub_Cat}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.gSales || 0)}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.Revenue || 0)}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.fGP || 0)}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{(item.Cases || 0).toLocaleString()}</td>
                       </tr>
