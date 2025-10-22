@@ -32,7 +32,7 @@ const Dashboard = () => {
     yearlyPerformance: { year: 'all', month: 'all', business: 'all', channel: 'all' },
     businessPerformance: { year: 'all', month: 'all', business: 'all', channel: 'all' },
     monthlyTrend: { year: 'all', month: 'all', business: 'all', channel: 'all' },
-    businessCases: { year: 'all', month: 'all', business: 'all', channel: 'all' },
+    businessUnits: { year: 'all', month: 'all', business: 'all', channel: 'all' },
     businessSales: { year: 'all', month: 'all', business: 'all', channel: 'all' },
     businessFGP: { year: 'all', month: 'all', business: 'all', channel: 'all' },
   });
@@ -175,13 +175,13 @@ const Dashboard = () => {
     ],
   };
   
-  // NEW: Business vs Cases Bar Chart
-  const businessCasesChartData = {
+  // NEW: Business vs Units Bar Chart
+  const businessUnitsChartData = {
     labels: businessData.map(item => item.Business),
     datasets: [
       {
-        label: 'Cases',
-        data: businessData.map(item => item.Cases),
+        label: 'Units',
+        data: businessData.map(item => item.Units),
         backgroundColor: '#f59e0b',
         borderColor: '#f59e0b',
         borderWidth: 1,
@@ -360,7 +360,7 @@ const Dashboard = () => {
             bgColor="#dbeafe"
           />
           <KPICard
-            title="Total Cases"
+            title="Total Units"
             value={(data?.total_cases || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
             icon={<Package className="w-5 h-5" />}
             color="#f59e0b"
@@ -430,14 +430,14 @@ const Dashboard = () => {
           </ChartCard>
 
           <ChartCard
-            title="Business vs Cases"
+            title="Business vs Units"
             filters={filters}
-            chartName="businessCases"
-            chartFilters={chartFilters.businessCases}
+            chartName="businessUnits"
+            chartFilters={chartFilters.businessUnits}
             onChartFilterChange={handleChartFilterChange}
             onViewInsight={() =>
               handleViewInsight(
-                'Business vs Cases',
+                'Business vs Units',
                 [
                   { type: 'positive', text: `Total ${formatNumber(data?.total_cases || 0)} cases across all businesses` },
                   { type: 'neutral', text: 'Case volume shows business distribution patterns' }
@@ -452,7 +452,7 @@ const Dashboard = () => {
           >
             <div className="chart-container">
               {businessData.length > 0 ? (
-                <ChartComponent type="bar" data={businessCasesChartData} options={chartOptions} />
+                <ChartComponent type="bar" data={businessUnitsChartData} options={chartOptions} />
               ) : (
                 <p className="text-center text-gray-500 py-8">No data available for selected filters</p>
               )}
