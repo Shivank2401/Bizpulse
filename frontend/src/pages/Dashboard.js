@@ -440,7 +440,7 @@ const Dashboard = () => {
                 'Business vs Units',
                 [
                   { type: 'positive', text: `Total ${formatNumber(data?.total_units || 0)} units across all businesses` },
-                  { type: 'neutral', text: 'Case volume shows business distribution patterns' }
+                  { type: 'neutral', text: 'Unit volume shows business distribution patterns' }
                 ],
                 [
                   'Optimize inventory based on case volume',
