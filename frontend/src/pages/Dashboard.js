@@ -361,7 +361,7 @@ const Dashboard = () => {
           />
           <KPICard
             title="Total Units"
-            value={(data?.total_cases || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            value={(data?.total_units || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
             icon={<Package className="w-5 h-5" />}
             color="#f59e0b"
             bgColor="#fef3c7"
@@ -439,7 +439,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Business vs Units',
                 [
-                  { type: 'positive', text: `Total ${formatNumber(data?.total_cases || 0)} cases across all businesses` },
+                  { type: 'positive', text: `Total ${formatNumber(data?.total_units || 0)} cases across all businesses` },
                   { type: 'neutral', text: 'Case volume shows business distribution patterns' }
                 ],
                 [
