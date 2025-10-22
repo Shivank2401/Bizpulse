@@ -9,7 +9,7 @@ import BrandAnalysisNew from '@/pages/BrandAnalysisNew';
 import CategoryAnalysisNew from '@/pages/CategoryAnalysisNew';
 import Reports from '@/pages/Reports';
 import CockpitNew from '@/pages/CockpitNew';
-import Projects from '@/pages/Projects';
+import ProjectsNew from '@/pages/ProjectsNew';
 import SalesAnalysis from '@/pages/SalesAnalysis';
 import RootCauseAnalysis from '@/pages/RootCauseAnalysis';
 import ChartInsight from '@/pages/ChartInsight';
