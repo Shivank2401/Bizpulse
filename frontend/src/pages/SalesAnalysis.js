@@ -195,7 +195,7 @@ const SalesAnalysis = () => {
                   data={{
                     labels: yearlyData.map(item => item.Year),
                     datasets: [{
-                      label: 'Sales',
+                      label: 'Revenue',
                       data: yearlyData.map(item => item.Revenue),
                       backgroundColor: '#f59e0b',
                       borderRadius: 6
@@ -218,7 +218,7 @@ const SalesAnalysis = () => {
                   data={{
                     labels: businessData.map(item => item.Business),
                     datasets: [{
-                      label: 'Sales',
+                      label: 'Revenue',
                       data: businessData.map(item => item.Revenue),
                       backgroundColor: '#3b82f6',
                       borderRadius: 6
