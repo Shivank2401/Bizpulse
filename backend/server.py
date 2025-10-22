@@ -241,9 +241,9 @@ async def get_executive_overview(
         
         # Convert to regular Python types for JSON serialization
         yearly['Year'] = yearly['Year'].astype(int)
-        yearly['fGP'] = yearly['fGP'].astype(float).round(2)
-        yearly['gSales'] = yearly['gSales'].astype(float).round(2)
-        yearly['Cases'] = yearly['Cases'].astype(float).round(2)
+        yearly['Gross_Profit'] = yearly['Gross_Profit'].astype(float).round(2)
+        yearly['Revenue'] = yearly['Revenue'].astype(float).round(2)
+        yearly['Units'] = yearly['Units'].astype(float).round(2)
         
         # Business-wise performance
         business_perf = df.groupby('Business').agg({
