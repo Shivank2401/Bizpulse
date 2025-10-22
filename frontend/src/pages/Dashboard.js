@@ -499,7 +499,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Business vs Profit',
                 [
-                  { type: 'positive', text: `Total Gross_Profit of €${formatNumber(data?.total_profit || 0)} generated` },
+                  { type: 'positive', text: `Total profit of €${formatNumber(data?.total_profit || 0)} generated` },
                   { type: 'attention', text: 'Profit margin variations need analysis' }
                 ],
                 [
