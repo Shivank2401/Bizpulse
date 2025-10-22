@@ -72,14 +72,14 @@ const CustomerAnalysis = () => {
   }
 
   const channelData = (data?.channel_performance || []).filter(item => item && item.Channel);
-  const topCustomers = (data?.top_customers || []).filter(item => item && item.Customer && item.gSales > 0);
+  const topCustomers = (data?.top_customers || []).filter(item => item && item.Customer && item.Revenue > 0);
 
   const channelChartData = {
     labels: channelData.map(item => item.Channel),
     datasets: [
       {
         label: 'Sales',
-        data: channelData.map(item => item.gSales),
+        data: channelData.map(item => item.Revenue),
         backgroundColor: '#3b82f6',
         borderRadius: 6,
       },
@@ -96,7 +96,7 @@ const CustomerAnalysis = () => {
     labels: topCustomers.map(item => item.Customer),
     datasets: [
       {
-        data: topCustomers.map(item => item.gSales),
+        data: topCustomers.map(item => item.Revenue),
         backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#db2777'],
         borderWidth: 2,
         borderColor: '#fff',
@@ -194,7 +194,7 @@ const CustomerAnalysis = () => {
                     {(data?.customer_performance || []).slice(0, 10).map((customer, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
                         <td className="py-2 px-3 text-gray-900 font-medium text-sm">{customer.Customer}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(customer.gSales || 0)}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(customer.Revenue || 0)}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(customer.fGP || 0)}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{(customer.Cases || 0).toLocaleString()}</td>
                       </tr>
