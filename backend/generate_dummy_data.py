@@ -158,11 +158,11 @@ async def generate_dummy_data():
                                     elif month_idx in [6, 7, 8]:  # Summer
                                         seasonal_multiplier = 1.2
                                     
-                                    cases = int(base_cases * year_multiplier * seasonal_multiplier)
-                                    price_per_case = random.uniform(15, 250)
-                                    g_sales = round(cases * price_per_case, 2)
+                                    units = int(base_cases * year_multiplier * seasonal_multiplier)
+                                    price_per_unit = random.uniform(15, 250)
+                                    revenue = round(units * price_per_unit, 2)
                                     margin_percentage = random.uniform(0.25, 0.40)
-                                    f_gp = round(g_sales * margin_percentage, 2)
+                                    gross_profit = round(revenue * margin_percentage, 2)
                                     
                                     record = {
                                         'Year': year,
@@ -174,9 +174,9 @@ async def generate_dummy_data():
                                         'Brand': brand,
                                         'Category': category,
                                         'Sub_Category': sub_category,
-                                        'Cases': cases,
-                                        'gSales': g_sales,
-                                        'fGP': f_gp,
+                                        'Units': units,
+                                        'Revenue': revenue,
+                                        'Gross_Profit': gross_profit,
                                         'record_id': record_id
                                     }
                                     records.append(record)
