@@ -347,7 +347,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <KPICard
             title="Total Gross_Profit"
-            value={formatNumber(data?.total_fgp || 0)}
+            value={formatNumber(data?.total_profit || 0)}
             icon={<DollarSign className="w-5 h-5" />}
             color="#10b981"
             bgColor="#d1fae5"
@@ -499,7 +499,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Business vs Gross_Profit',
                 [
-                  { type: 'positive', text: `Total Gross_Profit of €${formatNumber(data?.total_fgp || 0)} generated` },
+                  { type: 'positive', text: `Total Gross_Profit of €${formatNumber(data?.total_profit || 0)} generated` },
                   { type: 'attention', text: 'Profit margin variations need analysis' }
                 ],
                 [
