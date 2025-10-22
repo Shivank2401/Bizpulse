@@ -305,14 +305,14 @@ async def get_customer_analysis(email: str = Depends(get_current_user)):
         
         # Channel-wise analysis
         channel_analysis = df.groupby('Channel').agg({
-            'fGP': 'sum',
-            'gSales': 'sum',
-            'Cases': 'sum'
+            'Gross_Profit': 'sum',
+            'Revenue': 'sum',
+            'Units': 'sum'
         }).reset_index()
         
-        channel_analysis['fGP'] = channel_analysis['fGP'].astype(float).round(2)
-        channel_analysis['gSales'] = channel_analysis['gSales'].astype(float).round(2)
-        channel_analysis['Cases'] = channel_analysis['Cases'].astype(float).round(2)
+        channel_analysis['Gross_Profit'] = channel_analysis['Gross_Profit'].astype(float).round(2)
+        channel_analysis['Revenue'] = channel_analysis['Revenue'].astype(float).round(2)
+        channel_analysis['Units'] = channel_analysis['Units'].astype(float).round(2)
         
         # Customer-wise analysis
         customer_analysis = df.groupby('Customer').agg({
