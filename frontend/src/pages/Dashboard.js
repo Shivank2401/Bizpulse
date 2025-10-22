@@ -152,8 +152,8 @@ const Dashboard = () => {
         borderRadius: 6,
       },
       {
-        label: 'fGP',
-        data: yearlyData.map(item => item.fGP),
+        label: 'Gross_Profit',
+        data: yearlyData.map(item => item.Gross_Profit),
         backgroundColor: '#10b981',
         borderColor: '#10b981',
         borderWidth: 1,
@@ -205,13 +205,13 @@ const Dashboard = () => {
     ],
   };
   
-  // NEW: Business vs fGP Bar Chart
+  // NEW: Business vs Gross_Profit Bar Chart
   const businessFGPChartData = {
     labels: businessData.map(item => item.Business),
     datasets: [
       {
-        label: 'fGP',
-        data: businessData.map(item => item.fGP),
+        label: 'Gross_Profit',
+        data: businessData.map(item => item.Gross_Profit),
         backgroundColor: '#10b981',
         borderColor: '#10b981',
         borderWidth: 1,
@@ -235,8 +235,8 @@ const Dashboard = () => {
         pointBackgroundColor: '#3b82f6',
       },
       {
-        label: 'fGP',
-        data: monthlyData.map(item => item.fGP),
+        label: 'Gross_Profit',
+        data: monthlyData.map(item => item.Gross_Profit),
         borderColor: '#10b981',
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         tension: 0.4,
@@ -346,7 +346,7 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <KPICard
-            title="Total fGP"
+            title="Total Gross_Profit"
             value={formatNumber(data?.total_fgp || 0)}
             icon={<DollarSign className="w-5 h-5" />}
             color="#10b981"
@@ -380,7 +380,7 @@ const Dashboard = () => {
                 'Yearly Performance',
                 [
                   { type: 'positive', text: `Total revenue of €${formatNumber(data?.total_sales || 0)} across ${yearlyData.length} years` },
-                  { type: 'neutral', text: 'fGP margins remain stable' }
+                  { type: 'neutral', text: 'Gross_Profit margins remain stable' }
                 ],
                 [
                   'Monitor year-over-year growth trends',
@@ -490,16 +490,16 @@ const Dashboard = () => {
           </ChartCard>
 
           <ChartCard
-            title="Business vs fGP"
+            title="Business vs Gross_Profit"
             filters={filters}
             chartName="businessFGP"
             chartFilters={chartFilters.businessFGP}
             onChartFilterChange={handleChartFilterChange}
             onViewInsight={() =>
               handleViewInsight(
-                'Business vs fGP',
+                'Business vs Gross_Profit',
                 [
-                  { type: 'positive', text: `Total fGP of €${formatNumber(data?.total_fgp || 0)} generated` },
+                  { type: 'positive', text: `Total Gross_Profit of €${formatNumber(data?.total_fgp || 0)} generated` },
                   { type: 'attention', text: 'Profit margin variations need analysis' }
                 ],
                 [
