@@ -45,9 +45,9 @@ const Layout = ({ children }) => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                ThriveBrands
+                BeaconIQ
               </h1>
-              <p className="text-xs text-gray-500">BIZ Pulse</p>
+              <p className="text-xs text-gray-500">by Vector AI Studio</p>
             </div>
           </div>
           
