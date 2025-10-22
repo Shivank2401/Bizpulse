@@ -67,12 +67,20 @@ function App() {
             path="/"
             element={
               <PrivateRoute>
+                <CockpitNew />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/compass"
+            element={
+              <PrivateRoute>
                 <Dashboard />
               </PrivateRoute>
             }
           />
           <Route
-            path="/customer-analysis"
+            path="/customers"
             element={
               <PrivateRoute>
                 <CustomerAnalysis />
@@ -80,7 +88,7 @@ function App() {
             }
           />
           <Route
-            path="/brand-analysis"
+            path="/brands"
             element={
               <PrivateRoute>
                 <BrandAnalysis />
@@ -88,7 +96,7 @@ function App() {
             }
           />
           <Route
-            path="/category-analysis"
+            path="/categories"
             element={
               <PrivateRoute>
                 <CategoryAnalysis />
@@ -100,14 +108,6 @@ function App() {
             element={
               <PrivateRoute>
                 <Reports />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/cockpit"
-            element={
-              <PrivateRoute>
-                <Cockpit />
               </PrivateRoute>
             }
           />
