@@ -38,7 +38,7 @@ async def test_data():
         except Exception as e:
             print(f"\n❌ Aggregation failed: {str(e)}")
     
-    await client.close()
+    client.close()
 
 if __name__ == "__main__":
     asyncio.run(test_data())
