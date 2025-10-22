@@ -77,7 +77,7 @@ const SalesAnalysis = () => {
 
   // KPIs
   const totalSales = data?.total_sales || 0;
-  const totalCases = data?.total_cases || 0;
+  const totalCases = data?.total_units || 0;
   const avgPrice = totalCases > 0 ? totalSales / totalCases : 0;
 
   const chartOptions = {
