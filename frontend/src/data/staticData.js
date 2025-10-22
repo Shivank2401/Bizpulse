@@ -191,6 +191,335 @@ export const staticData = {
       { Sub_Category: 'Training Session', Revenue: 1900000, Gross_Profit: 1000000, Units: 3100000 },
       { Sub_Category: 'Basic Plan', Revenue: 1600000, Gross_Profit: 800000, Units: 2700000 }
     ]
+  },
+
+  // Projects Data
+  projectsData: {
+    // Top Projects
+    topProjects: [
+      {
+        id: 1,
+        name: 'Q1 2025 Product Launch - Premium Suite',
+        category: 'Product Development',
+        status: 'on-track',
+        priority: 'high',
+        progress: 72,
+        budget: 850000,
+        spent: 612000,
+        expectedROI: 3.8,
+        actualROI: null,
+        startDate: '2024-11-01',
+        endDate: '2025-03-31',
+        team: 'Product & Marketing Team',
+        teamSize: 15,
+        milestones: 8,
+        completedMilestones: 6,
+        keyMetrics: {
+          revenue_impact: 3200000,
+          market_share_gain: 4.2,
+          customer_acquisition: 850
+        }
+      },
+      {
+        id: 2,
+        name: 'Enterprise Cloud Migration Initiative',
+        category: 'Infrastructure',
+        status: 'at-risk',
+        priority: 'critical',
+        progress: 58,
+        budget: 1200000,
+        spent: 780000,
+        expectedROI: 2.4,
+        actualROI: null,
+        startDate: '2024-09-01',
+        endDate: '2025-06-30',
+        team: 'Cloud Infrastructure Team',
+        teamSize: 22,
+        milestones: 12,
+        completedMilestones: 6,
+        keyMetrics: {
+          cost_savings: 450000,
+          uptime_improvement: 15,
+          migration_complete: 58
+        }
+      },
+      {
+        id: 3,
+        name: 'Customer Retention Excellence Program',
+        category: 'Customer Success',
+        status: 'completed',
+        priority: 'high',
+        progress: 100,
+        budget: 350000,
+        spent: 335000,
+        expectedROI: 5.2,
+        actualROI: 6.1,
+        startDate: '2024-07-01',
+        endDate: '2024-12-31',
+        team: 'Customer Success Team',
+        teamSize: 12,
+        milestones: 6,
+        completedMilestones: 6,
+        keyMetrics: {
+          retention_rate: 94.5,
+          churn_reduction: 35,
+          upsell_revenue: 2100000
+        }
+      },
+      {
+        id: 4,
+        name: 'AI-Powered Analytics Platform',
+        category: 'Product Innovation',
+        status: 'on-track',
+        priority: 'high',
+        progress: 45,
+        budget: 980000,
+        spent: 441000,
+        expectedROI: 4.5,
+        actualROI: null,
+        startDate: '2024-12-01',
+        endDate: '2025-08-31',
+        team: 'Data Science & Engineering',
+        teamSize: 18,
+        milestones: 10,
+        completedMilestones: 4,
+        keyMetrics: {
+          feature_adoption: 68,
+          user_satisfaction: 4.6,
+          efficiency_gain: 42
+        }
+      },
+      {
+        id: 5,
+        name: 'Global Market Expansion - APAC',
+        category: 'Business Growth',
+        status: 'on-track',
+        priority: 'medium',
+        progress: 35,
+        budget: 1500000,
+        spent: 525000,
+        expectedROI: 3.2,
+        actualROI: null,
+        startDate: '2025-01-01',
+        endDate: '2025-12-31',
+        team: 'International Business Development',
+        teamSize: 25,
+        milestones: 15,
+        completedMilestones: 5,
+        keyMetrics: {
+          new_markets: 4,
+          revenue_projection: 4800000,
+          partnerships: 12
+        }
+      },
+      {
+        id: 6,
+        name: 'Security & Compliance Upgrade',
+        category: 'Security',
+        status: 'delayed',
+        priority: 'critical',
+        progress: 62,
+        budget: 650000,
+        spent: 520000,
+        expectedROI: 1.8,
+        actualROI: null,
+        startDate: '2024-10-01',
+        endDate: '2025-04-30',
+        team: 'Security & Compliance',
+        teamSize: 10,
+        milestones: 8,
+        completedMilestones: 4,
+        keyMetrics: {
+          compliance_score: 88,
+          vulnerabilities_fixed: 156,
+          audit_readiness: 75
+        }
+      }
+    ],
+
+    // Business Planner
+    businessPlans: [
+      {
+        id: 1,
+        planName: 'Q2 2025 Strategic Initiatives',
+        period: 'Q2 2025',
+        totalBudget: 3200000,
+        allocatedBudget: 2850000,
+        expectedRevenue: 12400000,
+        initiatives: [
+          { name: 'Product Portfolio Expansion', budget: 850000, revenue: 3800000, priority: 'high', status: 'planning' },
+          { name: 'Sales Team Expansion', budget: 550000, revenue: 2900000, priority: 'high', status: 'approved' },
+          { name: 'Marketing Campaign - Summer Launch', budget: 620000, revenue: 2500000, priority: 'medium', status: 'planning' },
+          { name: 'Customer Experience Redesign', budget: 430000, revenue: 1600000, priority: 'medium', status: 'planning' },
+          { name: 'Technology Infrastructure', budget: 400000, revenue: 1600000, priority: 'high', status: 'approved' }
+        ],
+        milestones: [
+          { name: 'Budget Approval', date: '2025-03-15', status: 'completed', progress: 100 },
+          { name: 'Resource Allocation', date: '2025-03-30', status: 'in-progress', progress: 75 },
+          { name: 'Initiative Kickoff', date: '2025-04-10', status: 'pending', progress: 0 },
+          { name: 'Mid-Quarter Review', date: '2025-05-15', status: 'pending', progress: 0 },
+          { name: 'Final Review & Optimization', date: '2025-06-25', status: 'pending', progress: 0 }
+        ],
+        aiInsights: [
+          'Marketing Campaign budget should increase by 12% based on Q1 performance and seasonal trends',
+          'Technology Infrastructure investment shows highest ROI potential (4.2x) - consider increasing allocation',
+          'Customer Experience Redesign shows strong correlation with retention - recommend fast-tracking',
+          'Sales expansion timing aligns well with market opportunity window in EMEA region'
+        ]
+      },
+      {
+        id: 2,
+        planName: 'H2 2025 Growth Strategy',
+        period: 'H2 2025',
+        totalBudget: 8500000,
+        allocatedBudget: 6200000,
+        expectedRevenue: 34500000,
+        initiatives: [
+          { name: 'International Expansion', budget: 1800000, revenue: 9200000, priority: 'critical', status: 'planning' },
+          { name: 'AI Product Suite Launch', budget: 1450000, revenue: 11500000, priority: 'critical', status: 'planning' },
+          { name: 'Enterprise Partnerships Program', budget: 980000, revenue: 6800000, priority: 'high', status: 'research' },
+          { name: 'Brand Transformation', budget: 720000, revenue: 3500000, priority: 'medium', status: 'research' },
+          { name: 'Operational Excellence Initiative', budget: 1250000, revenue: 3500000, priority: 'high', status: 'planning' }
+        ],
+        milestones: [
+          { name: 'Strategic Planning Complete', date: '2025-05-01', status: 'in-progress', progress: 60 },
+          { name: 'Board Approval', date: '2025-05-30', status: 'pending', progress: 0 },
+          { name: 'Q3 Execution Start', date: '2025-07-01', status: 'pending', progress: 0 },
+          { name: 'Mid-Period Review', date: '2025-09-15', status: 'pending', progress: 0 },
+          { name: 'Year-End Assessment', date: '2025-12-15', status: 'pending', progress: 0 }
+        ],
+        aiInsights: [
+          'International Expansion shows 87% success probability based on market analysis and competitor trends',
+          'AI Product Suite has strong pre-launch demand signals - consider accelerating timeline by 3 weeks',
+          'Operational Excellence can be partially funded through cost optimization - net investment reduced by 18%',
+          'Enterprise Partnerships timing critical - Q3 launch aligns with enterprise budget cycles'
+        ]
+      }
+    ],
+
+    // Campaign Cockpit
+    campaigns: [
+      {
+        id: 1,
+        name: 'Spring Product Launch 2025',
+        type: 'Product Launch',
+        status: 'active',
+        startDate: '2025-02-15',
+        endDate: '2025-04-30',
+        budget: 520000,
+        spent: 342000,
+        revenue: 2850000,
+        leads: 8450,
+        conversions: 1240,
+        conversionRate: 14.7,
+        roi: 4.8,
+        channels: ['E-commerce', 'Direct Sales', 'Retail Partners'],
+        targetAudience: 'Enterprise',
+        reach: 145000,
+        engagement: 23400,
+        engagementRate: 16.1
+      },
+      {
+        id: 2,
+        name: 'Customer Loyalty Campaign Q1',
+        type: 'Retention',
+        status: 'active',
+        startDate: '2025-01-01',
+        endDate: '2025-03-31',
+        budget: 180000,
+        spent: 165000,
+        revenue: 890000,
+        leads: 3200,
+        conversions: 1850,
+        conversionRate: 57.8,
+        roi: 3.9,
+        channels: ['Direct Sales', 'Enterprise Accounts'],
+        targetAudience: 'Existing Customers',
+        reach: 12500,
+        engagement: 8900,
+        engagementRate: 71.2
+      },
+      {
+        id: 3,
+        name: 'Digital Transformation Webinar Series',
+        type: 'Lead Generation',
+        status: 'active',
+        startDate: '2025-02-01',
+        endDate: '2025-05-31',
+        budget: 95000,
+        spent: 58000,
+        revenue: 420000,
+        leads: 12800,
+        conversions: 890,
+        conversionRate: 7.0,
+        roi: 3.4,
+        channels: ['Online Marketplace', 'E-commerce'],
+        targetAudience: 'Mid-Market',
+        reach: 58000,
+        engagement: 12800,
+        engagementRate: 22.1
+      },
+      {
+        id: 4,
+        name: 'Year-End Enterprise Sale 2024',
+        type: 'Sales Promotion',
+        status: 'completed',
+        startDate: '2024-11-15',
+        endDate: '2024-12-31',
+        budget: 420000,
+        spent: 415000,
+        revenue: 5600000,
+        leads: 4200,
+        conversions: 2100,
+        conversionRate: 50.0,
+        roi: 12.5,
+        channels: ['Direct Sales', 'Enterprise Accounts', 'Channel Partners'],
+        targetAudience: 'Enterprise',
+        reach: 28000,
+        engagement: 9800,
+        engagementRate: 35.0
+      },
+      {
+        id: 5,
+        name: 'Brand Awareness - Social Media Blitz',
+        type: 'Brand Awareness',
+        status: 'active',
+        startDate: '2025-03-01',
+        endDate: '2025-06-30',
+        budget: 280000,
+        spent: 112000,
+        revenue: 650000,
+        leads: 18500,
+        conversions: 720,
+        conversionRate: 3.9,
+        roi: 1.3,
+        channels: ['Online Marketplace', 'E-commerce'],
+        targetAudience: 'SMB',
+        reach: 285000,
+        engagement: 42000,
+        engagementRate: 14.7
+      },
+      {
+        id: 6,
+        name: 'Partner Enablement Program',
+        type: 'Channel Marketing',
+        status: 'planning',
+        startDate: '2025-04-15',
+        endDate: '2025-07-31',
+        budget: 350000,
+        spent: 0,
+        revenue: 0,
+        leads: 0,
+        conversions: 0,
+        conversionRate: 0,
+        roi: 0,
+        channels: ['Channel Partners', 'Distributors'],
+        targetAudience: 'Partners',
+        reach: 0,
+        engagement: 0,
+        engagementRate: 0
+      }
+    ]
   }
 };
 
