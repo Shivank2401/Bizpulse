@@ -453,8 +453,8 @@ Data Overview:
 - Years: {df['Year'].unique().tolist() if not df.empty else []}
 - Businesses: {df['Business'].unique().tolist() if not df.empty else []}
 - Brands: {df['Brand'].unique().tolist()[:10] if not df.empty else []} (showing first 10)
-- Total Sales (gSales): ${df['gSales'].sum():,.2f} if not df.empty else 0
-- Total fGP: ${df['fGP'].sum():,.2f} if not df.empty else 0
+- Total Revenue: ${df['Revenue'].sum():,.2f} if not df.empty else 0
+- Total Gross Profit: ${df['Gross_Profit'].sum():,.2f} if not df.empty else 0
 
 You can answer questions about:
 - Sales performance and trends
