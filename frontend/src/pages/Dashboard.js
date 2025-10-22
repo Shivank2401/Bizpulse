@@ -144,7 +144,7 @@ const Dashboard = () => {
     labels: yearlyData.map(item => item.Year),
     datasets: [
       {
-        label: 'Sales',
+        label: 'Revenue',
         data: yearlyData.map(item => item.Revenue),
         backgroundColor: '#3b82f6',
         borderColor: '#3b82f6',
@@ -152,7 +152,7 @@ const Dashboard = () => {
         borderRadius: 6,
       },
       {
-        label: 'Gross_Profit',
+        label: 'Profit',
         data: yearlyData.map(item => item.Gross_Profit),
         backgroundColor: '#10b981',
         borderColor: '#10b981',
