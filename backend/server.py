@@ -234,9 +234,9 @@ async def get_executive_overview(
         
         # Group by Year and sort
         yearly = df.groupby('Year').agg({
-            'fGP': 'sum',
-            'gSales': 'sum',
-            'Cases': 'sum'
+            'Gross_Profit': 'sum',
+            'Revenue': 'sum',
+            'Units': 'sum'
         }).reset_index().sort_values('Year')
         
         # Convert to regular Python types for JSON serialization
