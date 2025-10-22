@@ -60,7 +60,7 @@ const AIAssistant = () => {
     'Which brand grew the most YoY?',
     'What is the total sales for 2023?',
     'Show me top performing channels',
-    'Which category has the highest fGP?'
+    'Which category has the highest Gross Profit?'
   ];
 
   return (
