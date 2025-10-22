@@ -247,14 +247,14 @@ async def get_executive_overview(
         
         # Business-wise performance
         business_perf = df.groupby('Business').agg({
-            'fGP': 'sum',
-            'gSales': 'sum',
-            'Cases': 'sum'
+            'Gross_Profit': 'sum',
+            'Revenue': 'sum',
+            'Units': 'sum'
         }).reset_index()
         
-        business_perf['fGP'] = business_perf['fGP'].astype(float).round(2)
-        business_perf['gSales'] = business_perf['gSales'].astype(float).round(2)
-        business_perf['Cases'] = business_perf['Cases'].astype(float).round(2)
+        business_perf['Gross_Profit'] = business_perf['Gross_Profit'].astype(float).round(2)
+        business_perf['Revenue'] = business_perf['Revenue'].astype(float).round(2)
+        business_perf['Units'] = business_perf['Units'].astype(float).round(2)
         
         # Month-wise trend for current year with proper month ordering
         current_year = int(df['Year'].max())
