@@ -443,7 +443,7 @@ const Dashboard = () => {
                   { type: 'neutral', text: 'Unit volume shows business distribution patterns' }
                 ],
                 [
-                  'Optimize inventory based on case volume',
+                  'Optimize inventory based on unit volume',
                   'Focus on high-volume business segments',
                   'Balance distribution efficiency'
                 ]
