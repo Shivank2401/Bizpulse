@@ -467,7 +467,7 @@ const Dashboard = () => {
             onChartFilterChange={handleChartFilterChange}
             onViewInsight={() =>
               handleViewInsight(
-                'Business vs Sales',
+                'Business vs Revenue',
                 [
                   { type: 'positive', text: `Total sales of €${formatNumber(data?.total_revenue || 0)} across businesses` },
                   { type: 'neutral', text: 'Sales distribution indicates market strength' }
