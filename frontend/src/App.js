@@ -10,6 +10,8 @@ import CategoryAnalysis from '@/pages/CategoryAnalysis';
 import Reports from '@/pages/Reports';
 import CockpitNew from '@/pages/CockpitNew';
 import Projects from '@/pages/Projects';
+import SalesAnalysis from '@/pages/SalesAnalysis';
+import RootCauseAnalysis from '@/pages/RootCauseAnalysis';
 import ChartInsight from '@/pages/ChartInsight';
 import { Toaster } from '@/components/ui/sonner';
 
