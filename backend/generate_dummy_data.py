@@ -158,7 +158,7 @@ async def generate_dummy_data():
                                     elif month_idx in [6, 7, 8]:  # Summer
                                         seasonal_multiplier = 1.2
                                     
-                                    units = int(base_cases * year_multiplier * seasonal_multiplier)
+                                    units = int(base_units * year_multiplier * seasonal_multiplier)
                                     price_per_unit = random.uniform(15, 250)
                                     revenue = round(units * price_per_unit, 2)
                                     margin_percentage = random.uniform(0.25, 0.40)
