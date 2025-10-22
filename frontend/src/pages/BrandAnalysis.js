@@ -78,7 +78,7 @@ const BrandAnalysis = () => {
     labels: brandData.map(item => item.Brand),
     datasets: [
       { label: 'Sales', data: brandData.map(item => item.Revenue), backgroundColor: '#3b82f6', borderRadius: 6 },
-      { label: 'fGP', data: brandData.map(item => item.fGP), backgroundColor: '#10b981', borderRadius: 6 },
+      { label: 'Gross_Profit', data: brandData.map(item => item.Gross_Profit), backgroundColor: '#10b981', borderRadius: 6 },
     ],
   };
 
@@ -162,7 +162,7 @@ const BrandAnalysis = () => {
                       <th className="text-left py-2 px-3 text-gray-700 font-semibold text-xs">Brand</th>
                       <th className="text-left py-2 px-3 text-gray-700 font-semibold text-xs">Business</th>
                       <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Sales</th>
-                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">fGP</th>
+                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Gross_Profit</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -171,7 +171,7 @@ const BrandAnalysis = () => {
                         <td className="py-2 px-3 text-gray-900 font-medium text-sm">{item.Brand}</td>
                         <td className="py-2 px-3 text-gray-700 text-sm">{item.Business}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.Revenue || 0)}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.fGP || 0)}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.Gross_Profit || 0)}</td>
                       </tr>
                     ))}
                   </tbody>
