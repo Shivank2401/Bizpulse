@@ -206,7 +206,7 @@ const Dashboard = () => {
   };
   
   // NEW: Business vs Gross_Profit Bar Chart
-  const businessFGPChartData = {
+  const businessProfitChartData = {
     labels: businessData.map(item => item.Business),
     datasets: [
       {
