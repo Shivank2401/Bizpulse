@@ -385,24 +385,24 @@ async def get_category_analysis(email: str = Depends(get_current_user)):
         
         # Category performance
         category_perf = df.groupby('Category').agg({
-            'fGP': 'sum',
-            'gSales': 'sum',
-            'Cases': 'sum'
+            'Gross_Profit': 'sum',
+            'Revenue': 'sum',
+            'Units': 'sum'
         }).reset_index()
         
         # Sub-category performance
         subcategory_perf = df.groupby('Sub_Cat').agg({
-            'fGP': 'sum',
-            'gSales': 'sum',
-            'Cases': 'sum'
+            'Gross_Profit': 'sum',
+            'Revenue': 'sum',
+            'Units': 'sum'
         }).reset_index()
         
         # Board Category (check if column exists)
         board_category_perf = []
         if 'Board_Category' in df.columns:
             board_category_perf = df.groupby('Board_Category').agg({
-                'fGP': 'sum',
-                'gSales': 'sum'
+                'Gross_Profit': 'sum',
+                'Revenue': 'sum'
             }).reset_index().to_dict('records')
         
         return {
