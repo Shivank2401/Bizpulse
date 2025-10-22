@@ -31,6 +31,8 @@ const Layout = ({ children }) => {
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/brands', icon: Tag, label: 'Brands' },
     { path: '/categories', icon: Layers, label: 'Categories' },
+    { path: '/sales-analysis', icon: TrendingUp, label: 'Sales Analysis' },
+    { path: '/root-cause-analysis', icon: AlertCircle, label: 'RCA' },
     { path: '/reports', icon: FileText, label: 'Reports' },
   ];
 
