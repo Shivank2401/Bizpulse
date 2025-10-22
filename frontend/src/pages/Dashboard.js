@@ -492,8 +492,8 @@ const Dashboard = () => {
           <ChartCard
             title="Business vs Gross_Profit"
             filters={filters}
-            chartName="businessFGP"
-            chartFilters={chartFilters.businessFGP}
+            chartName="businessProfit"
+            chartFilters={chartFilters.businessProfit}
             onChartFilterChange={handleChartFilterChange}
             onViewInsight={() =>
               handleViewInsight(
