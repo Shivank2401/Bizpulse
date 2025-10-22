@@ -84,8 +84,8 @@ const CustomerAnalysis = () => {
         borderRadius: 6,
       },
       {
-        label: 'fGP',
-        data: channelData.map(item => item.fGP),
+        label: 'Gross_Profit',
+        data: channelData.map(item => item.Gross_Profit),
         backgroundColor: '#10b981',
         borderRadius: 6,
       },
@@ -186,7 +186,7 @@ const CustomerAnalysis = () => {
                     <tr className="border-b border-gray-200 bg-gray-50">
                       <th className="text-left py-2 px-3 text-gray-700 font-semibold text-xs">Customer</th>
                       <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Sales</th>
-                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">fGP</th>
+                      <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Gross_Profit</th>
                       <th className="text-right py-2 px-3 text-gray-700 font-semibold text-xs">Cases</th>
                     </tr>
                   </thead>
@@ -195,7 +195,7 @@ const CustomerAnalysis = () => {
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
                         <td className="py-2 px-3 text-gray-900 font-medium text-sm">{customer.Customer}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(customer.Revenue || 0)}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(customer.fGP || 0)}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(customer.Gross_Profit || 0)}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{(customer.Cases || 0).toLocaleString()}</td>
                       </tr>
                     ))}
