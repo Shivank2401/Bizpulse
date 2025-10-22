@@ -76,9 +76,9 @@ const SalesAnalysis = () => {
   const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.Revenue > 0);
 
   // KPIs
-  const totalSales = data?.total_sales || 0;
+  const totalRevenue = data?.total_revenue || 0;
   const totalUnits = data?.total_units || 0;
-  const avgPrice = totalUnits > 0 ? totalSales / totalUnits : 0;
+  const avgPrice = totalUnits > 0 ? totalRevenue / totalUnits : 0;
 
   const chartOptions = {
     responsive: true,
