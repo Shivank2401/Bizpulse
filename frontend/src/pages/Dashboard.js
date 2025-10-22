@@ -136,7 +136,7 @@ const Dashboard = () => {
   }
 
   const yearlyData = (data?.yearly_performance || []).filter(item => item && item.Year);
-  const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.gSales > 0);
+  const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.Revenue > 0);
   const monthlyData = (data?.monthly_trend || []).filter(item => item && item.Month_Name);
 
   // Yearly Performance Chart Data
@@ -145,7 +145,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Sales',
-        data: yearlyData.map(item => item.gSales),
+        data: yearlyData.map(item => item.Revenue),
         backgroundColor: '#3b82f6',
         borderColor: '#3b82f6',
         borderWidth: 1,
@@ -167,7 +167,7 @@ const Dashboard = () => {
     labels: businessData.map(item => item.Business),
     datasets: [
       {
-        data: businessData.map(item => item.gSales),
+        data: businessData.map(item => item.Revenue),
         backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'],
         borderWidth: 2,
         borderColor: '#fff',
@@ -196,7 +196,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Sales',
-        data: businessData.map(item => item.gSales),
+        data: businessData.map(item => item.Revenue),
         backgroundColor: '#3b82f6',
         borderColor: '#3b82f6',
         borderWidth: 1,
@@ -226,7 +226,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Sales',
-        data: monthlyData.map(item => item.gSales),
+        data: monthlyData.map(item => item.Revenue),
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.4,
