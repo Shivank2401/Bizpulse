@@ -210,7 +210,7 @@ const Dashboard = () => {
     labels: businessData.map(item => item.Business),
     datasets: [
       {
-        label: 'Gross_Profit',
+        label: 'Profit',
         data: businessData.map(item => item.Gross_Profit),
         backgroundColor: '#10b981',
         borderColor: '#10b981',
