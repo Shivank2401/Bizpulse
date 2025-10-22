@@ -68,13 +68,13 @@ class BusinessDataRecord(BaseModel):
     Attribute_Name: Optional[str] = None
     SKU_Channel_Name: Optional[str] = None
     PL_Cust_Grp: Optional[str] = None
-    Cases: Optional[float] = 0
-    gSales: Optional[float] = 0
+    Units: Optional[float] = 0
+    Revenue: Optional[float] = 0
     Price_Downs: Optional[float] = 0
     Perm_Disc: Optional[float] = 0
     Group_Cost: Optional[float] = 0
     LTA: Optional[float] = 0
-    fGP: Optional[float] = 0
+    Gross_Profit: Optional[float] = 0
     Business: Optional[str] = None
     Channel: Optional[str] = None
     Customer: Optional[str] = None
