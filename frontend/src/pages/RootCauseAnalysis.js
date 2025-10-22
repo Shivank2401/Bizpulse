@@ -271,13 +271,13 @@ const RootCauseAnalysis = () => {
                   labels: businessData.map(item => item.Business),
                   datasets: [
                     {
-                      label: 'Sales',
+                      label: 'Revenue',
                       data: businessData.map(item => item.Revenue),
                       backgroundColor: '#3b82f6',
                       borderRadius: 6
                     },
                     {
-                      label: 'Gross_Profit',
+                      label: 'Profit',
                       data: businessData.map(item => item.Gross_Profit),
                       backgroundColor: '#10b981',
                       borderRadius: 6
