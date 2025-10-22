@@ -277,8 +277,8 @@ const RootCauseAnalysis = () => {
                       borderRadius: 6
                     },
                     {
-                      label: 'fGP',
-                      data: businessData.map(item => item.fGP),
+                      label: 'Gross_Profit',
+                      data: businessData.map(item => item.Gross_Profit),
                       backgroundColor: '#10b981',
                       borderRadius: 6
                     }
