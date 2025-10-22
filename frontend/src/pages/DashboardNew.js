@@ -4,16 +4,13 @@ import MultiSelectFilter from '@/components/MultiSelectFilter';
 import ChartComponent from '@/components/ChartComponent';
 import InsightModal from '@/components/InsightModal';
 import { formatNumber } from '@/utils/formatters';
-import axios from 'axios';
-import { API, useAuth } from '@/App';
+import staticData from '@/data/staticData';
 import { 
   TrendingUp, TrendingDown, DollarSign, Package, 
   Users, Target, Activity, Lightbulb 
 } from 'lucide-react';
-import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const { token } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(null);
@@ -32,55 +29,11 @@ const Dashboard = () => {
   const [insightModal, setInsightModal] = useState({ isOpen: false, chartTitle: '' });
 
   useEffect(() => {
-    fetchFilters();
+    // Load static data
+    setFilters(staticData.filters);
+    setData(staticData.executiveOverview);
+    setLoading(false);
   }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [selectedYears, selectedMonths, selectedBusinesses, selectedBrands, selectedChannels]);
-
-  const fetchFilters = async () => {
-    try {
-      const response = await axios.get(`${API}/filters/options`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setFilters(response.data);
-    } catch (error) {
-      console.error('Failed to load filters', error);
-    }
-  };
-
-  const fetchData = async (customFilters = null) => {
-    try {
-      setLoading(true);
-      const filterParams = customFilters || {
-        years: selectedYears,
-        months: selectedMonths,
-        businesses: selectedBusinesses,
-        channels: selectedChannels
-      };
-      
-      const queryParams = new URLSearchParams();
-      if (filterParams.years && filterParams.years.length > 0) 
-        queryParams.append('years', filterParams.years.join(','));
-      if (filterParams.months && filterParams.months.length > 0) 
-        queryParams.append('months', filterParams.months.join(','));
-      if (filterParams.businesses && filterParams.businesses.length > 0) 
-        queryParams.append('businesses', filterParams.businesses.join(','));
-      if (filterParams.channels && filterParams.channels.length > 0) 
-        queryParams.append('channels', filterParams.channels.join(','));
-      
-      const response = await axios.get(`${API}/analytics/executive-overview?${queryParams.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setData(response.data);
-    } catch (error) {
-      console.error('Failed to load dashboard data', error);
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChartFilterChange = async (chartName, filterType, value) => {
     const newFilters = {
