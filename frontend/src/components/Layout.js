@@ -14,7 +14,9 @@ import {
   Settings,
   User,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
