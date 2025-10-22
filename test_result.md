@@ -172,13 +172,13 @@ frontend:
         agent: "testing"
         comment: "✅ FULLY FUNCTIONAL! Campaign Cockpit page loads correctly with title 'Campaign Cockpit'. All 3 tabs working: 'AI Recommended (3)', 'Active Campaigns (0)', 'Archived (0)'. Found 3 AI-recommended campaign cards with proper details: budget (€45.0k, €32.0k, €28.0k), Expected ROI (3.2x, 2.8x, 2.5x), channels, dates, AI scores (95, 88, 82). Action buttons (Activate, Delete) present. Tab switching functional. Professional card styling working."
 
-  - task: "Projects Page - Project Management"
+  - task: "Projects Page - Comprehensive Reconstruction"
     implemented: true
-    working: true
-    file: "/app/frontend/src/pages/Projects.js"
+    working: "NA"
+    file: "/app/frontend/src/pages/ProjectsNew.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
@@ -189,6 +189,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ FULLY FUNCTIONAL! Projects page loads with correct title 'Project Management'. New Project button present and styled correctly. Found 3 project cards displaying: Q1 2025 Product Launch (65% progress, high priority), Household & Beauty Category Expansion (25% progress, medium priority), Customer Retention Program (100% progress, completed). Each card shows progress bars, status indicators, due dates, assignees, task lists with completion status. AI Recommendations sections present with gold styling and bullet points. All features working as expected."
+      - working: "NA"
+        agent: "main"
+        comment: "Reconstructed Projects page with 3 major sections: Top Projects, Business Planner, Campaign Cockpit. Added comprehensive static data to staticData.js including 6 projects with detailed metrics, 2 business plans with initiatives and milestones, 6 campaigns with performance data. Implemented colorful charts (bar, doughnut, line) for budget, ROI, progress tracking, and conversion analysis. Added summary metric cards, AI-powered insights with Sparkles icons, status/priority badges, and progress bars. All sections accessible via tab navigation. No linting errors. Needs frontend testing to verify all sections render correctly."
 
   - task: "Enhanced Insight Modal with AI Chat"
     implemented: true
