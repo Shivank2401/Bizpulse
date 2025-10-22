@@ -178,10 +178,11 @@ async def login(request: LoginRequest):
 @api_router.get("/data/sync", response_model=SyncStatusResponse)
 async def trigger_sync(email: str = Depends(get_current_user)):
     try:
-        count = await sync_azure_data()
+        # Using dummy data - sync not implemented
+        count = await db.business_data.count_documents({})
         return SyncStatusResponse(
             status="success",
-            message="Data synced successfully",
+            message="Using dummy data - sync not implemented",
             records_count=count
         )
     except Exception as e:
