@@ -213,9 +213,9 @@ async def generate_dummy_data():
         {
             '$group': {
                 '_id': '$Year',
-                'total_sales': {'$sum': '$gSales'},
-                'total_fgp': {'$sum': '$fGP'},
-                'total_cases': {'$sum': '$Cases'}
+                'total_revenue': {'$sum': '$Revenue'},
+                'total_profit': {'$sum': '$Gross_Profit'},
+                'total_units': {'$sum': '$Units'}
             }
         },
         {'$sort': {'_id': 1}}
@@ -223,10 +223,10 @@ async def generate_dummy_data():
     
     async for doc in db.business_data.aggregate(pipeline):
         year = doc['_id']
-        sales = doc['total_sales']
-        fgp = doc['total_fgp']
-        cases = doc['total_cases']
-        print(f"  {year}: Sales=€{sales:,.2f}, fGP=€{fgp:,.2f}, Cases={cases:,}")
+        revenue = doc['total_revenue']
+        profit = doc['total_profit']
+        units = doc['total_units']
+        print(f"  {year}: Revenue=€{revenue:,.2f}, Profit=€{profit:,.2f}, Units={units:,}")
 
 if __name__ == "__main__":
     asyncio.run(generate_dummy_data())
