@@ -73,7 +73,7 @@ const SalesAnalysis = () => {
   }
 
   const yearlyData = (data?.yearly_performance || []).filter(item => item && item.Year);
-  const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.gSales > 0);
+  const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.Revenue > 0);
 
   // KPIs
   const totalSales = data?.total_sales || 0;
@@ -196,7 +196,7 @@ const SalesAnalysis = () => {
                     labels: yearlyData.map(item => item.Year),
                     datasets: [{
                       label: 'Sales',
-                      data: yearlyData.map(item => item.gSales),
+                      data: yearlyData.map(item => item.Revenue),
                       backgroundColor: '#f59e0b',
                       borderRadius: 6
                     }]
@@ -219,7 +219,7 @@ const SalesAnalysis = () => {
                     labels: businessData.map(item => item.Business),
                     datasets: [{
                       label: 'Sales',
-                      data: businessData.map(item => item.gSales),
+                      data: businessData.map(item => item.Revenue),
                       backgroundColor: '#3b82f6',
                       borderRadius: 6
                     }]
