@@ -403,7 +403,7 @@ async def get_category_analysis(email: str = Depends(get_current_user)):
         }).reset_index()
         
         # Sub-category performance
-        subcategory_perf = df.groupby('Sub_Cat').agg({
+        subcategory_perf = df.groupby('Sub_Category').agg({
             'Gross_Profit': 'sum',
             'Revenue': 'sum',
             'Units': 'sum'
