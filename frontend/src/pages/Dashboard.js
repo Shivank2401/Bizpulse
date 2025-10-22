@@ -512,7 +512,7 @@ const Dashboard = () => {
           >
             <div className="chart-container">
               {businessData.length > 0 ? (
-                <ChartComponent type="bar" data={businessFGPChartData} options={chartOptions} />
+                <ChartComponent type="bar" data={businessProfitChartData} options={chartOptions} />
               ) : (
                 <p className="text-center text-gray-500 py-8">No data available for selected filters</p>
               )}
