@@ -299,7 +299,7 @@ async def get_customer_analysis(email: str = Depends(get_current_user)):
             return {"error": "No data available"}
         
         # Ensure numeric columns
-        for col in ['fGP', 'gSales', 'Cases']:
+        for col in ['Gross_Profit', 'Revenue', 'Units']:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         
