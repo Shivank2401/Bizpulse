@@ -77,7 +77,7 @@ function App() {
             path="/compass"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <DashboardNew />
               </PrivateRoute>
             }
           />
