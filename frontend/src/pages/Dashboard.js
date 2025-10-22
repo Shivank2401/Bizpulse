@@ -346,14 +346,14 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <KPICard
-            title="Total Gross_Profit"
+            title="Total Profit"
             value={formatNumber(data?.total_profit || 0)}
             icon={<DollarSign className="w-5 h-5" />}
             color="#10b981"
             bgColor="#d1fae5"
           />
           <KPICard
-            title="Total Sales"
+            title="Total Revenue"
             value={formatNumber(data?.total_revenue || 0)}
             icon={<TrendingUp className="w-5 h-5" />}
             color="#3b82f6"
