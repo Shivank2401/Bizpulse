@@ -222,11 +222,17 @@ async def get_executive_overview(
                 query['Channel'] = {'$in': channel_list}
             
         # Get filtered data
+        logger.info(f"Query being executed: {query}")
         data = await db.business_data.find(query, {"_id": 0}).to_list(100000)
+        logger.info(f"Retrieved {len(data)} records from MongoDB")
+        
+        if data:
+            logger.info(f"First record keys: {list(data[0].keys())}")
+            logger.info(f"Sample values - Year: {data[0].get('Year')}, Revenue: {data[0].get('Revenue')}, gSales: {data[0].get('gSales')}")
+        
         df = pd.DataFrame(data)
         
         # Debug logging
-        logger.info(f"Retrieved {len(data)} records from MongoDB")
         logger.info(f"DataFrame columns: {list(df.columns) if not df.empty else 'Empty DataFrame'}")
         
         if df.empty:
