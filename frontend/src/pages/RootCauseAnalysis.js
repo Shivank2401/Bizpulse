@@ -71,7 +71,7 @@ const RootCauseAnalysis = () => {
     );
   }
 
-  const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.gSales > 0);
+  const businessData = (data?.business_performance || []).filter(item => item && item.Business && item.Revenue > 0);
 
   // Root Cause Analysis Issues
   const issues = [
@@ -272,7 +272,7 @@ const RootCauseAnalysis = () => {
                   datasets: [
                     {
                       label: 'Sales',
-                      data: businessData.map(item => item.gSales),
+                      data: businessData.map(item => item.Revenue),
                       backgroundColor: '#3b82f6',
                       borderRadius: 6
                     },
