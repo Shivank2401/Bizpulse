@@ -272,9 +272,9 @@ async def get_executive_overview(
         )
         monthly_trend = monthly_trend.sort_values('month_sort').drop('month_sort', axis=1)
         
-        monthly_trend['fGP'] = monthly_trend['fGP'].astype(float).round(2)
-        monthly_trend['gSales'] = monthly_trend['gSales'].astype(float).round(2)
-        monthly_trend['Cases'] = monthly_trend['Cases'].astype(float).round(2)
+        monthly_trend['Gross_Profit'] = monthly_trend['Gross_Profit'].astype(float).round(2)
+        monthly_trend['Revenue'] = monthly_trend['Revenue'].astype(float).round(2)
+        monthly_trend['Units'] = monthly_trend['Units'].astype(float).round(2)
         
         return {
             "yearly_performance": yearly.to_dict('records'),
