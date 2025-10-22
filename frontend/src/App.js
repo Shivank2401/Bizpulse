@@ -85,7 +85,7 @@ function App() {
             path="/customers"
             element={
               <PrivateRoute>
-                <CustomerAnalysis />
+                <CustomerAnalysisNew />
               </PrivateRoute>
             }
           />
@@ -93,7 +93,7 @@ function App() {
             path="/brands"
             element={
               <PrivateRoute>
-                <BrandAnalysis />
+                <BrandAnalysisNew />
               </PrivateRoute>
             }
           />
@@ -101,7 +101,7 @@ function App() {
             path="/categories"
             element={
               <PrivateRoute>
-                <CategoryAnalysis />
+                <CategoryAnalysisNew />
               </PrivateRoute>
             }
           />
