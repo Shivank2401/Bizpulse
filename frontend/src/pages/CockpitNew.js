@@ -1,0 +1,319 @@
+import React, { useState } from 'react';
+import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import { 
+  TrendingUp, 
+  DollarSign, 
+  AlertCircle,
+  Mail,
+  Share2,
+  Video,
+  Users as UsersIcon,
+  Play,
+  Sparkles,
+  Calendar,
+  Target
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+const Cockpit = () => {
+  const [activeTab, setActiveTab] = useState('recommended');
+
+  // Key Insights data
+  const insights = [
+    {
+      icon: TrendingUp,
+      title: 'Revenue Opportunity',
+      description: 'Untapped market segment with 25% growth potential',
+      color: { bg: '#d1fae5', text: '#065f46', icon: '#10b981' }
+    },
+    {
+      icon: DollarSign,
+      title: 'Cost Optimization',
+      description: 'Operational efficiency improvements can save €150K annually',
+      color: { bg: '#dbeafe', text: '#1e3a8a', icon: '#3b82f6' }
+    },
+    {
+      icon: AlertCircle,
+      title: 'Customer Retention',
+      description: 'Churn rate increased by 3% - immediate action needed',
+      color: { bg: '#fef3c7', text: '#92400e', icon: '#f59e0b' }
+    }
+  ];
+
+  // Action Items
+  const actionItems = [
+    { id: 1, title: 'Launch Q4 Campaign', dueDate: '2025-01-15', priority: 'high' },
+    { id: 2, title: 'Review Pricing Strategy', dueDate: '2025-01-20', priority: 'medium' },
+    { id: 3, title: 'Analyze Competitor Activity', dueDate: '2025-01-10', priority: 'high' },
+    { id: 4, title: 'Optimize Supply Chain', dueDate: '2025-01-25', priority: 'medium' }
+  ];
+
+  // Campaign data
+  const campaigns = {
+    recommended: [
+      {
+        id: 1,
+        name: 'Summer Sales Boost',
+        description: 'Targeted campaign for summer season with focus on outdoor products',
+        aiScore: 92,
+        budget: '€50K',
+        roi: '320%',
+        channels: ['Email', 'Social Media', 'Display Ads']
+      },
+      {
+        id: 2,
+        name: 'Holiday Campaign 2024',
+        description: 'Comprehensive holiday season marketing initiative',
+        aiScore: 88,
+        budget: '€75K',
+        roi: '450%',
+        channels: ['Email', 'Social Media', 'Video', 'Influencer']
+      },
+      {
+        id: 3,
+        name: 'New Product Launch',
+        description: 'Launch campaign for new premium product line',
+        aiScore: 85,
+        budget: '€60K',
+        roi: '380%',
+        channels: ['Social Media', 'Video', 'Influencer', 'PR']
+      }
+    ],
+    active: [
+      {
+        id: 4,
+        name: 'Brand Awareness Drive',
+        description: 'Ongoing brand building across multiple touchpoints',
+        aiScore: 78,
+        budget: '€40K',
+        roi: '280%',
+        channels: ['Social Media', 'Display Ads']
+      }
+    ],
+    archived: [
+      {
+        id: 5,
+        name: 'Black Friday 2024',
+        description: 'Successful Black Friday promotional campaign',
+        aiScore: 95,
+        budget: '€85K',
+        roi: '520%',
+        channels: ['Email', 'Social Media', 'Video', 'Display Ads']
+      }
+    ]
+  };
+
+  const handleActivate = (campaignName) => {
+    toast.success(`Campaign "${campaignName}" activated successfully!`);
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Business Cockpit</h1>
+          <p className="text-gray-600">AI-powered business intelligence and campaign management</p>
+        </div>
+
+        {/* Business AI Score Banner */}
+        <div 
+          className="rounded-xl p-6 border"
+          style={{ background: '#fef3c7', borderColor: '#f59e0b' }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Business AI Score</h2>
+              <p className="text-sm text-gray-700">Overall business health and performance indicator</p>
+            </div>
+            <div className="text-5xl font-bold" style={{ color: '#d97706' }}>
+              87<span className="text-2xl text-gray-600">/100</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Insights */}
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Key Insights</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {insights.map((insight, idx) => {
+              const Icon = insight.icon;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-lg p-5 border"
+                  style={{ 
+                    background: insight.color.bg, 
+                    borderColor: insight.color.bg
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <Icon className="w-5 h-5" style={{ color: insight.color.icon }} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold mb-1" style={{ color: insight.color.text }}>
+                        {insight.title}
+                      </h3>
+                      <p className="text-sm" style={{ color: insight.color.text, opacity: 0.8 }}>
+                        {insight.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Top Action Items */}
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Top Action Items</h2>
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            {actionItems.map((item, idx) => (
+              <div
+                key={item.id}
+                className={`flex items-center justify-between p-4 ${
+                  idx !== actionItems.length - 1 ? 'border-b border-gray-200' : ''
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    item.priority === 'high' ? 'bg-red-500' : 'bg-yellow-500'
+                  }`}></div>
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">{item.title}</h4>
+                    <p className="text-sm text-gray-500">Due: {item.dueDate}</p>
+                  </div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  item.priority === 'high' 
+                    ? 'bg-red-100 text-red-700' 
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {item.priority}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Campaign Tabs */}
+        <div>
+          <div className="flex gap-2 mb-4">
+            {[
+              { key: 'recommended', label: 'Recommended', count: campaigns.recommended.length },
+              { key: 'active', label: 'Active', count: campaigns.active.length },
+              { key: 'archived', label: 'Archived', count: campaigns.archived.length }
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  activeTab === tab.key
+                    ? 'bg-amber-100 text-amber-900'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {tab.label} ({tab.count})
+              </button>
+            ))}
+          </div>
+
+          {/* Campaign Cards */}
+          <div className="grid grid-cols-1 gap-4">
+            {campaigns[activeTab].map((campaign) => (
+              <div key={campaign.id} className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{campaign.name}</h3>
+                    <p className="text-sm text-gray-600 mb-3">{campaign.description}</p>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <div className="flex items-baseline gap-1 mb-1">
+                      <span className="text-2xl font-bold" style={{ color: '#f59e0b' }}>
+                        {campaign.aiScore}%
+                      </span>
+                      <span className="text-xs text-gray-500">AI Score</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Budget</p>
+                    <p className="font-semibold text-gray-900">{campaign.budget}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Expected ROI</p>
+                    <p className="font-semibold text-gray-900">{campaign.roi}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Channels</p>
+                    <p className="font-semibold text-gray-900">{campaign.channels.length}</p>
+                  </div>
+                </div>
+
+                <div 
+                  className="rounded-lg p-3 mb-4"
+                  style={{ background: '#fef3c7' }}
+                >
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#f59e0b' }} />
+                    <div>
+                      <p className="text-xs font-semibold mb-1" style={{ color: '#92400e' }}>
+                        AI Recommendation:
+                      </p>
+                      <p className="text-xs" style={{ color: '#92400e' }}>
+                        {activeTab === 'recommended' && campaign.aiScore > 90 
+                          ? 'High potential for revenue growth. Recommended to activate immediately.'
+                          : activeTab === 'recommended' && campaign.aiScore > 85
+                          ? 'Strong market demand detected. Launch recommended for maximum impact.'
+                          : 'Optimal timing detected. Expected high conversion rates.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
+                  {campaign.channels.map((channel, idx) => {
+                    const channelIcons = {
+                      'Email': Mail,
+                      'Social Media': Share2,
+                      'Video': Video,
+                      'Display Ads': Target,
+                      'Influencer': UsersIcon,
+                      'PR': Sparkles
+                    };
+                    const ChannelIcon = channelIcons[channel] || Target;
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-full"
+                      >
+                        <ChannelIcon className="w-3.5 h-3.5 text-gray-600" />
+                        <span className="text-xs font-medium text-gray-700">{channel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  onClick={() => handleActivate(campaign.name)}
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Activate
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default Cockpit;
