@@ -77,7 +77,7 @@ const BrandAnalysis = () => {
   const brandChartData = {
     labels: brandData.map(item => item.Brand),
     datasets: [
-      { label: 'Sales', data: brandData.map(item => item.gSales), backgroundColor: '#3b82f6', borderRadius: 6 },
+      { label: 'Sales', data: brandData.map(item => item.Revenue), backgroundColor: '#3b82f6', borderRadius: 6 },
       { label: 'fGP', data: brandData.map(item => item.fGP), backgroundColor: '#10b981', borderRadius: 6 },
     ],
   };
@@ -92,7 +92,7 @@ const BrandAnalysis = () => {
       label: brand,
       data: uniqueYears.map(year => {
         const item = brandYoYData.find(d => d.Brand === brand && d.Year === year);
-        return item ? item.gSales : 0;
+        return item ? item.Revenue : 0;
       }),
       borderColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][idx],
       backgroundColor: `${['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][idx]}20`,
@@ -170,7 +170,7 @@ const BrandAnalysis = () => {
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
                         <td className="py-2 px-3 text-gray-900 font-medium text-sm">{item.Brand}</td>
                         <td className="py-2 px-3 text-gray-700 text-sm">{item.Business}</td>
-                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.gSales || 0)}</td>
+                        <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.Revenue || 0)}</td>
                         <td className="text-right py-2 px-3 text-gray-700 text-sm">{formatCurrency(item.fGP || 0)}</td>
                       </tr>
                     ))}
