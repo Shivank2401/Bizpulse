@@ -497,7 +497,7 @@ const Dashboard = () => {
             onChartFilterChange={handleChartFilterChange}
             onViewInsight={() =>
               handleViewInsight(
-                'Business vs Gross_Profit',
+                'Business vs Profit',
                 [
                   { type: 'positive', text: `Total Gross_Profit of €${formatNumber(data?.total_profit || 0)} generated` },
                   { type: 'attention', text: 'Profit margin variations need analysis' }
