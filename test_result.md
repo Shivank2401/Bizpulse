@@ -251,8 +251,6 @@ test_plan:
   current_focus:
     - "Enhanced Insight Modal with AI Chat"
     - "Cockpit Page - Campaign Management"
-    - "Projects Page - Project Management"
-    - "Dashboard and Analytics Pages"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
