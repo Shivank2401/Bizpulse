@@ -164,7 +164,7 @@ const SalesAnalysis = () => {
               <h3 className="text-sm font-medium text-gray-600">Total Units</h3>
               <Package className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{formatNumber(totalCases)}</p>
+            <p className="text-2xl font-bold text-gray-900">{formatNumber(totalUnits)}</p>
             <p className="text-sm text-blue-600 mt-1">
               <TrendingUp className="w-4 h-4 inline mr-1" />
               +8.3% vs last period
