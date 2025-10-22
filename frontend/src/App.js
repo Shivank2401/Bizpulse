@@ -122,6 +122,22 @@ function App() {
             }
           />
           <Route
+            path="/sales-analysis"
+            element={
+              <PrivateRoute>
+                <SalesAnalysis />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/root-cause-analysis"
+            element={
+              <PrivateRoute>
+                <RootCauseAnalysis />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/chart-insight"
             element={
               <PrivateRoute>
