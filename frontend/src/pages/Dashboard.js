@@ -460,7 +460,7 @@ const Dashboard = () => {
           </ChartCard>
 
           <ChartCard
-            title="Business vs Sales"
+            title="Business vs Revenue"
             filters={filters}
             chartName="businessSales"
             chartFilters={chartFilters.businessSales}
