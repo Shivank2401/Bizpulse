@@ -439,7 +439,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Business vs Units',
                 [
-                  { type: 'positive', text: `Total ${formatNumber(data?.total_units || 0)} cases across all businesses` },
+                  { type: 'positive', text: `Total ${formatNumber(data?.total_units || 0)} units across all businesses` },
                   { type: 'neutral', text: 'Case volume shows business distribution patterns' }
                 ],
                 [
