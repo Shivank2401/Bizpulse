@@ -218,8 +218,30 @@ const Cockpit = () => {
     ]
   });
 
-  const handleActivate = (campaignName) => {
-    toast.success(`Campaign "${campaignName}" activated successfully!`);
+  const handleActivate = (campaignId, campaignName) => {
+    // Move campaign from recommended to active
+    const campaign = campaigns.recommended.find(c => c.id === campaignId);
+    if (campaign) {
+      setCampaigns(prev => ({
+        ...prev,
+        recommended: prev.recommended.filter(c => c.id !== campaignId),
+        active: [...prev.active, { ...campaign, startDate: new Date().toISOString().split('T')[0], status: 'running' }]
+      }));
+      toast.success(`Campaign "${campaignName}" activated successfully!`);
+    }
+  };
+
+  const handleArchive = (campaignId, campaignName) => {
+    // Move campaign from recommended to archived
+    const campaign = campaigns.recommended.find(c => c.id === campaignId);
+    if (campaign) {
+      setCampaigns(prev => ({
+        ...prev,
+        recommended: prev.recommended.filter(c => c.id !== campaignId),
+        archived: [...prev.archived, { ...campaign, endDate: new Date().toISOString().split('T')[0] }]
+      }));
+      toast.success(`Campaign "${campaignName}" archived successfully!`);
+    }
   };
 
   return (
