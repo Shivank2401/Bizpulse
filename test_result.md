@@ -251,9 +251,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Enhanced Insight Modal with AI Chat"
-    - "Cockpit Page - Campaign Management"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
