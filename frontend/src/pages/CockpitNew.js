@@ -380,7 +380,7 @@ const Cockpit = () => {
           </div>
 
           {/* Campaign Cards */}
-          <div className={`grid ${activeTab === 'recommended' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-4`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {campaigns[activeTab].map((campaign) => (
               <div key={campaign.id} className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className="flex items-start justify-between mb-4">
