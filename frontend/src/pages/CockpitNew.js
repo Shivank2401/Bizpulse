@@ -13,7 +13,8 @@ import {
   Sparkles,
   Calendar,
   Target,
-  Archive
+  Archive,
+  StopCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
