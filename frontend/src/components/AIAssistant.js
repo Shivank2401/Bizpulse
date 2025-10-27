@@ -67,16 +67,28 @@ const AIAssistant = () => {
     <>
       {/* Floating Button */}
       {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-8 right-8 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 transition"
-          style={{
-            background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)'
-          }}
-          data-testid="ai-assistant-button"
-        >
-          <Sparkles className="w-8 h-8 text-white" />
-        </button>
+        <div className="fixed bottom-8 right-8 z-50 group">
+          <button
+            onClick={() => setIsOpen(true)}
+            className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300"
+            style={{
+              background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)'
+            }}
+            data-testid="ai-assistant-button"
+            title="Ask VectorDeep AI"
+          >
+            <Sparkles className="w-8 h-8 text-white" />
+          </button>
+          {/* Tooltip on hover */}
+          <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <div className="bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg whitespace-nowrap">
+              Ask VectorDeep AI
+              <div className="absolute top-full right-6 -mt-1">
+                <div className="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Chat Window */}
