@@ -19,6 +19,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import AIAssistant from '@/components/AIAssistant';
 
 const Layout = ({ children }) => {
   const location = useLocation();
