@@ -463,7 +463,7 @@ const Cockpit = () => {
                       className="flex-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300"
                       variant="outline"
                     >
-                      <Target className="w-4 h-4 mr-2" />
+                      <Archive className="w-4 h-4 mr-2" />
                       Archive
                     </Button>
                   </div>
