@@ -359,7 +359,7 @@ const Cockpit = () => {
           </div>
 
           {/* Campaign Cards */}
-          <div className="grid grid-cols-1 gap-4">
+          <div className={`grid ${activeTab === 'recommended' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-4`}>
             {campaigns[activeTab].map((campaign) => (
               <div key={campaign.id} className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -383,8 +383,8 @@ const Cockpit = () => {
                     <p className="font-semibold text-gray-900">{campaign.budget}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Expected ROI</p>
-                    <p className="font-semibold text-gray-900">{campaign.roi}</p>
+                    <p className="text-xs text-gray-500 mb-1">{activeTab === 'archived' && campaign.actualROI ? 'Actual ROI' : 'Expected ROI'}</p>
+                    <p className="font-semibold text-gray-900">{activeTab === 'archived' && campaign.actualROI ? campaign.actualROI : campaign.roi}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Channels</p>
@@ -392,28 +392,40 @@ const Cockpit = () => {
                   </div>
                 </div>
 
-                <div 
-                  className="rounded-lg p-3 mb-4"
-                  style={{ background: '#fef3c7' }}
-                >
-                  <div className="flex items-start gap-2">
-                    <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#f59e0b' }} />
-                    <div>
-                      <p className="text-xs font-semibold mb-1" style={{ color: '#92400e' }}>
-                        AI Recommendation:
-                      </p>
-                      <p className="text-xs" style={{ color: '#92400e' }}>
-                        {activeTab === 'recommended' && campaign.aiScore > 90 
-                          ? 'High potential for revenue growth. Recommended to activate immediately.'
-                          : activeTab === 'recommended' && campaign.aiScore > 85
-                          ? 'Strong market demand detected. Launch recommended for maximum impact.'
-                          : 'Optimal timing detected. Expected high conversion rates.'}
-                      </p>
+                {activeTab === 'recommended' && campaign.aiRecommendation && (
+                  <div 
+                    className="rounded-lg p-3 mb-4"
+                    style={{ background: '#dbeafe' }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#1e40af' }} />
+                      <div>
+                        <p className="text-xs font-semibold mb-1" style={{ color: '#1e3a8a' }}>
+                          AI Recommendation:
+                        </p>
+                        <p className="text-xs" style={{ color: '#1e3a8a' }}>
+                          {campaign.aiRecommendation}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-2 mb-4">
+                {activeTab === 'active' && (
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-500 mb-1">Start Date</p>
+                    <p className="text-sm font-medium text-gray-900">{campaign.startDate}</p>
+                  </div>
+                )}
+
+                {activeTab === 'archived' && (
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-500 mb-1">End Date</p>
+                    <p className="text-sm font-medium text-gray-900">{campaign.endDate}</p>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
                   {campaign.channels.map((channel, idx) => {
                     const channelIcons = {
                       'Email': Mail,
@@ -436,13 +448,25 @@ const Cockpit = () => {
                   })}
                 </div>
 
-                <Button
-                  onClick={() => handleActivate(campaign.name)}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  Activate
-                </Button>
+                {activeTab === 'recommended' && (
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => handleActivate(campaign.id, campaign.name)}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Activate
+                    </Button>
+                    <Button
+                      onClick={() => handleArchive(campaign.id, campaign.name)}
+                      className="flex-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300"
+                      variant="outline"
+                    >
+                      <Target className="w-4 h-4 mr-2" />
+                      Archive
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
