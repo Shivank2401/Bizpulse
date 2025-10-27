@@ -151,6 +151,9 @@ const Layout = ({ children }) => {
           </div>
         </main>
       </div>
+
+      {/* AI Assistant Floating Button - Available on all pages */}
+      <AIAssistant />
     </div>
   );
 };
