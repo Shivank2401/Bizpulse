@@ -488,6 +488,38 @@ const Cockpit = () => {
                     </Button>
                   </div>
                 )}
+
+                {activeTab === 'active' && (
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => handleDeactivate(campaign.id, campaign.name)}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <StopCircle className="w-4 h-4 mr-2" />
+                      Deactivate
+                    </Button>
+                    <Button
+                      onClick={() => handleArchive(campaign.id, campaign.name, 'active')}
+                      className="flex-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300"
+                      variant="outline"
+                    >
+                      <Archive className="w-4 h-4 mr-2" />
+                      Archive
+                    </Button>
+                  </div>
+                )}
+
+                {activeTab === 'archived' && (
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => handleActivate(campaign.id, campaign.name, 'archived')}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Activate
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
