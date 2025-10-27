@@ -50,59 +50,173 @@ const Cockpit = () => {
   ];
 
   // Campaign data
-  const campaigns = {
+  const [campaigns, setCampaigns] = useState({
     recommended: [
       {
         id: 1,
         name: 'Summer Sales Boost',
         description: 'Targeted campaign for summer season with focus on outdoor products',
         aiScore: 92,
-        budget: '€50K',
+        budget: '$50K',
         roi: '320%',
-        channels: ['Email', 'Social Media', 'Display Ads']
+        channels: ['Email', 'Social Media', 'Display Ads'],
+        aiRecommendation: 'High potential for Q3 revenue growth. Recommended to activate immediately.'
       },
       {
         id: 2,
         name: 'Holiday Campaign 2024',
         description: 'Comprehensive holiday season marketing initiative',
         aiScore: 88,
-        budget: '€75K',
+        budget: '$175K',
         roi: '450%',
-        channels: ['Email', 'Social Media', 'Video', 'Influencer']
+        channels: ['Email', 'Social Media', 'Video', 'Influencer'],
+        aiRecommendation: 'Optimal timing for holiday shopping season. Expected 45% increase in conversions.'
       },
       {
         id: 3,
         name: 'New Product Launch',
         description: 'Launch campaign for new premium product line',
         aiScore: 85,
-        budget: '€60K',
+        budget: '$60K',
         roi: '380%',
-        channels: ['Social Media', 'Video', 'Influencer', 'PR']
+        channels: ['Social Media', 'Video', 'Influencer'],
+        aiRecommendation: 'Prioritize Japan and Singapore markets first. Engage local consulting partners.'
+      },
+      {
+        id: 4,
+        name: 'Back to School Promo',
+        description: 'Targeted campaign for students and parents',
+        aiScore: 87,
+        budget: '$45K',
+        roi: '340%',
+        channels: ['Email', 'Display Ads', 'Social Media'],
+        aiRecommendation: 'Strong seasonal opportunity. Recommend early August activation for maximum impact.'
+      },
+      {
+        id: 5,
+        name: 'Customer Loyalty Program',
+        description: 'Retention campaign for existing high-value customers',
+        aiScore: 91,
+        budget: '$35K',
+        roi: '520%',
+        channels: ['Email', 'Video'],
+        aiRecommendation: 'Top 10 customers account for 62% revenue. Focus on personalized offers.'
+      },
+      {
+        id: 6,
+        name: 'Spring Flash Sale',
+        description: 'Limited-time promotional campaign for spring season',
+        aiScore: 83,
+        budget: '$28K',
+        roi: '290%',
+        channels: ['Social Media', 'Display Ads', 'Email'],
+        aiRecommendation: 'Budget-efficient option with solid ROI. Perfect for quick wins.'
       }
     ],
     active: [
       {
-        id: 4,
+        id: 7,
         name: 'Brand Awareness Drive',
         description: 'Ongoing brand building across multiple touchpoints',
         aiScore: 78,
-        budget: '€40K',
+        budget: '$40K',
         roi: '280%',
-        channels: ['Social Media', 'Display Ads']
+        channels: ['Social Media', 'Display Ads'],
+        startDate: '2025-01-05',
+        status: 'running'
+      },
+      {
+        id: 8,
+        name: 'Winter Clearance Sale',
+        description: 'End of season inventory clearance',
+        aiScore: 82,
+        budget: '$55K',
+        roi: '310%',
+        channels: ['Email', 'Social Media', 'Display Ads'],
+        startDate: '2025-01-10',
+        status: 'running'
+      },
+      {
+        id: 9,
+        name: 'Digital Transformation Series',
+        description: 'Webinar series for lead generation',
+        aiScore: 76,
+        budget: '$30K',
+        roi: '240%',
+        channels: ['Video', 'Email', 'Social Media'],
+        startDate: '2025-01-08',
+        status: 'running'
+      },
+      {
+        id: 10,
+        name: 'Partner Co-Marketing',
+        description: 'Joint marketing initiative with strategic partners',
+        aiScore: 84,
+        budget: '$65K',
+        roi: '380%',
+        channels: ['Email', 'Video', 'Display Ads'],
+        startDate: '2025-01-12',
+        status: 'running'
       }
     ],
     archived: [
       {
-        id: 5,
+        id: 11,
         name: 'Black Friday 2024',
         description: 'Successful Black Friday promotional campaign',
         aiScore: 95,
-        budget: '€85K',
+        budget: '$85K',
         roi: '520%',
-        channels: ['Email', 'Social Media', 'Video', 'Display Ads']
+        actualROI: '548%',
+        channels: ['Email', 'Social Media', 'Video', 'Display Ads'],
+        endDate: '2024-11-29'
+      },
+      {
+        id: 12,
+        name: 'Cyber Monday Special',
+        description: 'Online-focused promotional campaign',
+        aiScore: 93,
+        budget: '$70K',
+        roi: '480%',
+        actualROI: '495%',
+        channels: ['Email', 'Social Media', 'Display Ads'],
+        endDate: '2024-12-02'
+      },
+      {
+        id: 13,
+        name: 'Q3 Product Showcase',
+        description: 'Virtual product demonstration series',
+        aiScore: 81,
+        budget: '$42K',
+        roi: '300%',
+        actualROI: '315%',
+        channels: ['Video', 'Email', 'Social Media'],
+        endDate: '2024-09-30'
+      },
+      {
+        id: 14,
+        name: 'Summer Festival Sponsorship',
+        description: 'Event sponsorship and brand activation',
+        aiScore: 79,
+        budget: '$50K',
+        roi: '270%',
+        actualROI: '285%',
+        channels: ['Social Media', 'Display Ads'],
+        endDate: '2024-07-15'
+      },
+      {
+        id: 15,
+        name: 'Spring Product Launch 2024',
+        description: 'Major product line introduction campaign',
+        aiScore: 88,
+        budget: '$95K',
+        roi: '420%',
+        actualROI: '442%',
+        channels: ['Email', 'Social Media', 'Video', 'Influencer'],
+        endDate: '2024-05-31'
       }
     ]
-  };
+  });
 
   const handleActivate = (campaignName) => {
     toast.success(`Campaign "${campaignName}" activated successfully!`);
