@@ -157,7 +157,7 @@ frontend:
   - task: "Cockpit Page - Campaign Management"
     implemented: true
     working: true
-    file: "/app/frontend/src/pages/Cockpit.js"
+    file: "/app/frontend/src/pages/CockpitNew.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -171,6 +171,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ FULLY FUNCTIONAL! Campaign Cockpit page loads correctly with title 'Campaign Cockpit'. All 3 tabs working: 'AI Recommended (3)', 'Active Campaigns (0)', 'Archived (0)'. Found 3 AI-recommended campaign cards with proper details: budget (€45.0k, €32.0k, €28.0k), Expected ROI (3.2x, 2.8x, 2.5x), channels, dates, AI scores (95, 88, 82). Action buttons (Activate, Delete) present. Tab switching functional. Professional card styling working."
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE COCKPIT TESTING COMPLETED - ALL NEW FEATURES WORKING PERFECTLY! Navigation: Projects menu correctly positioned second last (above Reports). Cockpit Page: 'Business Cockpit' title displays correctly. Recommended Tab (6 campaigns): 2-column grid layout ✅, Activate (green) + Archive (white/border) buttons ✅, AI recommendations with proper styling ✅. Active Tab (4 campaigns): 2-column grid layout ✅, Deactivate (red) + Archive (white/border) buttons ✅, Start Date displayed ✅. Archived Tab (5 campaigns): 2-column grid layout ✅, Activate (green) button ✅, End Date + Actual ROI displayed ✅. Interactive Testing: ✅ Recommended→Active (Summer Sales Boost activated, counts updated 6→5, 4→5), ✅ Active→Archived via Deactivate (Brand Awareness Drive moved, toast shown), ✅ Archived→Active (Black Friday 2024 reactivated, toast shown). All toast messages working correctly. Campaign data matches expected counts exactly. All button interactions functional with proper state management."
 
   - task: "Projects Page - Comprehensive Reconstruction"
     implemented: true
