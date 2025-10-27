@@ -12,7 +12,8 @@ import {
   Play,
   Sparkles,
   Calendar,
-  Target
+  Target,
+  Archive
 } from 'lucide-react';
 import { toast } from 'sonner';
 
