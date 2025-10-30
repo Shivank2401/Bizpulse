@@ -13,6 +13,7 @@ import ProjectsNew from '@/pages/ProjectsNew';
 import SalesAnalysis from '@/pages/SalesAnalysis';
 import RootCauseAnalysis from '@/pages/RootCauseAnalysis';
 import ChartInsight from '@/pages/ChartInsight';
+import Kanban from '@/pages/Kanban';
 import { Toaster } from '@/components/ui/sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
