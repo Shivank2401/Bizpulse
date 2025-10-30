@@ -30,6 +30,7 @@ const Layout = ({ children }) => {
 
   const menuItems = [
     { path: '/', icon: Target, label: 'Cockpit', color: '#f59e0b' },
+    { path: '/kanban', icon: Trello, label: 'Kanban' },
     { path: '/compass', icon: LayoutDashboard, label: 'Business Compass' },
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/brands', icon: Tag, label: 'Brands' },
