@@ -23,7 +23,8 @@ import {
   BarChart3,
   ArrowUpRight,
   Edit,
-  Trash2
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
