@@ -133,6 +133,110 @@ const Kanban = () => {
 
   const [showReasoning, setShowReasoning] = useState(null);
 
+  // Goals Management Data
+  const [goals, setGoals] = useState({
+    quarters: [
+      {
+        id: 1,
+        quarter: 'Q1 2025',
+        period: 'Jan - Mar 2025',
+        status: 'active',
+        objectives: [
+          {
+            id: 1,
+            title: 'Increase Customer Acquisition',
+            description: 'Drive 30% growth in new customer acquisition through digital channels',
+            owner: 'Marketing Team',
+            progress: 72,
+            status: 'on-track',
+            targetValue: 5000,
+            currentValue: 3600,
+            metric: 'customers',
+            keyResults: [
+              { id: 1, description: 'Launch 3 new acquisition campaigns', progress: 100, target: 3, current: 3 },
+              { id: 2, description: 'Achieve 15% conversion rate on landing pages', progress: 80, target: 15, current: 12 },
+              { id: 3, description: 'Reduce CAC by 20%', progress: 45, target: 20, current: 9 }
+            ]
+          },
+          {
+            id: 2,
+            title: 'Improve Customer Retention',
+            description: 'Increase retention rate from 85% to 92% through engagement programs',
+            owner: 'Customer Success',
+            progress: 58,
+            status: 'at-risk',
+            targetValue: 92,
+            currentValue: 88,
+            metric: '% retention',
+            keyResults: [
+              { id: 1, description: 'Implement loyalty program with 50% enrollment', progress: 65, target: 50, current: 32.5 },
+              { id: 2, description: 'Reduce churn rate to 8%', progress: 50, target: 8, current: 12 },
+              { id: 3, description: 'Achieve NPS score of 70+', progress: 60, target: 70, current: 62 }
+            ]
+          },
+          {
+            id: 3,
+            title: 'Expand Product Revenue',
+            description: 'Grow product revenue by 40% through upselling and cross-selling',
+            owner: 'Sales Team',
+            progress: 85,
+            status: 'on-track',
+            targetValue: 8500000,
+            currentValue: 7225000,
+            metric: '$ revenue',
+            keyResults: [
+              { id: 1, description: 'Increase average order value by 25%', progress: 90, target: 25, current: 22.5 },
+              { id: 2, description: 'Cross-sell to 40% of existing customers', progress: 82, target: 40, current: 33 },
+              { id: 3, description: 'Launch 2 premium product tiers', progress: 100, target: 2, current: 2 }
+            ]
+          }
+        ]
+      },
+      {
+        id: 2,
+        quarter: 'Q2 2025',
+        period: 'Apr - Jun 2025',
+        status: 'upcoming',
+        objectives: [
+          {
+            id: 4,
+            title: 'Launch International Expansion',
+            description: 'Enter 3 new international markets with localized offerings',
+            owner: 'Business Development',
+            progress: 15,
+            status: 'planning',
+            targetValue: 3,
+            currentValue: 0,
+            metric: 'markets',
+            keyResults: [
+              { id: 1, description: 'Complete market research for 5 countries', progress: 60, target: 5, current: 3 },
+              { id: 2, description: 'Establish partnerships in 3 markets', progress: 0, target: 3, current: 0 },
+              { id: 3, description: 'Localize platform for 3 languages', progress: 0, target: 3, current: 0 }
+            ]
+          },
+          {
+            id: 5,
+            title: 'Optimize Operational Efficiency',
+            description: 'Reduce operational costs by 15% through automation',
+            owner: 'Operations Team',
+            progress: 8,
+            status: 'planning',
+            targetValue: 15,
+            currentValue: 0,
+            metric: '% reduction',
+            keyResults: [
+              { id: 1, description: 'Automate 50% of manual processes', progress: 10, target: 50, current: 5 },
+              { id: 2, description: 'Reduce support ticket resolution time by 30%', progress: 5, target: 30, current: 1.5 },
+              { id: 3, description: 'Implement AI-powered analytics', progress: 0, target: 1, current: 0 }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+
+  const [selectedQuarter, setSelectedQuarter] = useState(goals.quarters[0]);
+
   // Calculate KPIs
   const totalRecommended = initiatives.recommended.length;
   const totalLive = initiatives.live.length;
