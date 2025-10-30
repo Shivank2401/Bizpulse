@@ -98,13 +98,148 @@ const RootCauseAnalysis = () => {
     }
   ];
 
+  // Marketing Strategy Data
+  const marketingStrategyModules = [
+    {
+      id: 1,
+      title: 'Strategic Framework',
+      description: 'Define your marketing strategy framework',
+      icon: Target,
+      status: 'active',
+      color: { bg: '#dbeafe', icon: '#2563eb' }
+    },
+    {
+      id: 2,
+      title: 'Channel Strategy',
+      description: 'Optimize your marketing channel mix',
+      icon: Layers,
+      status: 'active',
+      color: { bg: '#d1fae5', icon: '#059669' }
+    },
+    {
+      id: 3,
+      title: 'Budget Allocation',
+      description: 'Strategic budget planning and allocation',
+      icon: DollarSign,
+      status: 'active',
+      color: { bg: '#fef3c7', icon: '#d97706' }
+    },
+    {
+      id: 4,
+      title: 'Market Segmentation',
+      description: 'Define and refine your target segments',
+      icon: Users,
+      status: 'active',
+      color: { bg: '#e0e7ff', icon: '#4f46e5' }
+    },
+    {
+      id: 5,
+      title: 'Brand Positioning',
+      description: 'Develop and maintain brand positioning',
+      icon: Award,
+      status: 'active',
+      color: { bg: '#fce7f3', icon: '#9f1239' }
+    },
+    {
+      id: 6,
+      title: 'Competitive Strategy',
+      description: 'Strategic response to competitive landscape',
+      icon: Zap,
+      status: 'active',
+      color: { bg: '#fed7aa', icon: '#ea580c' }
+    }
+  ];
+
+  // AI Insights Data
+  const aiInsights = [
+    {
+      id: 1,
+      title: 'Signup Drop-off Spike',
+      priority: 'critical',
+      description: 'AI-generated marketing insight based on campaign performance data',
+      details: '42% increase in form abandonment at step 3 detected. Users are leaving at the payment information field, indicating potential security concerns or complex checkout process.',
+      color: { bg: '#fee2e2', text: '#991b1b', label: 'Critical' }
+    },
+    {
+      id: 2,
+      title: 'Weekend Engagement Window',
+      priority: 'medium',
+      description: 'AI-generated marketing insight based on campaign performance data',
+      details: 'Email engagement increases by 68% on weekends between 10AM-2PM. Consider scheduling high-priority campaigns during this window for maximum impact.',
+      color: { bg: '#fef3c7', text: '#92400e', label: 'Medium' }
+    },
+    {
+      id: 3,
+      title: 'Mobile Traffic Surge',
+      priority: 'high',
+      description: 'AI-generated marketing insight based on campaign performance data',
+      details: 'Mobile traffic increased 85% but conversion rate is 23% lower than desktop. Mobile UX optimization recommended to capitalize on increased traffic.',
+      color: { bg: '#fed7aa', text: '#9a3412', label: 'High' }
+    }
+  ];
+
+  // Performance Charts Data
+  const roasData = {
+    labels: ['Apr 22', 'Apr 25', 'Apr 28', 'May 1', 'May 4', 'May 7', 'May 10', 'May 13', 'May 16', 'May 19', 'May 22', 'May 25', 'May 28', 'Jun 1', 'Jun 4', 'Jun 7', 'Jun 10', 'Jun 13', 'Jun 16', 'Jun 19', 'Jun 22', 'Jun 25', 'Jun 28', 'Jul 1', 'Jul 4', 'Jul 7', 'Jul 10', 'Jul 13'],
+    values: [3.2, 4.1, 2.8, 3.5, 4.5, 3.9, 2.9, 4.2, 3.7, 4.8, 3.4, 2.6, 3.8, 4.3, 3.1, 4.6, 3.5, 2.9, 4.1, 3.6, 4.4, 3.2, 3.9, 4.7, 3.3, 4.0, 3.8, 4.2]
+  };
+
+  const emailOpenRateData = {
+    labels: ['Apr 22', 'Apr 25', 'Apr 28', 'May 1', 'May 4', 'May 7', 'May 10', 'May 13', 'May 16', 'May 19', 'May 22', 'May 25', 'May 28', 'Jun 1', 'Jun 4', 'Jun 7', 'Jun 10', 'Jun 13', 'Jun 16', 'Jun 19', 'Jun 22', 'Jun 25', 'Jun 28', 'Jul 1', 'Jul 4', 'Jul 7', 'Jul 10', 'Jul 13'],
+    values: [0.22, 0.21, 0.28, 0.23, 0.22, 0.24, 0.23, 0.22, 0.21, 0.25, 0.23, 0.22, 0.24, 0.23, 0.22, 0.21, 0.24, 0.23, 0.22, 0.23, 0.22, 0.24, 0.23, 0.25, 0.24, 0.23, 0.22, 0.24]
+  };
+
+  const clickThroughRateData = {
+    labels: ['Apr 22', 'Apr 25', 'Apr 28', 'May 1', 'May 4', 'May 7', 'May 10', 'May 13', 'May 16', 'May 19', 'May 22', 'May 25', 'May 28', 'Jun 1', 'Jun 4', 'Jun 7', 'Jun 10', 'Jun 13', 'Jun 16', 'Jun 19', 'Jun 22', 'Jun 25', 'Jun 28', 'Jul 1', 'Jul 4', 'Jul 7', 'Jul 10', 'Jul 13'],
+    values: [0.042, 0.038, 0.051, 0.044, 0.039, 0.048, 0.043, 0.040, 0.037, 0.049, 0.044, 0.038, 0.047, 0.043, 0.039, 0.036, 0.048, 0.044, 0.040, 0.045, 0.041, 0.049, 0.043, 0.050, 0.046, 0.043, 0.039, 0.047]
+  };
+
+  const conversionRateData = {
+    labels: ['Apr 22', 'Apr 25', 'Apr 28', 'May 1', 'May 4', 'May 7', 'May 10', 'May 13', 'May 16', 'May 19', 'May 22', 'May 25', 'May 28', 'Jun 1', 'Jun 4', 'Jun 7', 'Jun 10', 'Jun 13', 'Jun 16', 'Jun 19', 'Jun 22', 'Jun 25', 'Jun 28', 'Jul 1', 'Jul 4', 'Jul 7', 'Jul 10', 'Jul 13'],
+    values: [0.028, 0.025, 0.035, 0.030, 0.026, 0.033, 0.029, 0.027, 0.024, 0.034, 0.030, 0.025, 0.032, 0.029, 0.026, 0.023, 0.033, 0.030, 0.027, 0.031, 0.028, 0.034, 0.029, 0.035, 0.032, 0.029, 0.026, 0.033]
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Root Cause Analysis</h1>
-          <p className="text-gray-600">Identify and resolve business performance issues</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {activeTab === 'root-cause-analysis' ? 'Root Cause Analysis' : 'Marketing Strategy'}
+          </h1>
+          <p className="text-gray-600">
+            {activeTab === 'root-cause-analysis' 
+              ? 'Identify and resolve business performance issues' 
+              : 'Define and manage your overall marketing strategy and frameworks'}
+          </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="professional-card p-1">
+          <div className="flex gap-1">
+            <button
+              onClick={() => setActiveTab('root-cause-analysis')}
+              className={`flex-1 px-4 py-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'root-cause-analysis'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <AlertCircle className="w-4 h-4" />
+              Root Cause Analysis
+            </button>
+            <button
+              onClick={() => setActiveTab('marketing-strategy')}
+              className={`flex-1 px-4 py-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'marketing-strategy'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              Marketing Strategy
+            </button>
+          </div>
         </div>
 
         {/* Multi-Select Filters */}
