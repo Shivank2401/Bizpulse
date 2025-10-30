@@ -427,6 +427,278 @@ const RootCauseAnalysis = () => {
             )}
           </div>
         </div>
+          </>
+        )}
+
+        {/* Marketing Strategy Content */}
+        {activeTab === 'marketing-strategy' && (
+          <>
+            {/* Strategy Modules Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {marketingStrategyModules.map((module) => {
+                const ModuleIcon = module.icon;
+                return (
+                  <div 
+                    key={module.id} 
+                    className="professional-card p-6 hover:shadow-lg transition-all cursor-pointer"
+                  >
+                    <div 
+                      className="w-14 h-14 rounded-lg flex items-center justify-center mb-4"
+                      style={{ background: module.color.bg }}
+                    >
+                      <ModuleIcon className="w-7 h-7" style={{ color: module.color.icon }} />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: 'Space Grotesk' }}>
+                      {module.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">{module.description}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-gray-700 border-gray-300"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* AI Insights Section */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Space Grotesk' }}>
+                Marketing AI Insights & Recommendations
+              </h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {aiInsights.map((insight) => (
+                  <div key={insight.id} className="professional-card p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-base font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                        {insight.title}
+                      </h3>
+                      <span 
+                        className="px-3 py-1 rounded-full text-xs font-semibold"
+                        style={{ background: insight.color.bg, color: insight.color.text }}
+                      >
+                        {insight.color.label}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">{insight.description}</p>
+                    <div className="bg-blue-50 rounded-lg p-3 mb-3 border border-blue-200">
+                      <p className="text-xs text-blue-800">{insight.details}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full text-blue-600 border-blue-300"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Details
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Performance Charts */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                  Performance Metrics
+                </h2>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={selectedCampaign}
+                    onChange={(e) => setSelectedCampaign(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  >
+                    <option value="Overall">Overall</option>
+                    <option value="Campaign 1">Campaign 1</option>
+                    <option value="Campaign 2">Campaign 2</option>
+                    <option value="Campaign 3">Campaign 3</option>
+                  </select>
+                  <button className="p-2 text-gray-600 hover:text-amber-600 transition">
+                    <RefreshCw className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Return on Ad Spend */}
+                <div className="professional-card p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                      Return on Ad Spend (ROAS)
+                    </h3>
+                  </div>
+                  <ChartComponent
+                    type="scatter"
+                    data={{
+                      datasets: [{
+                        label: 'ROAS',
+                        data: roasData.labels.map((label, idx) => ({
+                          x: idx,
+                          y: roasData.values[idx]
+                        })),
+                        backgroundColor: '#f59e0b',
+                        borderColor: '#f59e0b',
+                        pointRadius: 5
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          callbacks: {
+                            label: (context) => `ROAS: ${context.parsed.y.toFixed(2)}`
+                          }
+                        }
+                      },
+                      scales: {
+                        x: {
+                          type: 'linear',
+                          title: { display: true, text: 'Days' }
+                        },
+                        y: {
+                          beginAtZero: true,
+                          max: 8,
+                          title: { display: true, text: 'ROAS' }
+                        }
+                      }
+                    }}
+                    height={300}
+                  />
+                </div>
+
+                {/* Email Open Rate */}
+                <div className="professional-card p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                      Email Open Rate
+                    </h3>
+                  </div>
+                  <ChartComponent
+                    type="line"
+                    data={{
+                      labels: emailOpenRateData.labels,
+                      datasets: [{
+                        label: 'Open Rate',
+                        data: emailOpenRateData.values,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          max: 0.3,
+                          ticks: {
+                            callback: (value) => (value * 100).toFixed(0) + '%'
+                          }
+                        }
+                      }
+                    }}
+                    height={300}
+                  />
+                </div>
+
+                {/* Click-Through Rate */}
+                <div className="professional-card p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                      Click-Through Rate (CTR)
+                    </h3>
+                  </div>
+                  <ChartComponent
+                    type="bar"
+                    data={{
+                      labels: clickThroughRateData.labels,
+                      datasets: [{
+                        label: 'CTR',
+                        data: clickThroughRateData.values,
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 4
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          max: 0.06,
+                          ticks: {
+                            callback: (value) => (value * 100).toFixed(1) + '%'
+                          }
+                        }
+                      }
+                    }}
+                    height={300}
+                  />
+                </div>
+
+                {/* Conversion Rate */}
+                <div className="professional-card p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                      Conversion Rate
+                    </h3>
+                  </div>
+                  <ChartComponent
+                    type="line"
+                    data={{
+                      labels: conversionRateData.labels,
+                      datasets: [{
+                        label: 'Conversion Rate',
+                        data: conversionRateData.values,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          max: 0.04,
+                          ticks: {
+                            callback: (value) => (value * 100).toFixed(1) + '%'
+                          }
+                        }
+                      }
+                    }}
+                    height={300}
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </Layout>
   );
