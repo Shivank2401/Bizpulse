@@ -69,7 +69,7 @@ const CustomerAnalysis = () => {
               <h3 className="text-sm font-medium opacity-90">Total Revenue</h3>
               <DollarSign className="w-8 h-8 opacity-80" />
             </div>
-            <p className="text-3xl font-bold">${formatNumber(totalRevenue)}</p>
+            <p className="text-3xl font-bold">{formatNumber(totalRevenue)}</p>
             <p className="text-sm opacity-80 mt-2">Across all channels</p>
           </div>
 
@@ -78,7 +78,7 @@ const CustomerAnalysis = () => {
               <h3 className="text-sm font-medium opacity-90">Total Profit</h3>
               <TrendingUp className="w-8 h-8 opacity-80" />
             </div>
-            <p className="text-3xl font-bold">${formatNumber(totalProfit)}</p>
+            <p className="text-3xl font-bold">{formatNumber(totalProfit)}</p>
             <p className="text-sm opacity-80 mt-2">{((totalProfit/totalRevenue)*100).toFixed(1)}% margin</p>
           </div>
 

@@ -12,6 +12,20 @@ export const formatNumber = (value) => {
   return `€${num.toFixed(0)}`;
 };
 
+// Format units (cases, items, etc.) without currency symbol
+export const formatUnits = (value) => {
+  if (!value && value !== 0) return '0';
+  
+  const num = parseFloat(value);
+  
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`;
+  } else if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}k`;
+  }
+  return num.toFixed(0);
+};
+
 // Format number with thousand separators
 export const formatCurrency = (value) => {
   if (!value && value !== 0) return '€0';
