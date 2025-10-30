@@ -4,12 +4,34 @@ import MultiSelectFilter from '@/components/MultiSelectFilter';
 import ChartComponent from '@/components/ChartComponent';
 import { formatNumber } from '@/utils/formatters';
 import staticData from '@/data/staticData';
-import { AlertCircle, TrendingDown, AlertTriangle, CheckCircle, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  AlertCircle, 
+  TrendingDown, 
+  AlertTriangle, 
+  CheckCircle, 
+  Sparkles,
+  Target,
+  BarChart3,
+  DollarSign,
+  Users,
+  TrendingUp,
+  Mail,
+  MousePointer,
+  RefreshCw,
+  Eye,
+  MapPin,
+  Layers,
+  Award,
+  Zap
+} from 'lucide-react';
 
 const RootCauseAnalysis = () => {
+  const [activeTab, setActiveTab] = useState('root-cause-analysis');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(null);
+  const [selectedCampaign, setSelectedCampaign] = useState('Overall');
   
   // Multi-select filter states
   const [selectedYears, setSelectedYears] = useState([]);
