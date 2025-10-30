@@ -17,11 +17,18 @@ import {
   Mail,
   Share2,
   Video,
-  Tag as TagIcon
+  Tag as TagIcon,
+  Award,
+  Flag,
+  BarChart3,
+  ArrowUpRight,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Kanban = () => {
+  const [activeTab, setActiveTab] = useState('strategic-kanban');
   const [initiatives, setInitiatives] = useState({
     recommended: [
       {
