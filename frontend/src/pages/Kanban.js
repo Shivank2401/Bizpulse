@@ -334,8 +334,11 @@ const Kanban = () => {
           </div>
         </div>
 
-        {/* KPI Banner */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Strategic Kanban Content */}
+        {activeTab === 'strategic-kanban' && (
+          <>
+            {/* KPI Banner */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Annual Goal */}
           <div className="professional-card p-5 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200">
             <div className="flex items-center gap-2 mb-2">
