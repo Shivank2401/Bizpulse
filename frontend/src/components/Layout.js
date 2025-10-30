@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Trello
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AIAssistant from '@/components/AIAssistant';
