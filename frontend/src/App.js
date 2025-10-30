@@ -146,6 +146,14 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/kanban"
+            element={
+              <PrivateRoute>
+                <Kanban />
+              </PrivateRoute>
+            }
+          />
         </Routes>
         <Toaster position="top-right" />
       </BrowserRouter>
