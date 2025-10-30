@@ -663,6 +663,211 @@ const Kanban = () => {
             </div>
           </div>
         </div>
+          </>
+        )}
+
+        {/* Goals Management Content */}
+        {activeTab === 'goals-management' && (
+          <>
+            {/* Quarter Selector */}
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {goals.quarters.map((quarter) => (
+                <button
+                  key={quarter.id}
+                  onClick={() => setSelectedQuarter(quarter)}
+                  className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all whitespace-nowrap ${
+                    selectedQuarter.id === quarter.id
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md'
+                      : 'bg-white text-gray-700 border border-gray-200 hover:border-amber-300'
+                  }`}
+                >
+                  {quarter.quarter}
+                  <span className="block text-xs mt-0.5 opacity-90">{quarter.period}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Goals Overview Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="professional-card p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="w-5 h-5 text-blue-600" />
+                  <p className="text-sm font-semibold text-gray-700">Total Objectives</p>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                  {selectedQuarter.objectives.length}
+                </h2>
+                <p className="text-xs text-gray-600 mt-1">{selectedQuarter.quarter}</p>
+              </div>
+
+              <div className="professional-card p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <p className="text-sm font-semibold text-gray-700">On Track</p>
+                </div>
+                <h2 className="text-3xl font-bold text-green-600" style={{ fontFamily: 'Space Grotesk' }}>
+                  {selectedQuarter.objectives.filter(o => o.status === 'on-track').length}
+                </h2>
+                <p className="text-xs text-gray-600 mt-1">Meeting targets</p>
+              </div>
+
+              <div className="professional-card p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                  <p className="text-sm font-semibold text-gray-700">At Risk</p>
+                </div>
+                <h2 className="text-3xl font-bold text-amber-600" style={{ fontFamily: 'Space Grotesk' }}>
+                  {selectedQuarter.objectives.filter(o => o.status === 'at-risk').length}
+                </h2>
+                <p className="text-xs text-gray-600 mt-1">Needs attention</p>
+              </div>
+
+              <div className="professional-card p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-5 h-5 text-purple-600" />
+                  <p className="text-sm font-semibold text-gray-700">Avg Progress</p>
+                </div>
+                <h2 className="text-3xl font-bold text-purple-600" style={{ fontFamily: 'Space Grotesk' }}>
+                  {Math.round(selectedQuarter.objectives.reduce((sum, o) => sum + o.progress, 0) / selectedQuarter.objectives.length)}%
+                </h2>
+                <p className="text-xs text-gray-600 mt-1">Overall completion</p>
+              </div>
+            </div>
+
+            {/* Objectives List */}
+            <div className="space-y-6">
+              {selectedQuarter.objectives.map((objective) => {
+                const statusColors = {
+                  'on-track': { bg: '#d1fae5', text: '#059669', border: '#10b981' },
+                  'at-risk': { bg: '#fef3c7', text: '#d97706', border: '#f59e0b' },
+                  'delayed': { bg: '#fee2e2', text: '#dc2626', border: '#ef4444' },
+                  'planning': { bg: '#e0e7ff', text: '#4f46e5', border: '#6366f1' }
+                };
+                const statusInfo = statusColors[objective.status];
+
+                return (
+                  <div 
+                    key={objective.id} 
+                    className="professional-card p-6 border-l-4"
+                    style={{ borderLeftColor: statusInfo.border }}
+                  >
+                    {/* Objective Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                            {objective.title}
+                          </h3>
+                          <span 
+                            className="px-3 py-1 rounded-full text-xs font-semibold"
+                            style={{ background: statusInfo.bg, color: statusInfo.text }}
+                          >
+                            {objective.status.replace('-', ' ')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">{objective.description}</p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="flex items-center gap-1">
+                            <UsersIcon className="w-4 h-4 text-gray-500" />
+                            <span className="text-gray-700">{objective.owner}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Flag className="w-4 h-4 text-gray-500" />
+                            <span className="font-semibold text-gray-900">
+                              {objective.currentValue} / {objective.targetValue} {objective.metric}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <button className="text-gray-400 hover:text-gray-600">
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-700">Overall Progress</span>
+                        <span className="text-sm font-bold text-gray-900">{objective.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className="h-3 rounded-full transition-all"
+                          style={{
+                            width: `${objective.progress}%`,
+                            background: objective.progress >= 75 
+                              ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
+                              : objective.progress >= 50
+                              ? 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)'
+                              : 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Key Results */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <Award className="w-4 h-4" />
+                        Key Results ({objective.keyResults.length})
+                      </h4>
+                      <div className="space-y-3">
+                        {objective.keyResults.map((kr) => (
+                          <div key={kr.id} className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <p className="text-sm text-gray-900 flex-1">{kr.description}</p>
+                              <span className="text-sm font-semibold text-gray-900 ml-4">{kr.progress}%</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1">
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="h-2 rounded-full"
+                                    style={{
+                                      width: `${kr.progress}%`,
+                                      background: kr.progress >= 75 
+                                        ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
+                                        : kr.progress >= 50
+                                        ? 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)'
+                                        : 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <span className="text-xs text-gray-600 whitespace-nowrap">
+                                {kr.current} / {kr.target}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-gray-700 border-gray-300"
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 border-blue-300"
+                      >
+                        <ArrowUpRight className="w-4 h-4 mr-1" />
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </Layout>
   );
