@@ -242,8 +242,11 @@ const RootCauseAnalysis = () => {
           </div>
         </div>
 
-        {/* Multi-Select Filters */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        {/* Root Cause Analysis Content */}
+        {activeTab === 'root-cause-analysis' && (
+          <>
+            {/* Multi-Select Filters */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <MultiSelectFilter
