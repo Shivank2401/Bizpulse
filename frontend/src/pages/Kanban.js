@@ -29,7 +29,14 @@ import {
 import { toast } from 'sonner';
 
 const Kanban = () => {
-  const [activeTab, setActiveTab] = useState('strategic-kanban');
+  // Check if we need to navigate to a specific tab (from Cockpit insights)
+  const initialTab = sessionStorage.getItem('kanbanActiveTab') || 'strategic-kanban';
+  const [activeTab, setActiveTab] = useState(initialTab);
+  
+  // Clear the session storage after reading
+  React.useEffect(() => {
+    sessionStorage.removeItem('kanbanActiveTab');
+  }, []);
   const [initiatives, setInitiatives] = useState({
     recommended: [
       {
