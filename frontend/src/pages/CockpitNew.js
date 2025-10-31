@@ -307,16 +307,17 @@ const Cockpit = () => {
           </div>
         </div>
 
-        {/* Key Insights */}
+        {/* Key Insights to Improve Business Score */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Key Insights</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Key Insights to Improve Business Score</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {insights.map((insight, idx) => {
               const Icon = insight.icon;
               return (
                 <div
                   key={idx}
-                  className="rounded-lg p-5 border"
+                  onClick={() => handleInsightClick(insight)}
+                  className="rounded-lg p-5 border cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 group"
                   style={{ 
                     background: insight.color.bg, 
                     borderColor: insight.color.bg
@@ -327,13 +328,17 @@ const Cockpit = () => {
                       <Icon className="w-5 h-5" style={{ color: insight.color.icon }} />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold mb-1" style={{ color: insight.color.text }}>
+                      <h3 className="font-semibold mb-1 flex items-center justify-between" style={{ color: insight.color.text }}>
                         {insight.title}
+                        <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: insight.color.icon }} />
                       </h3>
                       <p className="text-sm" style={{ color: insight.color.text, opacity: 0.8 }}>
                         {insight.description}
                       </p>
                     </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t opacity-50 text-xs" style={{ borderColor: insight.color.icon, color: insight.color.text }}>
+                    Click to view in Goals Management
                   </div>
                 </div>
               );
