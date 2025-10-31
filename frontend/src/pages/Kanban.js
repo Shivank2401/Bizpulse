@@ -24,6 +24,11 @@ import {
   ArrowUpRight,
   Edit,
   Trash2,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  Package,
+  Archive,
   AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
