@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,13 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Send, Sparkles, TrendingUp, AlertCircle, Lightbulb, ArrowRight, CheckCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import ChartComponent from '@/components/ChartComponent';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
-const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, onExploreDeep }) => {
+const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, onExploreDeep, context }) => {
   const { token } = useAuth();
+  const INSIGHTS_API = process.env.REACT_APP_INSIGHTS_URL || 'http://localhost:8005';
   const [messages, setMessages] = useState([
     {
       role: 'ai',
@@ -17,6 +21,7 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [lastPivot, setLastPivot] = useState([]);
   const sessionId = `insight-${Date.now()}`;
 
   if (!isOpen) return null;
@@ -101,20 +106,31 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
     setLoading(true);
 
     try {
-      const contextMessage = `Regarding ${chartTitle}: ${msgToSend}`;
-      const response = await axios.post(
-        `${API}/ai/chat`,
-        {
-          message: contextMessage,
-          session_id: sessionId
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      // Build conversation history from previous messages
+      const conversationHistory = messages.slice(1).map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
 
-      const aiMessage = { role: 'ai', content: response.data.response };
+      const payload = {
+        message: msgToSend,
+        chart_title: chartTitle,
+        context: {
+          monthlyData: context?.monthlyData || [],
+          selectedYears: context?.selectedYears || [],
+          selectedMonths: context?.selectedMonths || [],
+          selectedBusinesses: context?.selectedBusinesses || []
+        },
+        session_id: sessionId,
+        conversation_history: conversationHistory
+      };
+
+      const response = await axios.post(`${INSIGHTS_API}/insights/chat`, payload);
+
+      const aiMessage = { role: 'ai', content: response.data?.response || 'No response' };
       setMessages((prev) => [...prev, aiMessage]);
+      const pivot = response?.data?.data?.pivot_table || [];
+      setLastPivot(Array.isArray(pivot) ? pivot : []);
     } catch (error) {
       toast.error('AI Assistant is unavailable');
       const errorMessage = {
@@ -201,6 +217,7 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
                               borderColor: rec.color.border,
                               color: rec.color.text
                             }}
+                            onClick={() => handleSendMessage(rec.action)}
                           >
                             {rec.action}
                           </Button>
@@ -230,7 +247,11 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
                 >
                   {msg.role === 'ai' && (
                     <div className="bg-gray-100 rounded-lg p-4 border border-gray-200">
-                      <p className="text-sm text-gray-800 mb-3">{msg.content}</p>
+                      <div className="text-sm text-gray-800 mb-3 prose prose-sm max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
                       
                       {/* Suggested Prompts */}
                       {idx === 0 && (
@@ -279,6 +300,16 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
                 </div>
               ))}
 
+              {/* Visualization from AI data */}
+              {lastPivot && lastPivot.length > 0 && (
+                <div className="mb-6">
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <h4 className="text-sm font-semibold mb-3 text-gray-800">Visuals from AI data</h4>
+                    <AIDataVisuals pivot={lastPivot} />
+                  </div>
+                </div>
+              )}
+
               {loading && (
                 <div className="mb-4">
                   <div className="bg-gray-100 px-4 py-3 rounded-lg border border-gray-200 inline-block">
@@ -322,3 +353,92 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
 };
 
 export default InsightModal;
+
+// Lightweight in-file component to render a table and a simple chart from pivot data
+const AIDataVisuals = ({ pivot }) => {
+  const { labels, datasetLabel, datasetValues } = useMemo(() => {
+    if (!pivot || pivot.length === 0) return { labels: [], datasetLabel: '', datasetValues: [] };
+    const sample = pivot[0];
+    const labelCandidates = ['Year', 'Month Name', 'Business', 'Brand', 'Category', 'Customer', 'Channel'];
+    const valueCandidates = ['gSales', 'fGP', 'Cases'];
+    const labelKey = labelCandidates.find((k) => Object.prototype.hasOwnProperty.call(sample, k)) || Object.keys(sample)[0];
+    const valueKey = valueCandidates.find((k) => Object.prototype.hasOwnProperty.call(sample, k)) || Object.keys(sample).find(k => typeof sample[k] === 'number');
+    const labels = pivot.map((r) => String(r[labelKey]));
+    const datasetValues = pivot.map((r) => Number(r[valueKey] || 0));
+    return { labels, datasetLabel: valueKey || 'Value', datasetValues };
+  }, [pivot]);
+
+  const chartData = useMemo(() => ({
+    labels,
+    datasets: [
+      {
+        label: datasetLabel,
+        data: datasetValues,
+        backgroundColor: 'rgba(59, 130, 246, 0.3)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 1.5,
+      },
+    ],
+  }), [labels, datasetLabel, datasetValues]);
+
+  const chartOptions = useMemo(() => ({
+    responsive: true,
+    plugins: {
+      legend: { display: true },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const v = ctx.parsed.y;
+            if (Math.abs(v) >= 1_000_000) return `€${(v/1_000_000).toFixed(1)}M`;
+            if (Math.abs(v) >= 1_000) return `€${(v/1_000).toFixed(1)}k`;
+            return `€${v.toLocaleString()}`;
+          },
+        },
+      },
+    },
+    scales: {
+      y: {
+        ticks: {
+          callback: (v) => {
+            if (Math.abs(v) >= 1_000_000) return `€${(v/1_000_000).toFixed(1)}M`;
+            if (Math.abs(v) >= 1_000) return `€${(v/1_000).toFixed(1)}k`;
+            return `€${v}`;
+          },
+        },
+      },
+    },
+  }), []);
+
+  return (
+    <div className="space-y-4">
+      <div className="overflow-auto border rounded">
+        <table className="min-w-full text-xs">
+          <thead className="bg-gray-50 text-gray-700">
+            <tr>
+              {Object.keys(pivot[0]).slice(0, 6).map((k) => (
+                <th key={k} className="px-3 py-2 text-left font-medium">{k}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {pivot.slice(0, 10).map((row, idx) => (
+              <tr key={idx} className={idx % 2 ? 'bg-white' : 'bg-gray-50'}>
+                {Object.keys(pivot[0]).slice(0, 6).map((k) => (
+                  <td key={k} className="px-3 py-2 whitespace-nowrap text-gray-800">
+                    {typeof row[k] === 'number'
+                      ? Number(row[k]).toLocaleString('en-US')
+                      : String(row[k])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {labels.length > 0 && datasetValues.length > 0 && (
+        <ChartComponent type="bar" data={chartData} options={chartOptions} />
+      )}
+    </div>
+  );
+};

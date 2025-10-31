@@ -1,0 +1,61 @@
+﻿# Environment variables
+.env
+.env.local
+.env.production
+.env.staging
+
+# Log files
+*.log
+deep_intelligence_errors.log
+chatbot_errors.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data files (optional - uncomment if you don't want to commit data files)
+# *.xlsx
+# *.csv
+# data/
+
+# Temporary files
+*.tmp
+*.temp

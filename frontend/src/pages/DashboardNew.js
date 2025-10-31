@@ -237,7 +237,7 @@ const Dashboard = () => {
     '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'
   ];
 
-  const ChartCard = ({ title, chartName, children }) => {
+  const ChartCard = ({ title, chartName, children, context }) => {
     const currentFilters = chartFilters[chartName] || {};
     
     return (
@@ -280,7 +280,7 @@ const Dashboard = () => {
           </select>
           
           <button
-            onClick={() => setInsightModal({ isOpen: true, chartTitle: title })}
+            onClick={() => setInsightModal({ isOpen: true, chartTitle: title, context })}
             className="ml-auto px-4 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition flex items-center gap-2"
           >
             <Lightbulb className="w-4 h-4" />
@@ -526,7 +526,7 @@ const Dashboard = () => {
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sales Trend YTD */}
-          <ChartCard title="Sales Trend (YTD)" chartName="salesTrend">
+          <ChartCard title="Sales Trend (YTD)" chartName="salesTrend" context={{ monthlyData, selectedYears, selectedMonths, selectedBusinesses }}>
             <div className="h-80">
               {monthlyData.length > 0 ? (
                 <ChartComponent
