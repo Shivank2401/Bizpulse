@@ -245,11 +245,11 @@ const Dashboard = () => {
         <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
         
         {/* Chart Filters */}
-        <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
           <select
             value={currentFilters.year || 'all'}
             onChange={(e) => handleChartFilterChange(chartName, 'year', e.target.value)}
-            className="text-sm border border-gray-300 rounded px-3 py-1.5 bg-white"
+            className="text-sm border border-gray-300 rounded px-3 py-1.5 bg-white flex-shrink-0"
           >
             <option value="all">All Years</option>
             {filters?.years?.map(year => (
@@ -260,7 +260,7 @@ const Dashboard = () => {
           <select
             value={currentFilters.month || 'all'}
             onChange={(e) => handleChartFilterChange(chartName, 'month', e.target.value)}
-            className="text-sm border border-gray-300 rounded px-3 py-1.5 bg-white"
+            className="text-sm border border-gray-300 rounded px-3 py-1.5 bg-white flex-shrink-0"
           >
             <option value="all">All Months</option>
             {filters?.months?.map(month => (
@@ -271,7 +271,7 @@ const Dashboard = () => {
           <select
             value={currentFilters.business || 'all'}
             onChange={(e) => handleChartFilterChange(chartName, 'business', e.target.value)}
-            className="text-sm border border-gray-300 rounded px-3 py-1.5 bg-white"
+            className="text-sm border border-gray-300 rounded px-3 py-1.5 bg-white flex-shrink-0"
           >
             <option value="all">All Businesses</option>
             {filters?.businesses?.map(business => (
@@ -281,7 +281,7 @@ const Dashboard = () => {
           
           <button
             onClick={() => setInsightModal({ isOpen: true, chartTitle: title, context })}
-            className="ml-auto px-4 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition flex items-center gap-2"
+            className="ml-auto px-4 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition flex items-center gap-2 whitespace-nowrap"
           >
             <Lightbulb className="w-4 h-4" />
             View Insight
