@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { 
@@ -14,7 +15,8 @@ import {
   Calendar,
   Target,
   Archive,
-  StopCircle
+  StopCircle,
+  ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 
