@@ -202,8 +202,8 @@ const Kanban = () => {
       },
       {
         id: 2,
-        quarter: 'Q2 2025',
-        period: 'Apr - Jun 2025',
+        quarter: 'Q2 2026',
+        period: 'Apr - Jun 2026',
         status: 'upcoming',
         objectives: [
           {
