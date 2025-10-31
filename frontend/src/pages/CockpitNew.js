@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 
 const Cockpit = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('recommended');
 
   // Key Insights data
@@ -29,7 +30,9 @@ const Cockpit = () => {
       icon: TrendingUp,
       title: 'Revenue Opportunity',
       description: 'Untapped market segment with 25% growth potential',
-      color: { bg: '#d1fae5', text: '#065f46', icon: '#10b981' }
+      color: { bg: '#d1fae5', text: '#065f46', icon: '#10b981' },
+      navigateTo: '/kanban',
+      targetTab: 'goals-management'
     },
     {
       icon: DollarSign,
