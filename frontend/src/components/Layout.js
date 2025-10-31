@@ -30,13 +30,13 @@ const Layout = ({ children }) => {
 
   const menuItems = [
     { path: '/', icon: Target, label: 'Cockpit', color: '#f59e0b' },
-    { path: '/kanban', icon: Trello, label: 'Kanban' },
+    { path: '/kanban', icon: Trello, label: 'Strategic Kanban' },
     { path: '/compass', icon: LayoutDashboard, label: 'Business Compass' },
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/brands', icon: Tag, label: 'Brands' },
     { path: '/categories', icon: Layers, label: 'Categories' },
     { path: '/sales-analysis', icon: TrendingUp, label: 'Sales Analysis' },
-    { path: '/root-cause-analysis', icon: AlertCircle, label: 'RCA' },
+    { path: '/root-cause-analysis', icon: AlertCircle, label: 'Marketing & RCA' },
     { path: '/projects', icon: FolderKanban, label: 'Projects' },
     { path: '/reports', icon: FileText, label: 'Reports' },
   ];
