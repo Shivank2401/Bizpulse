@@ -427,24 +427,48 @@ const AIDataVisuals = ({ pivot }) => {
     return { labels, datasetLabel: valueKey || 'Value', datasetValues };
   }, [pivot]);
 
+  // Generate vibrant colors for better visualization
+  const generateColors = (count) => {
+    const colors = [
+      '#3b82f6', // blue-500
+      '#10b981', // green-500
+      '#f59e0b', // amber-500
+      '#ef4444', // red-500
+      '#8b5cf6', // purple-500
+      '#ec4899', // pink-500
+      '#14b8a6', // teal-500
+      '#f97316', // orange-500
+      '#06b6d4', // cyan-500
+      '#84cc16', // lime-500
+    ];
+    return Array.from({ length: count }, (_, i) => colors[i % colors.length]);
+  };
+
   const chartData = useMemo(() => ({
     labels,
     datasets: [
       {
         label: datasetLabel,
         data: datasetValues,
-        backgroundColor: 'rgba(59, 130, 246, 0.3)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        borderWidth: 1.5,
+        backgroundColor: generateColors(datasetValues.length).map(color => `${color}80`),
+        borderColor: generateColors(datasetValues.length),
+        borderWidth: 2,
+        borderRadius: 6,
       },
     ],
   }), [labels, datasetLabel, datasetValues]);
 
   const chartOptions = useMemo(() => ({
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: { display: true },
+      legend: { display: true, position: 'top' },
       tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        titleFont: { size: 14, weight: 'bold' },
+        bodyFont: { size: 13 },
         callbacks: {
           label: (ctx) => {
             const v = ctx.parsed.y;
@@ -457,12 +481,27 @@ const AIDataVisuals = ({ pivot }) => {
     },
     scales: {
       y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
         ticks: {
+          font: { size: 11 },
           callback: (v) => {
             if (Math.abs(v) >= 1_000_000) return `€${(v/1_000_000).toFixed(1)}M`;
             if (Math.abs(v) >= 1_000) return `€${(v/1_000).toFixed(1)}k`;
             return `€${v}`;
           },
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          font: { size: 11 },
+          maxRotation: 45,
+          minRotation: 45,
         },
       },
     },
@@ -496,7 +535,9 @@ const AIDataVisuals = ({ pivot }) => {
       </div>
 
       {labels.length > 0 && datasetValues.length > 0 && (
-        <ChartComponent type="bar" data={chartData} options={chartOptions} />
+        <div className="mt-4">
+          <ChartComponent type="bar" data={chartData} options={chartOptions} />
+        </div>
       )}
     </div>
   );

@@ -30,7 +30,7 @@ const ChartComponent = ({ type, data, options }) => {
   }, [type, data, options]);
 
   return (
-    <div style={{ position: 'relative', height: '280px', width: '100%' }}>
+    <div style={{ position: 'relative', height: '350px', width: '100%' }}>
       <canvas ref={chartRef} />
     </div>
   );
