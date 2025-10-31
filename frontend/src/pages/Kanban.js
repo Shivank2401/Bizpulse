@@ -239,9 +239,189 @@ const Kanban = () => {
             ]
           }
         ]
+      },
+      {
+        id: 3,
+        quarter: 'Q3 2026',
+        period: 'Jul - Sep 2026',
+        status: 'upcoming',
+        objectives: []
+      },
+      {
+        id: 4,
+        quarter: 'Q4 2026',
+        period: 'Oct - Dec 2026',
+        status: 'upcoming',
+        objectives: []
       }
     ]
   });
+
+  // Corporate Strategy Goals by Department
+  const [corporateGoals, setCorporateGoals] = useState({
+    departments: [
+      {
+        id: 'sales',
+        name: 'Sales',
+        icon: TrendingUp,
+        color: { bg: '#d1fae5', text: '#065f46', icon: '#10b981', border: '#10b981' },
+        activeGoals: 3,
+        owner: 'Sarah Johnson',
+        goals: [
+          {
+            id: 1,
+            title: 'Increase Q1 2026 Revenue by 25%',
+            description: 'Drive growth through new markets and product expansion. Focus on enterprise segment and strategic partnerships.',
+            owner: 'Sarah Johnson',
+            dependencies: ['Marketing Campaign Launch', 'Product Team Readiness', 'Sales Training Complete'],
+            metrics: ['Monthly Recurring Revenue (MRR)', 'Customer Acquisition Cost (CAC)', 'Sales Cycle Length'],
+            status: 'on-track',
+            progress: 65,
+            aiRecommendations: {
+              owners: ['Sarah Johnson (VP Sales)', 'Mike Chen (Sales Director)'],
+              dependencies: ['Q1 Marketing Campaign must complete by Jan 31', 'Sales training should be finished before Feb 1', 'New CRM integration required'],
+              metrics: ['Track MRR growth rate weekly - target 8% month-over-month', 'Keep CAC under $150 per customer', 'Reduce sales cycle to 45 days or less', 'Monitor pipeline velocity and conversion rates']
+            }
+          }
+        ]
+      },
+      {
+        id: 'operations',
+        name: 'Operations',
+        icon: Target,
+        color: { bg: '#dbeafe', text: '#1e3a8a', icon: '#3b82f6', border: '#3b82f6' },
+        activeGoals: 2,
+        owner: 'David Martinez',
+        goals: [
+          {
+            id: 2,
+            title: 'Reduce Operational Costs by 15%',
+            description: 'Optimize processes, automate workflows, and eliminate inefficiencies across all operations.',
+            owner: 'David Martinez',
+            dependencies: ['Automation Tool Implementation', 'Process Documentation Complete'],
+            metrics: ['Cost per Transaction', 'Process Efficiency Rate', 'Automation Coverage %'],
+            status: 'on-track',
+            progress: 48,
+            aiRecommendations: {
+              owners: ['David Martinez (COO)', 'Lisa Wang (Operations Manager)'],
+              dependencies: ['Automation tools must be deployed by mid-Q1', 'All processes need documentation by Jan 15'],
+              metrics: ['Reduce cost per transaction by 12%', 'Achieve 75% process efficiency', 'Automate 40% of manual tasks', 'Track monthly operational savings']
+            }
+          }
+        ]
+      },
+      {
+        id: 'finance',
+        name: 'Finance',
+        icon: DollarSign,
+        color: { bg: '#fef3c7', text: '#92400e', icon: '#f59e0b', border: '#f59e0b' },
+        activeGoals: 2,
+        owner: 'Jennifer Lee',
+        goals: [
+          {
+            id: 3,
+            title: 'Improve Profitability Margin to 35%',
+            description: 'Increase gross margin through pricing optimization and cost management strategies.',
+            owner: 'Jennifer Lee',
+            dependencies: ['Pricing Strategy Review', 'Cost Analysis Complete'],
+            metrics: ['Gross Profit Margin', 'Operating Cash Flow', 'EBITDA'],
+            status: 'at-risk',
+            progress: 32,
+            aiRecommendations: {
+              owners: ['Jennifer Lee (CFO)', 'Robert Kim (Finance Director)'],
+              dependencies: ['Pricing review must finish by Feb 1', 'Need cost reduction proposals from all departments'],
+              metrics: ['Target 35% gross margin by Q1 end', 'Maintain positive cash flow monthly', 'Improve EBITDA by 20%', 'Reduce variable costs by 10%']
+            }
+          }
+        ]
+      },
+      {
+        id: 'hr',
+        name: 'Human Resources',
+        icon: UsersIcon,
+        color: { bg: '#e0e7ff', text: '#3730a3', icon: '#6366f1', border: '#6366f1' },
+        activeGoals: 3,
+        owner: 'Patricia Rodriguez',
+        goals: [
+          {
+            id: 4,
+            title: 'Achieve 90% Employee Retention Rate',
+            description: 'Enhance employee satisfaction, career development opportunities, and workplace culture.',
+            owner: 'Patricia Rodriguez',
+            dependencies: ['Employee Engagement Survey', 'Career Development Program Launch'],
+            metrics: ['Employee Retention Rate', 'Employee Satisfaction Score', 'Time to Hire'],
+            status: 'on-track',
+            progress: 78,
+            aiRecommendations: {
+              owners: ['Patricia Rodriguez (CHRO)', 'Amanda Foster (HR Manager)'],
+              dependencies: ['Complete engagement survey by Jan 20', 'Launch career program before Feb 1'],
+              metrics: ['Maintain 90%+ retention rate', 'Achieve 4.5/5 satisfaction score', 'Reduce time-to-hire to 30 days', 'Complete 100% performance reviews on time']
+            }
+          }
+        ]
+      },
+      {
+        id: 'marketing',
+        name: 'Marketing',
+        icon: Sparkles,
+        color: { bg: '#fce7f3', text: '#831843', icon: '#ec4899', border: '#ec4899' },
+        activeGoals: 4,
+        owner: 'Michael Chen',
+        goals: [
+          {
+            id: 5,
+            title: 'Generate 5000 Qualified Leads in Q1',
+            description: 'Execute multi-channel marketing campaigns to drive lead generation and brand awareness.',
+            owner: 'Michael Chen',
+            dependencies: ['Content Calendar Approval', 'Ad Budget Allocation', 'Marketing Automation Setup'],
+            metrics: ['Marketing Qualified Leads (MQL)', 'Cost Per Lead', 'Lead-to-Customer Conversion Rate'],
+            status: 'on-track',
+            progress: 55,
+            aiRecommendations: {
+              owners: ['Michael Chen (CMO)', 'Emily Davis (Marketing Director)'],
+              dependencies: ['Finalize content calendar by Jan 10', 'Allocate Q1 ad budget ($250K)', 'Complete marketing automation setup'],
+              metrics: ['Generate 5000 MQLs by March 31', 'Keep cost per lead under $50', 'Achieve 15% lead-to-customer conversion', 'Increase website traffic by 40%']
+            }
+          }
+        ]
+      },
+      {
+        id: 'technology',
+        name: 'Technology',
+        icon: Zap,
+        color: { bg: '#fed7aa', text: '#7c2d12', icon: '#ea580c', border: '#ea580c' },
+        activeGoals: 2,
+        owner: 'Alex Thompson',
+        goals: [
+          {
+            id: 6,
+            title: 'Achieve 99.9% System Uptime',
+            description: 'Ensure infrastructure reliability, implement redundancy, and optimize system performance.',
+            owner: 'Alex Thompson',
+            dependencies: ['Cloud Migration Complete', 'Monitoring System Upgrade'],
+            metrics: ['System Uptime %', 'Mean Time to Recovery (MTTR)', 'Infrastructure Cost'],
+            status: 'on-track',
+            progress: 82,
+            aiRecommendations: {
+              owners: ['Alex Thompson (CTO)', 'Rachel Green (Engineering Manager)'],
+              dependencies: ['Complete cloud migration by Jan 25', 'Upgrade monitoring by Feb 1'],
+              metrics: ['Maintain 99.9% uptime continuously', 'Keep MTTR under 15 minutes', 'Reduce infrastructure costs by 10%', 'Zero critical security incidents']
+            }
+          }
+        ]
+      }
+    ]
+  });
+
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [expandedGoals, setExpandedGoals] = useState({});
+
+  const toggleGoalExpansion = (goalId) => {
+    setExpandedGoals(prev => ({
+      ...prev,
+      [goalId]: !prev[goalId]
+    }));
+  };
 
   const [selectedQuarter, setSelectedQuarter] = useState(goals.quarters[0]);
 
