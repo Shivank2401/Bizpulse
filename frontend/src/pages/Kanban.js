@@ -1054,6 +1054,284 @@ const Kanban = () => {
                 );
               })}
             </div>
+
+            {/* Corporate Strategy Goals Section */}
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Space Grotesk' }}>
+                Corporate Strategy Goals
+              </h2>
+              <p className="text-gray-600 mb-6">Manage department-level strategic goals and track progress</p>
+              
+              {/* Department Cards Grid */}
+              {!selectedDepartment && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {corporateGoals.departments.map((dept) => {
+                    const DeptIcon = dept.icon;
+                    return (
+                      <div
+                        key={dept.id}
+                        onClick={() => setSelectedDepartment(dept)}
+                        className="professional-card p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-l-4"
+                        style={{ borderLeftColor: dept.color.border }}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div
+                            className="w-14 h-14 rounded-lg flex items-center justify-center"
+                            style={{ background: dept.color.bg }}
+                          >
+                            <DeptIcon className="w-7 h-7" style={{ color: dept.color.icon }} />
+                          </div>
+                          <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-amber-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Space Grotesk' }}>
+                          {dept.name}
+                        </h3>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">Active Goals</span>
+                            <span className="font-semibold text-gray-900">{dept.activeGoals}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">Owner</span>
+                            <span className="font-semibold text-gray-900">{dept.owner}</span>
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <span className="text-xs text-gray-500">Click to view goals →</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Department Goals View */}
+              {selectedDepartment && (
+                <div className="space-y-4">
+                  {/* Back Button */}
+                  <button
+                    onClick={() => setSelectedDepartment(null)}
+                    className="flex items-center gap-2 text-gray-600 hover:text-amber-600 transition-colors mb-4"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                    Back to Departments
+                  </button>
+
+                  {/* Department Header */}
+                  <div className="professional-card p-6 border-l-4" style={{ borderLeftColor: selectedDepartment.color.border }}>
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-16 h-16 rounded-lg flex items-center justify-center"
+                        style={{ background: selectedDepartment.color.bg }}
+                      >
+                        {React.createElement(selectedDepartment.icon, { 
+                          className: "w-8 h-8", 
+                          style: { color: selectedDepartment.color.icon } 
+                        })}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                          {selectedDepartment.name} Goals
+                        </h2>
+                        <p className="text-sm text-gray-600">Owner: {selectedDepartment.owner}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Goals List */}
+                  {selectedDepartment.goals.map((goal) => (
+                    <div
+                      key={goal.id}
+                      className="professional-card p-6 border-l-4"
+                      style={{ borderLeftColor: selectedDepartment.color.border }}
+                    >
+                      {/* Goal Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
+                              {goal.title}
+                            </h3>
+                            <span
+                              className="px-3 py-1 rounded-full text-xs font-semibold"
+                              style={{
+                                background: goal.status === 'on-track' ? '#d1fae5' : '#fef3c7',
+                                color: goal.status === 'on-track' ? '#065f46' : '#92400e'
+                              }}
+                            >
+                              {goal.status.replace('-', ' ')}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">{goal.description}</p>
+                        </div>
+                        <button
+                          onClick={() => toggleGoalExpansion(goal.id)}
+                          className="ml-4 text-gray-400 hover:text-amber-600 transition-colors"
+                        >
+                          {expandedGoals[goal.id] ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                        </button>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-gray-700">Overall Progress</span>
+                          <span className="text-sm font-bold text-gray-900">{goal.progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div
+                            className="h-3 rounded-full transition-all"
+                            style={{
+                              width: `${goal.progress}%`,
+                              background: goal.progress >= 75
+                                ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
+                                : goal.progress >= 50
+                                ? 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)'
+                                : 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Expandable Details */}
+                      {expandedGoals[goal.id] && (
+                        <div className="space-y-6 mt-6 pt-6 border-t border-gray-200">
+                          {/* Assigned Owner */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                              <UsersIcon className="w-4 h-4" />
+                              Assigned Owner
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={goal.owner}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                readOnly
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-gray-700 border-gray-300"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Dependencies */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                              <Package className="w-4 h-4" />
+                              Dependencies
+                            </label>
+                            <div className="space-y-2">
+                              {goal.dependencies.map((dep, idx) => (
+                                <div key={idx} className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
+                                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                  <span className="text-sm text-gray-900 flex-1">{dep}</span>
+                                  <button className="text-red-500 hover:text-red-700">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-gray-700 border-gray-300 border-dashed"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Dependency
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Metrics to Achieve */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                              <BarChart3 className="w-4 h-4" />
+                              Metrics to Achieve
+                            </label>
+                            <div className="space-y-2">
+                              {goal.metrics.map((metric, idx) => (
+                                <div key={idx} className="flex items-center gap-2 bg-blue-50 rounded-lg p-3">
+                                  <Target className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                  <span className="text-sm text-gray-900 flex-1">{metric}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* AI Recommendations */}
+                          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-5 border-2 border-amber-200">
+                            <div className="flex items-center gap-2 mb-4">
+                              <Sparkles className="w-5 h-5 text-amber-600" />
+                              <h4 className="text-base font-semibold text-amber-900">AI Recommendations</h4>
+                            </div>
+
+                            {/* Recommended Owners */}
+                            <div className="mb-4">
+                              <h5 className="text-sm font-semibold text-amber-800 mb-2">Recommended Owners</h5>
+                              <div className="space-y-1">
+                                {goal.aiRecommendations.owners.map((owner, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 text-sm text-amber-900">
+                                    <Zap className="w-3 h-3 text-amber-600" />
+                                    <span>{owner}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Suggested Dependencies */}
+                            <div className="mb-4">
+                              <h5 className="text-sm font-semibold text-amber-800 mb-2">Suggested Dependencies</h5>
+                              <div className="space-y-1">
+                                {goal.aiRecommendations.dependencies.map((dep, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 text-sm text-amber-900">
+                                    <Zap className="w-3 h-3 text-amber-600" />
+                                    <span>{dep}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Recommended Metrics */}
+                            <div>
+                              <h5 className="text-sm font-semibold text-amber-800 mb-2">How to Achieve This Goal</h5>
+                              <div className="space-y-1">
+                                {goal.aiRecommendations.metrics.map((metric, idx) => (
+                                  <div key={idx} className="flex items-start gap-2 text-sm text-amber-900">
+                                    <Zap className="w-3 h-3 text-amber-600 flex-shrink-0 mt-0.5" />
+                                    <span>{metric}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-3">
+                            <Button
+                              className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit Goal
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="text-gray-700 border-gray-300"
+                            >
+                              <Archive className="w-4 h-4 mr-2" />
+                              Archive
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
