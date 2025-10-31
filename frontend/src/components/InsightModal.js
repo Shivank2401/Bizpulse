@@ -361,9 +361,25 @@ const AIDataVisuals = ({ pivot }) => {
     const sample = pivot[0];
     const labelCandidates = ['Year', 'Month Name', 'Business', 'Brand', 'Category', 'Customer', 'Channel'];
     const valueCandidates = ['gSales', 'fGP', 'Cases'];
-    const labelKey = labelCandidates.find((k) => Object.prototype.hasOwnProperty.call(sample, k)) || Object.keys(sample)[0];
+    
+    // Find all available label candidates
+    const availableLabels = labelCandidates.filter((k) => Object.prototype.hasOwnProperty.call(sample, k));
+    
+    // If multiple category columns exist (e.g., Business + Channel), combine them
+    let labels;
+    if (availableLabels.length > 1 && !availableLabels.includes('Year') && !availableLabels.includes('Month Name')) {
+      // Combine category columns to create unique labels (e.g., "Business Channel" or "Brand Category")
+      labels = pivot.map((r) => {
+        const combined = availableLabels.slice(0, 2).map(k => String(r[k])).join(' ');
+        return combined;
+      });
+    } else {
+      // Use first available label or fallback to first key
+      const labelKey = labelCandidates.find((k) => Object.prototype.hasOwnProperty.call(sample, k)) || Object.keys(sample)[0];
+      labels = pivot.map((r) => String(r[labelKey]));
+    }
+    
     const valueKey = valueCandidates.find((k) => Object.prototype.hasOwnProperty.call(sample, k)) || Object.keys(sample).find(k => typeof sample[k] === 'number');
-    const labels = pivot.map((r) => String(r[labelKey]));
     const datasetValues = pivot.map((r) => Number(r[valueKey] || 0));
     return { labels, datasetLabel: valueKey || 'Value', datasetValues };
   }, [pivot]);
