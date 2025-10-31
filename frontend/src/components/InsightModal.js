@@ -22,6 +22,7 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [lastPivot, setLastPivot] = useState([]);
+  const [streamingMessage, setStreamingMessage] = useState('');
   const sessionId = `insight-${Date.now()}`;
 
   if (!isOpen) return null;
@@ -96,6 +97,25 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
     'Brand performance'
   ];
 
+  // Simulated streaming function to display text word by word
+  const streamMessage = (fullText, onComplete) => {
+    const words = fullText.split(' ');
+    let currentText = '';
+    let wordIndex = 0;
+
+    const streamInterval = setInterval(() => {
+      if (wordIndex < words.length) {
+        currentText += (wordIndex > 0 ? ' ' : '') + words[wordIndex];
+        setStreamingMessage(currentText);
+        wordIndex++;
+      } else {
+        clearInterval(streamInterval);
+        setStreamingMessage('');
+        onComplete();
+      }
+    }, 30); // 30ms delay between words for smooth typing effect
+  };
+
   const handleSendMessage = async (messageText = null) => {
     const msgToSend = messageText || input.trim();
     if (!msgToSend) return;
@@ -127,19 +147,25 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
 
       const response = await axios.post(`${INSIGHTS_API}/insights/chat`, payload);
 
-      const aiMessage = { role: 'ai', content: response.data?.response || 'No response' };
-      setMessages((prev) => [...prev, aiMessage]);
+      const fullResponse = response.data?.response || 'No response';
       const pivot = response?.data?.data?.pivot_table || [];
       setLastPivot(Array.isArray(pivot) ? pivot : []);
+      
+      // Start streaming the message word by word
+      setLoading(false);
+      streamMessage(fullResponse, () => {
+        // When streaming completes, add the full message to chat
+        const aiMessage = { role: 'ai', content: fullResponse };
+        setMessages((prev) => [...prev, aiMessage]);
+      });
     } catch (error) {
       toast.error('AI Assistant is unavailable');
+      setLoading(false);
       const errorMessage = {
         role: 'ai',
         content: 'Sorry, I am currently unavailable. Please try again later.'
       };
       setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -312,11 +338,28 @@ const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, 
 
               {loading && (
                 <div className="mb-4">
-                  <div className="bg-gray-100 px-4 py-3 rounded-lg border border-gray-200 inline-block">
-                    <div className="flex gap-2">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
-                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-4 rounded-lg border border-amber-200 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-amber-600 rounded-full animate-bounce" />
+                        <div className="w-2 h-2 bg-amber-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                        <div className="w-2 h-2 bg-amber-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      </div>
+                      <span className="text-amber-700 font-medium text-sm">Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Streaming message */}
+              {streamingMessage && (
+                <div className="mb-4">
+                  <div className="bg-gray-100 rounded-lg p-4 border border-gray-200">
+                    <div className="text-sm text-gray-800 prose prose-sm max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {streamingMessage}
+                      </ReactMarkdown>
+                      <span className="inline-block w-2 h-4 bg-blue-600 ml-1 animate-pulse" />
                     </div>
                   </div>
                 </div>
