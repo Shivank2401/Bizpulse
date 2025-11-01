@@ -44,6 +44,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
+        "https://beaconiq.thrivebrands.ai",
+        "https://beaconiqbackend.thrivebrands.ai",
         # Add your production domains here
     ],
     allow_credentials=True,
