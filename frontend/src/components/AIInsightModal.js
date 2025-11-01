@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 
 const AIInsightModal = ({ isOpen, onClose, chartTitle, data }) => {
   const { token } = useAuth();
+  const INSIGHTS_API = process.env.REACT_APP_INSIGHTS_URL || 'http://localhost:8005';
   const [messages, setMessages] = useState([
     {
       role: 'ai',
@@ -29,18 +30,25 @@ const AIInsightModal = ({ isOpen, onClose, chartTitle, data }) => {
 
     try {
       const contextMessage = `Regarding ${chartTitle}: ${input}`;
-      const response = await axios.post(
-        `${API}/ai/chat`,
-        {
-          message: contextMessage,
-          session_id: sessionId
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      
+      // Build conversation history from previous messages
+      const conversationHistory = messages.slice(1).map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
 
-      const aiMessage = { role: 'ai', content: response.data.response };
+      const payload = {
+        message: input,
+        chart_title: chartTitle,
+        context: {},
+        session_id: sessionId,
+        conversation_history: conversationHistory
+      };
+
+      const response = await axios.post(`${INSIGHTS_API}/insights/chat`, payload);
+
+      const fullResponse = response.data?.response || 'No response';
+      const aiMessage = { role: 'ai', content: fullResponse };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       toast.error('AI Assistant is unavailable');

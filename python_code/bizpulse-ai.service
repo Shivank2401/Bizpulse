@@ -1,0 +1,15 @@
+[Unit]
+Description=BizPulse AI FastAPI
+After=network.target
+
+[Service]
+Type=simple
+User=your-username
+WorkingDirectory=/home/your-username/bizpulse-ai
+Environment="PATH=/home/your-username/bizpulse-ai/venv/bin"
+ExecStart=/home/your-username/bizpulse-ai/venv/bin/uvicorn enhanced_fastapi_fixed:app --host 0.0.0.0 --port 8005
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
