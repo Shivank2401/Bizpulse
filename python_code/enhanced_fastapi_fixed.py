@@ -36,18 +36,29 @@ DATA_PATH = os.getenv("DATA_PATH", str(DEFAULT_XLSX))
 # Initialize FastAPI app
 app = FastAPI(title="Deep Intelligence API", version="1.0.0")
 
-# FIXED CORS middleware configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+# CORS origins - supports both hardcoded list OR environment variable
+# Priority: CORS_ORIGINS env var > hardcoded list
+_cors_env = os.getenv("CORS_ORIGINS")
+if _cors_env:
+    # Use environment variable if provided
+    CORS_ORIGINS = [origin.strip() for origin in _cors_env.split(",")]
+    logger.info(f"🔧 CORS Configuration from .env: {CORS_ORIGINS}")
+else:
+    # Fallback to hardcoded list for convenience
+    CORS_ORIGINS = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
         "https://beaconiq.thrivebrands.ai",
         "https://beaconiqbackend.thrivebrands.ai",
-        # Add your production domains here
-    ],
+    ]
+    logger.info(f"🔧 CORS Configuration (hardcoded): {CORS_ORIGINS}")
+
+# CORS middleware configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=[

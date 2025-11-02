@@ -45,7 +45,7 @@ AZURE_CONTAINER_NAME = os.getenv('AZURE_CONTAINER_NAME')
 AZURE_BLOB_PATH = os.getenv('AZURE_BLOB_PATH')
 
 # JWT Secret
-JWT_SECRET = "thrive-brands-biz-pulse-secret-2024"
+JWT_SECRET = os.getenv('JWT_SECRET', 'thrive-brands-biz-pulse-secret-2024')
 JWT_ALGORITHM = "HS256"
 
 security = HTTPBearer()
