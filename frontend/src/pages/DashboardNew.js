@@ -253,7 +253,17 @@ const Dashboard = () => {
     
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-5">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
+        {/* Title and View Insight Button */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+          <button
+            onClick={() => setInsightModal({ isOpen: true, chartTitle: title, context })}
+            className="px-4 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition flex items-center gap-2 whitespace-nowrap"
+          >
+            <Lightbulb className="w-4 h-4" />
+            View Insight
+          </button>
+        </div>
         
         {/* Chart Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
@@ -289,14 +299,6 @@ const Dashboard = () => {
               <option key={business} value={business}>{business}</option>
             ))}
           </select>
-          
-          <button
-            onClick={() => setInsightModal({ isOpen: true, chartTitle: title, context })}
-            className="ml-auto px-4 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-sm font-medium transition flex items-center gap-2 whitespace-nowrap"
-          >
-            <Lightbulb className="w-4 h-4" />
-            View Insight
-          </button>
         </div>
         
         {children}
