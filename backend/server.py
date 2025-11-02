@@ -212,6 +212,16 @@ async def lifespan(app: FastAPI):
         await db.users.insert_one(user_dict)
         logger.info("Default user created")
     
+    # Create admin user if not exists
+    existing_admin = await db.users.find_one({"email": "admin@thrivebrands.ai"})
+    if not existing_admin:
+        password_hash = bcrypt.hashpw("Thrive@123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        user = User(email="admin@thrivebrands.ai", password_hash=password_hash)
+        user_dict = user.model_dump()
+        user_dict['created_at'] = user_dict['created_at'].isoformat()
+        await db.users.insert_one(user_dict)
+        logger.info("Admin user created")
+    
     # Verify data exists in MongoDB; if empty try Azure sync
     count = await db.business_data.count_documents({})
     if count == 0:

@@ -106,7 +106,8 @@ const Login = () => {
 
           <div className="mt-6 text-center text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
             <p className="font-medium">Demo Credentials:</p>
-            <p className="mt-1 text-gray-700">data.admin@beaconiq.ai / 123456User</p>
+            <p className="mt-1 text-gray-700">data.admin@thrivebrands.ai / 123456User</p>
+            <p className="mt-1 text-gray-700">admin@thrivebrands.ai / Thrive@123</p>
           </div>
         </div>
       </div>

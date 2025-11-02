@@ -58,7 +58,7 @@ const Cockpit = () => {
         id: 1,
         name: 'Summer Sales Boost',
         description: 'Targeted campaign for summer season with focus on outdoor products',
-        aiScore: 92,
+        aiScore: 72,
         budget: '$50K',
         roi: '320%',
         channels: ['Email', 'Social Media', 'Display Ads'],
@@ -66,9 +66,9 @@ const Cockpit = () => {
       },
       {
         id: 2,
-        name: 'Holiday Campaign 2024',
+        name: 'Holiday Campaign 2025',
         description: 'Comprehensive holiday season marketing initiative',
-        aiScore: 88,
+        aiScore: 78,
         budget: '$175K',
         roi: '450%',
         channels: ['Email', 'Social Media', 'Video', 'Influencer'],
@@ -78,7 +78,7 @@ const Cockpit = () => {
         id: 3,
         name: 'New Product Launch',
         description: 'Launch campaign for new premium product line',
-        aiScore: 85,
+        aiScore: 75,
         budget: '$60K',
         roi: '380%',
         channels: ['Social Media', 'Video', 'Influencer'],
@@ -88,7 +88,7 @@ const Cockpit = () => {
         id: 4,
         name: 'Back to School Promo',
         description: 'Targeted campaign for students and parents',
-        aiScore: 87,
+        aiScore: 77,
         budget: '$45K',
         roi: '340%',
         channels: ['Email', 'Display Ads', 'Social Media'],
@@ -98,7 +98,7 @@ const Cockpit = () => {
         id: 5,
         name: 'Customer Loyalty Program',
         description: 'Retention campaign for existing high-value customers',
-        aiScore: 91,
+        aiScore: 81,
         budget: '$35K',
         roi: '520%',
         channels: ['Email', 'Video'],
@@ -108,7 +108,7 @@ const Cockpit = () => {
         id: 6,
         name: 'Spring Flash Sale',
         description: 'Limited-time promotional campaign for spring season',
-        aiScore: 83,
+        aiScore: 73,
         budget: '$28K',
         roi: '290%',
         channels: ['Social Media', 'Display Ads', 'Email'],
@@ -120,7 +120,7 @@ const Cockpit = () => {
         id: 7,
         name: 'Brand Awareness Drive',
         description: 'Ongoing brand building across multiple touchpoints',
-        aiScore: 78,
+        aiScore: 68,
         budget: '$40K',
         roi: '280%',
         channels: ['Social Media', 'Display Ads'],
@@ -131,7 +131,7 @@ const Cockpit = () => {
         id: 8,
         name: 'Winter Clearance Sale',
         description: 'End of season inventory clearance',
-        aiScore: 82,
+        aiScore: 72,
         budget: '$55K',
         roi: '310%',
         channels: ['Email', 'Social Media', 'Display Ads'],
@@ -142,7 +142,7 @@ const Cockpit = () => {
         id: 9,
         name: 'Digital Transformation Series',
         description: 'Webinar series for lead generation',
-        aiScore: 76,
+        aiScore: 66,
         budget: '$30K',
         roi: '240%',
         channels: ['Video', 'Email', 'Social Media'],
@@ -153,7 +153,7 @@ const Cockpit = () => {
         id: 10,
         name: 'Partner Co-Marketing',
         description: 'Joint marketing initiative with strategic partners',
-        aiScore: 84,
+        aiScore: 74,
         budget: '$65K',
         roi: '380%',
         channels: ['Email', 'Video', 'Display Ads'],
@@ -164,58 +164,58 @@ const Cockpit = () => {
     archived: [
       {
         id: 11,
-        name: 'Black Friday 2024',
+        name: 'Black Friday 2025',
         description: 'Successful Black Friday promotional campaign',
-        aiScore: 95,
+        aiScore: 75,
         budget: '$85K',
         roi: '520%',
         actualROI: '548%',
         channels: ['Email', 'Social Media', 'Video', 'Display Ads'],
-        endDate: '2024-11-29'
+        endDate: '2025-11-29'
       },
       {
         id: 12,
         name: 'Cyber Monday Special',
         description: 'Online-focused promotional campaign',
-        aiScore: 93,
+        aiScore: 73,
         budget: '$70K',
         roi: '480%',
         actualROI: '495%',
         channels: ['Email', 'Social Media', 'Display Ads'],
-        endDate: '2024-12-02'
+        endDate: '2025-12-02'
       },
       {
         id: 13,
         name: 'Q3 Product Showcase',
         description: 'Virtual product demonstration series',
-        aiScore: 81,
+        aiScore: 71,
         budget: '$42K',
         roi: '300%',
         actualROI: '315%',
         channels: ['Video', 'Email', 'Social Media'],
-        endDate: '2024-09-30'
+        endDate: '2025-09-30'
       },
       {
         id: 14,
         name: 'Summer Festival Sponsorship',
         description: 'Event sponsorship and brand activation',
-        aiScore: 79,
+        aiScore: 69,
         budget: '$50K',
         roi: '270%',
         actualROI: '285%',
         channels: ['Social Media', 'Display Ads'],
-        endDate: '2024-07-15'
+        endDate: '2025-07-15'
       },
       {
         id: 15,
-        name: 'Spring Product Launch 2024',
+        name: 'Spring Product Launch 2025',
         description: 'Major product line introduction campaign',
-        aiScore: 88,
+        aiScore: 78,
         budget: '$95K',
         roi: '420%',
         actualROI: '442%',
         channels: ['Email', 'Social Media', 'Video', 'Influencer'],
-        endDate: '2024-05-31'
+        endDate: '2025-05-31'
       }
     ]
   });
@@ -285,7 +285,7 @@ const Cockpit = () => {
               <p className="text-sm text-gray-700">Overall business health and performance indicator</p>
             </div>
             <div className="text-5xl font-bold" style={{ color: '#d97706' }}>
-              87<span className="text-2xl text-gray-600">/100</span>
+              65<span className="text-2xl text-gray-600">/100</span>
             </div>
           </div>
         </div>
