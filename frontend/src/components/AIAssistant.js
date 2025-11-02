@@ -6,13 +6,17 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, X, Send, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const AIAssistant = () => {
   const { token } = useAuth();
+  const INSIGHTS_API = process.env.REACT_APP_INSIGHTS_URL || 'http://localhost:8005';
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState('');
   const scrollRef = useRef(null);
   const sessionId = useRef(`session-${Date.now()}`);
 
@@ -22,28 +26,57 @@ const AIAssistant = () => {
     }
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
+  // Simulated streaming function to display text word by word
+  const streamMessage = (fullText, onComplete) => {
+    const words = fullText.split(' ');
+    let currentText = '';
+    let wordIndex = 0;
 
-    const userMessage = { role: 'user', content: input };
+    const streamInterval = setInterval(() => {
+      if (wordIndex < words.length) {
+        currentText += (wordIndex > 0 ? ' ' : '') + words[wordIndex];
+        setStreamingMessage(currentText);
+        wordIndex++;
+      } else {
+        clearInterval(streamInterval);
+        setStreamingMessage('');
+        onComplete();
+      }
+    }, 30); // 30ms delay between words for smooth typing effect
+  };
+
+  const handleSendMessage = async (messageText = null) => {
+    const msgToSend = messageText || input.trim();
+    if (!msgToSend) return;
+
+    const userMessage = { role: 'user', content: msgToSend };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${API}/ai/chat`,
-        {
-          message: input,
-          session_id: sessionId.current
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      // Build conversation history from previous messages
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
 
-      const aiMessage = { role: 'ai', content: response.data.response };
+      const payload = {
+        message: msgToSend,
+        chart_title: 'General Business Intelligence Query',
+        context: {},
+        session_id: sessionId.current,
+        conversation_history: conversationHistory
+      };
+
+      const response = await axios.post(`${INSIGHTS_API}/insights/chat`, payload);
+
+      const fullResponse = response.data?.response || 'No response';
+      const aiMessage = { role: 'ai', content: fullResponse };
       setMessages((prev) => [...prev, aiMessage]);
+      
+      // Simulate streaming for better UX
+      streamMessage(fullResponse, () => setStreamingMessage(''));
     } catch (error) {
       toast.error('AI Assistant is unavailable');
       const errorMessage = {
@@ -133,7 +166,7 @@ const AIAssistant = () => {
                   {suggestedQuestions.map((q, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setInput(q)}
+                      onClick={() => handleSendMessage(q)}
                       className="w-full text-left px-4 py-2 rounded-lg text-sm text-gray-700 bg-white hover:bg-blue-50 transition border border-gray-200"
                     >
                       {q}
@@ -155,19 +188,37 @@ const AIAssistant = () => {
                       : 'bg-white text-gray-800 border border-gray-200'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  {msg.role === 'user' ? (
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  ) : (
+                    <div className="prose prose-sm max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
 
             {loading && (
               <div className="flex justify-start mb-4">
-                <div className="bg-white px-4 py-3 rounded-2xl border border-gray-200">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                <div className="bg-white px-4 py-3 rounded-2xl border border-gray-200 flex items-center gap-3">
+                  <div className="w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm text-gray-700 font-medium">Thinking...</span>
+                </div>
+              </div>
+            )}
+            
+            {streamingMessage && (
+              <div className="flex justify-start mb-4">
+                <div className="max-w-[80%] px-4 py-3 rounded-2xl bg-white text-gray-800 border border-gray-200">
+                  <div className="prose prose-sm max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {streamingMessage}
+                    </ReactMarkdown>
                   </div>
+                  <span className="animate-pulse">▊</span>
                 </div>
               </div>
             )}
