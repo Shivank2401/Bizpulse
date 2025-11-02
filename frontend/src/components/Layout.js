@@ -42,33 +42,35 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Header */}
-      <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-50">
+      <header className="h-16 fixed top-0 left-0 right-0 z-50" style={{ background: '#184464' }}>
         <div className="h-full px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: '#f59e0b' }}>
-              <Lightbulb className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src="/vector_logo_white.svg" 
+              alt="Vector AI Studio Logo" 
+              className="h-10 w-auto"
+            />
             <div>
-              <h1 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              <h1 className="text-lg font-bold text-white" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                 BeaconIQ
               </h1>
-              <p className="text-xs text-gray-500">by Vector AI Studio</p>
+              <p className="text-xs text-gray-300">by Vector AI Studio</p>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="relative p-2 hover:bg-gray-100 rounded-lg transition">
-              <Bell className="w-5 h-5 text-gray-600" />
+            <button className="relative p-2 hover:bg-blue-700 rounded-lg transition">
+              <Bell className="w-5 h-5 text-white" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition">
-              <Settings className="w-5 h-5 text-gray-600" />
+            <button className="p-2 hover:bg-blue-700 rounded-lg transition">
+              <Settings className="w-5 h-5 text-white" />
             </button>
             <button 
               onClick={logout}
-              className="p-2 hover:bg-gray-100 rounded-lg transition"
+              className="p-2 hover:bg-blue-700 rounded-lg transition"
             >
-              <User className="w-5 h-5 text-gray-600" />
+              <User className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
