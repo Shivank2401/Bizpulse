@@ -235,6 +235,15 @@ async def lifespan(app: FastAPI):
 # Create the main app
 app = FastAPI(lifespan=lifespan)
 
+# Add CORS middleware BEFORE router (so error responses have CORS headers)
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
@@ -283,6 +292,12 @@ async def get_data_source(email: str = Depends(get_current_user)):
         # Get a sample record to show data structure
         sample = await db.business_data.find_one({}, {"_id": 0})
         
+        # Convert NaN/Inf values to None for JSON serialization
+        if sample:
+            import math
+            sample = {k: (None if isinstance(v, float) and (math.isnan(v) or math.isinf(v)) else v) 
+                     for k, v in sample.items()}
+        
         # Check if this looks like dummy data or real data
         is_dummy = False
         if sample:
@@ -312,6 +327,7 @@ async def get_executive_overview(
     email: str = Depends(get_current_user)
 ):
     """Executive Overview - YoY comparison, KPIs with multi-select filters"""
+    logger.info("🔍 GET /api/analytics/executive-overview called")
     try:
         # Build query based on multi-select filters
         query = {}
@@ -336,87 +352,113 @@ async def get_executive_overview(
             if channel_list:
                 query['Channel'] = {'$in': channel_list}
             
-        # Get filtered data
+        # Helper to handle NaN values in float conversions
+        import math
+        def safe_float(val):
+            if isinstance(val, float) and (math.isnan(val) or math.isinf(val)):
+                return 0.0
+            return float(val)
+        
         logger.info(f"Query being executed: {query}")
-        data = await db.business_data.find(query, {"_id": 0}).to_list(100000)
-        logger.info(f"Retrieved {len(data)} records from MongoDB")
+        logger.info(f"🚀 Using MongoDB aggregation pipeline for performance")
         
-        # Data is now properly cleaned and formatted
-        logger.info(f"Using all {len(data)} records including cleaned 2025 data")
-        
-        if data:
-            logger.info(f"First record keys: {list(data[0].keys())}")
-            logger.info(f"Sample values - Year: {data[0].get('Year')}, Revenue: {data[0].get('Revenue')}, gSales: {data[0].get('gSales')}")
-        
-        df = pd.DataFrame(data)
-        
-        # Debug logging
-        logger.info(f"DataFrame columns: {list(df.columns) if not df.empty else 'Empty DataFrame'}")
-        
-        if df.empty:
-            return {"error": "No data available"}
-        
-        # Ensure numeric columns
-        for col in ['Gross_Profit', 'Revenue', 'Units', 'Year']:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-        
-        # Yearly performance
-        yearly_performance = df.groupby('Year').agg({
-            'Revenue': 'sum',
-            'Gross_Profit': 'sum',
-            'Units': 'sum'
-        }).reset_index()
+        # Yearly performance aggregation
+        pipeline_yearly = [
+            {"$match": query} if query else {"$match": {}},
+            {"$group": {
+                "_id": "$Year",
+                "Revenue": {"$sum": {"$toDouble": "$Revenue"}},
+                "Gross_Profit": {"$sum": {"$toDouble": "$Gross_Profit"}},
+                "Units": {"$sum": {"$toDouble": "$Units"}}
+            }}
+        ]
+        yearly_results = await db.business_data.aggregate(pipeline_yearly).to_list(100)
+        logger.info(f"✅ Yearly aggregation: {len(yearly_results)} records")
         
         yearly_list = []
-        for _, row in yearly_performance.iterrows():
+        for item in yearly_results:
             yearly_list.append({
-                "Year": int(row['Year']),
-                "Revenue": float(row['Revenue']),
-                "Gross_Profit": float(row['Gross_Profit']),
-                "Units": float(row['Units'])
+                "Year": int(item['_id']) if item['_id'] else 0,
+                "Revenue": safe_float(item.get('Revenue', 0)),
+                "Gross_Profit": safe_float(item.get('Gross_Profit', 0)),
+                "Units": safe_float(item.get('Units', 0))
             })
         
-        # Business-wise performance
-        business_perf = df.groupby('Business').agg({
-            'Gross_Profit': 'sum',
-            'Revenue': 'sum',
-            'Units': 'sum'
-        }).reset_index()
+        # Business performance aggregation
+        pipeline_business = [
+            {"$match": query} if query else {"$match": {}},
+            {"$group": {
+                "_id": "$Business",
+                "Revenue": {"$sum": {"$toDouble": "$Revenue"}},
+                "Gross_Profit": {"$sum": {"$toDouble": "$Gross_Profit"}},
+                "Units": {"$sum": {"$toDouble": "$Units"}}
+            }}
+        ]
+        business_results = await db.business_data.aggregate(pipeline_business).to_list(100)
+        logger.info(f"✅ Business aggregation: {len(business_results)} records")
         
         business_list = []
-        for _, row in business_perf.iterrows():
+        for item in business_results:
             business_list.append({
-                "Business": str(row['Business']),
-                "Revenue": float(row['Revenue']),
-                "Gross_Profit": float(row['Gross_Profit']),
-                "Units": float(row['Units'])
+                "Business": str(item['_id']) if item['_id'] else "Unknown",
+                "Revenue": safe_float(item.get('Revenue', 0)),
+                "Gross_Profit": safe_float(item.get('Gross_Profit', 0)),
+                "Units": safe_float(item.get('Units', 0))
             })
         
-        # Month-wise trend for current year
-        current_year = int(df['Year'].max())
-        monthly_trend = df[df['Year'] == current_year].groupby('Month Name').agg({
-            'Gross_Profit': 'sum',
-            'Revenue': 'sum',
-            'Units': 'sum'
-        }).reset_index()
+        # Get current year for monthly trend
+        pipeline_max_year = [
+            {"$match": query} if query else {"$match": {}},
+            {"$group": {"_id": None, "maxYear": {"$max": {"$toDouble": "$Year"}}}}
+        ]
+        max_year_result = await db.business_data.aggregate(pipeline_max_year).to_list(1)
+        current_year = int(max_year_result[0]['maxYear']) if max_year_result and max_year_result[0].get('maxYear') else 2024
+        
+        # Monthly trend for current year
+        monthly_query = {**query, "Year": current_year}
+        pipeline_monthly = [
+            {"$match": monthly_query},
+            {"$group": {
+                "_id": "$Month_Name",
+                "Revenue": {"$sum": {"$toDouble": "$Revenue"}},
+                "Gross_Profit": {"$sum": {"$toDouble": "$Gross_Profit"}},
+                "Units": {"$sum": {"$toDouble": "$Units"}}
+            }}
+        ]
+        monthly_results = await db.business_data.aggregate(pipeline_monthly).to_list(50)
+        logger.info(f"✅ Monthly aggregation: {len(monthly_results)} records")
         
         monthly_list = []
-        for _, row in monthly_trend.iterrows():
+        for item in monthly_results:
             monthly_list.append({
-                "Month_Name": str(row['Month Name']),
-                "Revenue": float(row['Revenue']),
-                "Gross_Profit": float(row['Gross_Profit']),
-                "Units": float(row['Units'])
+                "Month_Name": str(item['_id']) if item['_id'] else "Unknown",
+                "Revenue": safe_float(item.get('Revenue', 0)),
+                "Gross_Profit": safe_float(item.get('Gross_Profit', 0)),
+                "Units": safe_float(item.get('Units', 0))
             })
+        
+        # Get totals
+        pipeline_totals = [
+            {"$match": query} if query else {"$match": {}},
+            {"$group": {
+                "_id": None,
+                "total_revenue": {"$sum": {"$toDouble": "$Revenue"}},
+                "total_profit": {"$sum": {"$toDouble": "$Gross_Profit"}},
+                "total_units": {"$sum": {"$toDouble": "$Units"}}
+            }}
+        ]
+        totals_result = await db.business_data.aggregate(pipeline_totals).to_list(1)
+        totals = totals_result[0] if totals_result else {}
+        
+        logger.info(f"✅ Totals calculated: Revenue={totals.get('total_revenue', 0)}, Profit={totals.get('total_profit', 0)}")
         
         return {
             "yearly_performance": yearly_list,
             "business_performance": business_list,
             "monthly_trend": monthly_list,
-            "total_profit": float(df['Gross_Profit'].sum()),
-            "total_revenue": float(df['Revenue'].sum()),
-            "total_units": float(df['Units'].sum())
+            "total_profit": safe_float(totals.get('total_profit', 0)),
+            "total_revenue": safe_float(totals.get('total_revenue', 0)),
+            "total_units": safe_float(totals.get('total_units', 0))
         }
     except Exception as e:
         logger.error(f"Executive overview error: {str(e)}")
@@ -550,37 +592,41 @@ async def get_category_analysis(email: str = Depends(get_current_user)):
 @api_router.get("/filters/options")
 async def get_filter_options(email: str = Depends(get_current_user)):
     """Get all unique filter options"""
+    logger.info("🔍 GET /api/filters/options called")
     try:
-        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
-        logger.info(f"Retrieved {len(data)} records for filter options")
+        logger.info("📊 Fetching unique values from MongoDB...")
         
-        if not data:
-            logger.warning("No data found for filter options")
-            return {}
+        # Use distinct to get unique values - MUCH FASTER than loading all records
+        years = await db.business_data.distinct('Year')
+        months = await db.business_data.distinct('Month_Name')
+        businesses = await db.business_data.distinct('Business')
+        channels = await db.business_data.distinct('Channel')
+        customers = await db.business_data.distinct('Customer')
+        brands = await db.business_data.distinct('Brand')
+        categories = await db.business_data.distinct('Category')
+        sub_categories = await db.business_data.distinct('Sub_Cat')
         
-        df = pd.DataFrame(data)
-        logger.info(f"DataFrame shape: {df.shape}")
-        logger.info(f"DataFrame columns: {list(df.columns)}")
+        logger.info(f"✅ Fetched unique values")
         
-        if df.empty:
-            logger.warning("DataFrame is empty")
-            return {}
-        
-        # Check for required columns
-        required_cols = ['Year', 'Month_Name', 'Business', 'Channel', 'Brand', 'Category', 'Sub_Cat']
-        missing_cols = [col for col in required_cols if col not in df.columns]
-        if missing_cols:
-            logger.warning(f"Missing columns: {missing_cols}")
+        # Filter out None values and convert years to int
+        years = sorted([int(y) for y in years if y is not None])
+        months = [m for m in months if m is not None]
+        businesses = [b for b in businesses if b is not None]
+        channels = [c for c in channels if c is not None]
+        customers = [c for c in customers if c is not None]
+        brands = [b for b in brands if b is not None]
+        categories = [c for c in categories if c is not None]
+        sub_categories = [s for s in sub_categories if s is not None]
         
         result = {
-            "years": sorted(df['Year'].dropna().unique().tolist()) if 'Year' in df.columns else [],
-            "months": df['Month_Name'].dropna().unique().tolist() if 'Month_Name' in df.columns else [],
-            "businesses": df['Business'].dropna().unique().tolist() if 'Business' in df.columns else [],
-            "channels": df['Channel'].dropna().unique().tolist() if 'Channel' in df.columns else [],
-            "customers": df['Customer'].dropna().unique().tolist() if 'Customer' in df.columns else [],
-            "brands": df['Brand'].dropna().unique().tolist() if 'Brand' in df.columns else [],
-            "categories": df['Category'].dropna().unique().tolist() if 'Category' in df.columns else [],
-            "sub_categories": df['Sub_Cat'].dropna().unique().tolist() if 'Sub_Cat' in df.columns else []
+            "years": years,
+            "months": months,
+            "businesses": businesses,
+            "channels": channels,
+            "customers": customers,
+            "brands": brands,
+            "categories": categories,
+            "sub_categories": sub_categories
         }
         
         logger.info(f"Filter options generated: {[(k, len(v)) for k, v in result.items()]}")
@@ -690,14 +736,6 @@ Provide insights with specific numbers when possible. Highlight good performance
 
 # Include the router in the main app
 app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Configure logging
 logging.basicConfig(

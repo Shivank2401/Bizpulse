@@ -37,15 +37,22 @@ async def load_data():
     # Normalize column names
     rename_map = {
         'Month': 'Month_Name',
+        'Month Name': 'Month_Name',  # Add space version
         'MonthName': 'Month_Name',
         'month_name': 'Month_Name',
+        'Sub-Cat': 'Sub_Cat',  # Add hyphen version
         'Sub_Category': 'Sub_Cat',
         'SubCat': 'Sub_Cat',
         'sub_cat': 'Sub_Cat',
+        'Brand Type Name': 'Brand_Type_Name',  # Add space version
         'Brand_Type': 'Brand_Type_Name',
+        'P+L Brand': 'PL_Brand',  # Add correct Azure column name
         'PL Brand': 'PL_Brand',
+        'P+L Category': 'PL_Category',  # Add correct Azure column name
         'PL Category': 'PL_Category',
+        'SubCat Name': 'SubCat_Name',  # Add space version
         'SKU Channel Name': 'SKU_Channel_Name',
+        'P+L Cust. Grp': 'PL_Cust_Grp',  # Add correct Azure column name
         'PL Cust Grp': 'PL_Cust_Grp',
         'gSales': 'Revenue',
         'fGP': 'Gross_Profit',
@@ -53,10 +60,17 @@ async def load_data():
     }
     df = df.rename(columns=rename_map)
     
-    # Ensure numeric columns
+    # Ensure numeric columns - handle comma separators
+    def clean_numeric_column(series):
+        """Remove commas and convert to numeric"""
+        if series.dtype == 'object':
+            # Remove commas and convert
+            return pd.to_numeric(series.astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+        return pd.to_numeric(series, errors='coerce').fillna(0)
+    
     for col in ['Gross_Profit', 'Revenue', 'Units', 'Year']:
         if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+            df[col] = clean_numeric_column(df[col])
     
     # Convert to list of dicts
     records = df.to_dict(orient='records')
