@@ -32,42 +32,51 @@ const Dashboard = () => {
   const [syncing, setSyncing] = useState(false);
 
   const { token } = useAuth();
+  
+  // Check if running in development mode
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     const loadFilters = async () => {
-      console.log('=== FILTER LOADING DEBUG ===');
-      console.log('Token available:', !!token);
-      console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
-      console.log('API URL:', `${API}/filters/options`);
+      if (isDevelopment) {
+        console.log('=== FILTER LOADING DEBUG ===');
+        console.log('Token available:', !!token);
+        console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
+        console.log('API URL:', `${API}/filters/options`);
+      }
       
       if (!token) {
-        console.log('No token available, skipping filter load');
+        if (isDevelopment) console.log('No token available, skipping filter load');
         return;
       }
       try {
-        console.log('Making API call to load filters...');
+        if (isDevelopment) console.log('Making API call to load filters...');
         const res = await axios.get(`${API}/filters/options`, {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
         });
-        console.log('✅ Filters loaded successfully:', res.data);
-        console.log('✅ Brands count:', res.data.brands?.length || 0);
-        console.log('✅ Sample brands:', res.data.brands?.slice(0, 10) || []);
-        console.log('✅ All brands:', res.data.brands || []);
+        if (isDevelopment) {
+          console.log('✅ Filters loaded successfully:', res.data);
+          console.log('✅ Brands count:', res.data.brands?.length || 0);
+          console.log('✅ Sample brands:', res.data.brands?.slice(0, 10) || []);
+          console.log('✅ All brands:', res.data.brands || []);
+        }
         setFilters(res.data);
       } catch (e) {
         console.error('❌ Failed to load filters:', e.response?.data || e.message);
-        console.error('❌ Error status:', e.response?.status);
-        console.error('❌ Error headers:', e.response?.headers);
-        console.error('❌ Full error:', e);
+        if (isDevelopment) {
+          console.error('❌ Error status:', e.response?.status);
+          console.error('❌ Error headers:', e.response?.headers);
+          console.error('❌ Full error:', e);
+        }
         // fallback to empty filters
         setFilters({ years: [], months: [], businesses: [], channels: [], brands: [], categories: [] });
       }
     };
     loadFilters();
-  }, [token]);
+  }, [token, isDevelopment]);
 
   useEffect(() => {
     const loadDataSource = async () => {
@@ -97,15 +106,17 @@ const Dashboard = () => {
         if (selectedBusinesses.length) params.set('businesses', selectedBusinesses.join(','));
         if (selectedChannels.length) params.set('channels', selectedChannels.join(','));
         const url = `${API}/analytics/executive-overview${params.toString() ? `?${params.toString()}` : ''}`;
-        console.log('Loading data with URL:', url);
-        console.log('Filter values:', { selectedYears, selectedMonths, selectedBusinesses, selectedChannels });
+        if (isDevelopment) {
+          console.log('Loading data with URL:', url);
+          console.log('Filter values:', { selectedYears, selectedMonths, selectedBusinesses, selectedChannels });
+        }
         const res = await axios.get(url, {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
         });
-        console.log('Data loaded successfully:', res.data);
+        if (isDevelopment) console.log('Data loaded successfully:', res.data);
         setData(res.data);
       } catch (e) {
         console.error('Failed to load data:', e.response?.data || e.message);
@@ -210,8 +221,8 @@ const Dashboard = () => {
     .filter(item => !!item.Month_Name)
     .sort((a,b) => monthOrder.indexOf(a.Month_Name) - monthOrder.indexOf(b.Month_Name));
 
-  // Debug: log monthly trend mapping
-  if (data) {
+  // Debug: log monthly trend mapping (dev only)
+  if (data && isDevelopment) {
     console.log('[Sales Trend] monthly_trend raw:', data?.monthly_trend);
     console.log('[Sales Trend] normalized monthlyData:', monthlyData);
   }
@@ -303,61 +314,65 @@ const Dashboard = () => {
             <p className="text-gray-600">Comprehensive business analytics and performance metrics</p>
           </div>
           
-          {/* Data Source Indicator */}
-          <div className="flex items-center gap-3">
-            {/* Auth Status */}
-            <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-              token ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
-              {token ? '🔐 Authenticated' : '❌ Not Authenticated'}
-            </div>
-            
-            {dataSource && (
+          {/* Data Source Indicator - Only in development */}
+          {isDevelopment && (
+            <div className="flex items-center gap-3">
+              {/* Auth Status */}
               <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                dataSource.source === 'azure' 
-                  ? 'bg-green-100 text-green-800' 
-                  : dataSource.source === 'dummy'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-gray-100 text-gray-800'
+                token ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {dataSource.source === 'azure' ? '📊 Azure Data' : 
-                 dataSource.source === 'dummy' ? '🧪 Dummy Data' : 
-                 '❓ Unknown Source'}
-                <span className="ml-2 text-xs">({dataSource.records_count} records)</span>
+                {token ? '🔐 Authenticated' : '❌ Not Authenticated'}
               </div>
-            )}
-            
-            <button
-              onClick={handleSyncData}
-              disabled={syncing}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                syncing 
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              {syncing ? 'Syncing...' : '🔄 Sync from Azure'}
-            </button>
-          </div>
+              
+              {dataSource && (
+                <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                  dataSource.source === 'azure' 
+                    ? 'bg-green-100 text-green-800' 
+                    : dataSource.source === 'dummy'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {dataSource.source === 'azure' ? '📊 Azure Data' : 
+                   dataSource.source === 'dummy' ? '🧪 Dummy Data' : 
+                   '❓ Unknown Source'}
+                  <span className="ml-2 text-xs">({dataSource.records_count} records)</span>
+                </div>
+              )}
+              
+              <button
+                onClick={handleSyncData}
+                disabled={syncing}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  syncing 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {syncing ? 'Syncing...' : '🔄 Sync from Azure'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Overall Page Filters */}
         <div className="bg-white rounded-lg border border-gray-200 p-5">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-sm font-semibold text-gray-700">Global Filters</h3>
-            <div className="text-xs text-gray-500">
-              {filters ? (
-                <div>
-                  <div>Loaded: {Object.keys(filters).length} filter types</div>
-                  <div>Brands: {filters.brands?.length || 0} items</div>
-                  {filters.brands?.length > 0 && (
-                    <div className="text-green-600">✅ Real Azure Data</div>
-                  )}
-                </div>
-              ) : (
-                'Loading filters...'
-              )}
-            </div>
+            {isDevelopment && (
+              <div className="text-xs text-gray-500">
+                {filters ? (
+                  <div>
+                    <div>Loaded: {Object.keys(filters).length} filter types</div>
+                    <div>Brands: {filters.brands?.length || 0} items</div>
+                    {filters.brands?.length > 0 && (
+                      <div className="text-green-600">✅ Real Azure Data</div>
+                    )}
+                  </div>
+                ) : (
+                  'Loading filters...'
+                )}
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <MultiSelectFilter

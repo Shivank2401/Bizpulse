@@ -437,6 +437,28 @@ async def get_executive_overview(
                 "Units": safe_float(item.get('Units', 0))
             })
         
+        # Channel performance aggregation
+        pipeline_channel = [
+            {"$match": query} if query else {"$match": {}},
+            {"$group": {
+                "_id": "$Channel",
+                "Revenue": {"$sum": {"$toDouble": "$Revenue"}},
+                "Gross_Profit": {"$sum": {"$toDouble": "$Gross_Profit"}},
+                "Units": {"$sum": {"$toDouble": "$Units"}}
+            }}
+        ]
+        channel_results = await db.business_data.aggregate(pipeline_channel).to_list(100)
+        logger.info(f"✅ Channel aggregation: {len(channel_results)} records")
+        
+        channel_list = []
+        for item in channel_results:
+            channel_list.append({
+                "Channel": str(item['_id']) if item['_id'] else "Unknown",
+                "Revenue": safe_float(item.get('Revenue', 0)),
+                "Gross_Profit": safe_float(item.get('Gross_Profit', 0)),
+                "Units": safe_float(item.get('Units', 0))
+            })
+        
         # Get totals
         pipeline_totals = [
             {"$match": query} if query else {"$match": {}},
@@ -456,6 +478,7 @@ async def get_executive_overview(
             "yearly_performance": yearly_list,
             "business_performance": business_list,
             "monthly_trend": monthly_list,
+            "channel_performance": channel_list,
             "total_profit": safe_float(totals.get('total_profit', 0)),
             "total_revenue": safe_float(totals.get('total_revenue', 0)),
             "total_units": safe_float(totals.get('total_units', 0))
