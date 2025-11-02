@@ -7,7 +7,7 @@ import staticData from '@/data/staticData';
 import { Button } from '@/components/ui/button';
 import { 
   FolderKanban, Plus, CheckCircle2, Clock, AlertCircle, AlertTriangle,
-  Sparkles, Calendar, Users, Target, TrendingUp, DollarSign, Package,
+  Sparkles, Calendar, Users, Target, TrendingUp, Euro, Package,
   BarChart3, Lightbulb, Zap, Activity, ArrowUpRight
 } from 'lucide-react';
 
@@ -130,15 +130,15 @@ const ProjectsNew = () => {
           <div className="professional-card p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-lg bg-green-100">
-                <DollarSign className="w-5 h-5 text-green-600" />
+                <Euro className="w-5 h-5 text-green-600" />
               </div>
               <ArrowUpRight className="w-4 h-4 text-green-600" />
             </div>
             <p className="text-sm text-gray-600 mb-1">Total Budget</p>
             <h3 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-              ${formatNumber(totalBudget / 1000000)}M
+              {formatNumber(totalBudget / 1000000)}M
             </h3>
-            <p className="text-xs text-gray-500 mt-1">${formatNumber(totalSpent / 1000000)}M spent</p>
+            <p className="text-xs text-gray-500 mt-1">{formatNumber(totalSpent / 1000000)}M spent</p>
           </div>
 
           <div className="professional-card p-5">
@@ -184,7 +184,7 @@ const ProjectsNew = () => {
           <div className="professional-card p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-                Budget Overview (K$)
+                Budget Overview (K€)
               </h3>
               <Button
                 variant="ghost"
@@ -391,7 +391,7 @@ const ProjectsNew = () => {
               </div>
               <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600">
                 <p className="text-xs text-white font-semibold">Expected Revenue</p>
-                <p className="text-lg font-bold text-white">${formatNumber(plan.expectedRevenue / 1000000)}M</p>
+                <p className="text-lg font-bold text-white">{formatNumber(plan.expectedRevenue / 1000000)}M</p>
               </div>
             </div>
 
@@ -399,15 +399,15 @@ const ProjectsNew = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                 <p className="text-xs text-blue-600 font-semibold mb-1">Total Budget</p>
-                <p className="text-xl font-bold text-blue-900">${formatNumber(plan.totalBudget / 1000000)}M</p>
+                <p className="text-xl font-bold text-blue-900">{formatNumber(plan.totalBudget / 1000000)}M</p>
               </div>
               <div className="p-4 rounded-lg bg-green-50 border border-green-200">
                 <p className="text-xs text-green-600 font-semibold mb-1">Allocated Budget</p>
-                <p className="text-xl font-bold text-green-900">${formatNumber(plan.allocatedBudget / 1000000)}M</p>
+                <p className="text-xl font-bold text-green-900">{formatNumber(plan.allocatedBudget / 1000000)}M</p>
               </div>
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
                 <p className="text-xs text-amber-600 font-semibold mb-1">Remaining Budget</p>
-                <p className="text-xl font-bold text-amber-900">${formatNumber((plan.totalBudget - plan.allocatedBudget) / 1000000)}M</p>
+                <p className="text-xl font-bold text-amber-900">{formatNumber((plan.totalBudget - plan.allocatedBudget) / 1000000)}M</p>
               </div>
             </div>
 
@@ -441,11 +441,11 @@ const ProjectsNew = () => {
                       <div className="grid grid-cols-2 gap-4 text-xs">
                         <div>
                           <span className="text-gray-600">Budget: </span>
-                          <span className="font-semibold text-gray-900">${formatNumber(initiative.budget / 1000)}K</span>
+                          <span className="font-semibold text-gray-900">{formatNumber(initiative.budget / 1000)}K</span>
                         </div>
                         <div>
                           <span className="text-gray-600">Expected Revenue: </span>
-                          <span className="font-semibold text-gray-900">${formatNumber(initiative.revenue / 1000)}K</span>
+                          <span className="font-semibold text-gray-900">{formatNumber(initiative.revenue / 1000)}K</span>
                         </div>
                       </div>
                     </div>
@@ -567,15 +567,15 @@ const ProjectsNew = () => {
           <div className="professional-card p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-lg bg-green-100">
-                <DollarSign className="w-5 h-5 text-green-600" />
+                <Euro className="w-5 h-5 text-green-600" />
               </div>
               <ArrowUpRight className="w-4 h-4 text-green-600" />
             </div>
             <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
             <h3 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-              ${formatNumber(totalRevenue / 1000000)}M
+              {formatNumber(totalRevenue / 1000000)}M
             </h3>
-            <p className="text-xs text-gray-500 mt-1">${formatNumber(totalSpent / 1000)}K spent</p>
+            <p className="text-xs text-gray-500 mt-1">{formatNumber(totalSpent / 1000)}K spent</p>
           </div>
 
           <div className="professional-card p-5">
@@ -613,7 +613,7 @@ const ProjectsNew = () => {
           <div className="professional-card p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-                Campaign Performance (K$)
+                Campaign Performance (K€)
               </h3>
               <Button
                 variant="ghost"
@@ -864,8 +864,8 @@ const ProjectCard = ({ project, getStatusColor, getPriorityColor }) => {
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="p-3 rounded-lg bg-gray-50">
           <p className="text-xs text-gray-600 mb-0.5">Budget</p>
-          <p className="text-sm font-semibold text-gray-900">${formatNumber(project.budget / 1000)}K</p>
-          <p className="text-xs text-gray-500">${formatNumber(project.spent / 1000)}K spent</p>
+          <p className="text-sm font-semibold text-gray-900">{formatNumber(project.budget / 1000)}K</p>
+          <p className="text-xs text-gray-500">{formatNumber(project.spent / 1000)}K spent</p>
         </div>
         <div className="p-3 rounded-lg bg-gray-50">
           <p className="text-xs text-gray-600 mb-0.5">Expected ROI</p>
@@ -953,11 +953,11 @@ const CampaignCard = ({ campaign, getStatusColor }) => {
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="p-2 rounded-lg bg-blue-50">
           <p className="text-xs text-blue-600 mb-0.5">Budget</p>
-          <p className="text-sm font-semibold text-blue-900">${formatNumber(campaign.budget / 1000)}K</p>
+          <p className="text-sm font-semibold text-blue-900">{formatNumber(campaign.budget / 1000)}K</p>
         </div>
         <div className="p-2 rounded-lg bg-green-50">
           <p className="text-xs text-green-600 mb-0.5">Revenue</p>
-          <p className="text-sm font-semibold text-green-900">${formatNumber(campaign.revenue / 1000)}K</p>
+          <p className="text-sm font-semibold text-green-900">{formatNumber(campaign.revenue / 1000)}K</p>
         </div>
         <div className="p-2 rounded-lg bg-amber-50">
           <p className="text-xs text-amber-600 mb-0.5">ROI</p>

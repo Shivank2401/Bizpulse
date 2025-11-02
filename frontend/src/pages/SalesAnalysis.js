@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import MultiSelectFilter from '@/components/MultiSelectFilter';
 import ChartComponent from '@/components/ChartComponent';
-import { formatNumber } from '@/utils/formatters';
+import { formatNumber, formatUnits } from '@/utils/formatters';
 import staticData from '@/data/staticData';
-import { TrendingUp, TrendingDown, DollarSign, Package, Eye, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Euro, Package, Eye, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const SalesAnalysis = () => {
@@ -53,7 +53,7 @@ const SalesAnalysis = () => {
       legend: { display: true, position: 'top' },
       tooltip: {
         callbacks: {
-          label: (context) => `${context.dataset.label}: €${formatNumber(context.parsed.y)}`
+          label: (context) => `${context.dataset.label}: ${formatNumber(context.parsed.y)}`
         }
       }
     },
@@ -61,7 +61,7 @@ const SalesAnalysis = () => {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value) => '€' + formatNumber(value)
+          callback: (value) => formatNumber(value)
         }
       }
     }
@@ -116,9 +116,9 @@ const SalesAnalysis = () => {
           <div className="bg-white rounded-lg border border-gray-200 p-5">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-gray-600">Total Sales</h3>
-              <DollarSign className="w-5 h-5 text-green-600" />
+              <Euro className="w-5 h-5 text-green-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">€{formatNumber(totalRevenue)}</p>
+            <p className="text-2xl font-bold text-gray-900">{formatNumber(totalRevenue)}</p>
             <p className="text-sm text-green-600 mt-1">
               <TrendingUp className="w-4 h-4 inline mr-1" />
               +12.5% vs last period
@@ -130,7 +130,7 @@ const SalesAnalysis = () => {
               <h3 className="text-sm font-medium text-gray-600">Total Units</h3>
               <Package className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{formatNumber(totalUnits)}</p>
+            <p className="text-2xl font-bold text-gray-900">{formatUnits(totalUnits)}</p>
             <p className="text-sm text-blue-600 mt-1">
               <TrendingUp className="w-4 h-4 inline mr-1" />
               +8.3% vs last period
@@ -142,7 +142,7 @@ const SalesAnalysis = () => {
               <h3 className="text-sm font-medium text-gray-600">Avg Price/Case</h3>
               <Target className="w-5 h-5 text-amber-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">€{formatNumber(avgPrice)}</p>
+            <p className="text-2xl font-bold text-gray-900">{formatNumber(avgPrice)}</p>
             <p className="text-sm text-amber-600 mt-1">
               <TrendingUp className="w-4 h-4 inline mr-1" />
               +3.8% vs last period

@@ -651,6 +651,27 @@ async def get_filter_options(email: str = Depends(get_current_user)):
         categories = [c for c in categories if c is not None]
         sub_categories = [s for s in sub_categories if s is not None]
         
+        # Sort months chronologically (handle both full names and abbreviations)
+        month_order_full = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ]
+        month_order_abbr = [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ]
+        
+        def get_month_index(month):
+            """Get month index for sorting"""
+            if month in month_order_full:
+                return month_order_full.index(month)
+            elif month in month_order_abbr:
+                return month_order_abbr.index(month)
+            else:
+                return 999
+        
+        months = sorted(months, key=get_month_index)
+        
         result = {
             "years": years,
             "months": months,
