@@ -40,10 +40,10 @@ const Login = () => {
             <Sparkles className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'Space Grotesk', color: '#1e40af' }}>
-            ThriveBrands
+            BeaconIQ
           </h1>
           <p className="text-lg text-blue-600 font-medium">
-            BIZ Pulse Portal
+            by Vector Studio
           </p>
         </div>
 
@@ -106,7 +106,7 @@ const Login = () => {
 
           <div className="mt-6 text-center text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
             <p className="font-medium">Demo Credentials:</p>
-            <p className="mt-1 text-gray-700">data.admin@thrivebrands.ai / 123456User</p>
+            <p className="mt-1 text-gray-700">data.admin@beaconiq.ai / 123456User</p>
           </div>
         </div>
       </div>
