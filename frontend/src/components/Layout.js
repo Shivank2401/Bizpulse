@@ -48,7 +48,7 @@ const Layout = ({ children }) => {
             <img 
               src="/vector_logo_white.svg" 
               alt="Vector AI Studio Logo" 
-              className="h-10 w-auto"
+              className="h-14 w-auto"
             />
             <div>
               <h1 className="text-lg font-bold text-white" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
