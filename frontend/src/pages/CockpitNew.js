@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,6 +20,7 @@ import {
 import { toast } from 'sonner';
 
 const Cockpit = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('recommended');
 
   // Key Insights data
@@ -27,21 +29,39 @@ const Cockpit = () => {
       icon: TrendingUp,
       title: 'Revenue Opportunity',
       description: 'Untapped market segment with 25% growth potential',
-      color: { bg: '#d1fae5', text: '#065f46', icon: '#10b981' }
+      color: { bg: '#d1fae5', text: '#065f46', icon: '#10b981' },
+      navigateTo: '/kanban',
+      targetTab: 'goals-management'
     },
     {
       icon: Euro,
       title: 'Cost Optimization',
       description: 'Operational efficiency improvements can save €150K annually',
-      color: { bg: '#dbeafe', text: '#1e3a8a', icon: '#3b82f6' }
+      color: { bg: '#dbeafe', text: '#1e3a8a', icon: '#3b82f6' },
+      navigateTo: '/kanban',
+      targetTab: 'goals-management'
     },
     {
       icon: AlertCircle,
       title: 'Customer Retention',
       description: 'Churn rate increased by 3% - immediate action needed',
-      color: { bg: '#fef3c7', text: '#92400e', icon: '#f59e0b' }
+      color: { bg: '#fef3c7', text: '#92400e', icon: '#f59e0b' },
+      navigateTo: '/kanban',
+      targetTab: 'goals-management'
     }
   ];
+
+  // Handle insight card click - navigate to Strategic Kanban Goals Management
+  const handleInsightClick = (insight) => {
+    if (insight.navigateTo) {
+      // Store the target tab in sessionStorage so Kanban page can read it
+      if (insight.targetTab) {
+        sessionStorage.setItem('kanbanActiveTab', insight.targetTab);
+      }
+      navigate(insight.navigateTo);
+      toast.success(`Navigating to Goals Management...`);
+    }
+  };
 
   // Action Items
   const actionItems = [
@@ -299,7 +319,8 @@ const Cockpit = () => {
               return (
                 <div
                   key={idx}
-                  className="rounded-lg p-5 border"
+                  onClick={() => handleInsightClick(insight)}
+                  className="rounded-lg p-5 border cursor-pointer hover:shadow-md transition-shadow"
                   style={{ 
                     background: insight.color.bg, 
                     borderColor: insight.color.bg
