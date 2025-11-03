@@ -379,7 +379,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Yearly Performance',
                 [
-                  { type: 'positive', text: `Total revenue of €${formatNumber(data?.total_revenue || 0)} across ${yearlyData.length} years` },
+                  { type: 'positive', text: `Total revenue of ${formatNumber(data?.total_revenue || 0)} across ${yearlyData.length} years` },
                   { type: 'neutral', text: 'Profit margins remain stable' }
                 ],
                 [
@@ -469,7 +469,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Business vs Revenue',
                 [
-                  { type: 'positive', text: `Total revenue of €${formatNumber(data?.total_revenue || 0)} across businesses` },
+                  { type: 'positive', text: `Total revenue of ${formatNumber(data?.total_revenue || 0)} across businesses` },
                   { type: 'neutral', text: 'Revenue distribution indicates market strength' }
                 ],
                 [
@@ -499,7 +499,7 @@ const Dashboard = () => {
               handleViewInsight(
                 'Business vs Profit',
                 [
-                  { type: 'positive', text: `Total profit of €${formatNumber(data?.total_profit || 0)} generated` },
+                  { type: 'positive', text: `Total profit of ${formatNumber(data?.total_profit || 0)} generated` },
                   { type: 'attention', text: 'Profit margin variations need analysis' }
                 ],
                 [

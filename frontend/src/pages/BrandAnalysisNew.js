@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import ChartComponent from '@/components/ChartComponent';
 import { formatNumber } from '@/utils/formatters';
 import staticData from '@/data/staticData';
-import { Tag, TrendingUp, DollarSign, BarChart3 } from 'lucide-react';
+import { Tag, TrendingUp, Euro, BarChart3 } from 'lucide-react';
 
 const BrandAnalysis = () => {
   const [data, setData] = useState(null);
@@ -68,7 +68,7 @@ const BrandAnalysis = () => {
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium opacity-90">Total Revenue</h3>
-              <DollarSign className="w-8 h-8 opacity-80" />
+              <Euro className="w-8 h-8 opacity-80" />
             </div>
             <p className="text-3xl font-bold">{formatNumber(totalRevenue)}</p>
             <p className="text-sm opacity-80 mt-2">Across {brandData.length} brands</p>
@@ -119,14 +119,14 @@ const BrandAnalysis = () => {
                       legend: { display: false },
                       tooltip: {
                         callbacks: {
-                          label: (context) => `$${formatNumber(context.parsed.x)}`
+                          label: (context) => `${formatNumber(context.parsed.x)}`
                         }
                       }
                     },
                     scales: {
                       x: {
                         beginAtZero: true,
-                        ticks: { callback: (value) => '$' + formatNumber(value) },
+                        ticks: { callback: (value) => formatNumber(value) },
                         grid: { color: '#f3f4f6' }
                       },
                       y: { grid: { display: false } }
@@ -170,7 +170,7 @@ const BrandAnalysis = () => {
                             const value = context.parsed || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                             const percentage = ((value / total) * 100).toFixed(1);
-                            return `${label}: $${formatNumber(value)} (${percentage}%)`;
+                            return `${label}: ${formatNumber(value)} (${percentage}%)`;
                           }
                         }
                       }
@@ -206,14 +206,14 @@ const BrandAnalysis = () => {
                       legend: { display: false },
                       tooltip: {
                         callbacks: {
-                          label: (context) => `Profit: $${formatNumber(context.parsed.y)}`
+                          label: (context) => `Profit: ${formatNumber(context.parsed.y)}`
                         }
                       }
                     },
                     scales: {
                       y: {
                         beginAtZero: true,
-                        ticks: { callback: (value) => '$' + formatNumber(value) },
+                        ticks: { callback: (value) => formatNumber(value) },
                         grid: { color: '#f3f4f6' }
                       },
                       x: { 
@@ -260,14 +260,14 @@ const BrandAnalysis = () => {
                       legend: { position: 'top' },
                       tooltip: {
                         callbacks: {
-                          label: (context) => `${context.dataset.label}: $${formatNumber(context.parsed.y)}`
+                          label: (context) => `${context.dataset.label}: ${formatNumber(context.parsed.y)}`
                         }
                       }
                     },
                     scales: {
                       y: {
                         beginAtZero: true,
-                        ticks: { callback: (value) => '$' + formatNumber(value) },
+                        ticks: { callback: (value) => formatNumber(value) },
                         grid: { color: '#f3f4f6' }
                       },
                       x: { 

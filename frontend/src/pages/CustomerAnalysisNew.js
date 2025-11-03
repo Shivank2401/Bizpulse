@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import ChartComponent from '@/components/ChartComponent';
-import { formatNumber } from '@/utils/formatters';
+import { formatNumber, formatUnits } from '@/utils/formatters';
 import staticData from '@/data/staticData';
-import { Users, TrendingUp, DollarSign, ShoppingCart } from 'lucide-react';
+import { Users, TrendingUp, Euro, ShoppingCart } from 'lucide-react';
 
 const CustomerAnalysis = () => {
   const [data, setData] = useState(null);
@@ -67,7 +67,7 @@ const CustomerAnalysis = () => {
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium opacity-90">Total Revenue</h3>
-              <DollarSign className="w-8 h-8 opacity-80" />
+              <Euro className="w-8 h-8 opacity-80" />
             </div>
             <p className="text-3xl font-bold">{formatNumber(totalRevenue)}</p>
             <p className="text-sm opacity-80 mt-2">Across all channels</p>
@@ -87,7 +87,7 @@ const CustomerAnalysis = () => {
               <h3 className="text-sm font-medium opacity-90">Total Units</h3>
               <ShoppingCart className="w-8 h-8 opacity-80" />
             </div>
-            <p className="text-3xl font-bold">{formatNumber(totalUnits)}</p>
+            <p className="text-3xl font-bold">{formatUnits(totalUnits)}</p>
             <p className="text-sm opacity-80 mt-2">Units sold</p>
           </div>
         </div>
@@ -118,14 +118,14 @@ const CustomerAnalysis = () => {
                       legend: { display: false },
                       tooltip: {
                         callbacks: {
-                          label: (context) => `Revenue: $${formatNumber(context.parsed.y)}`
+                          label: (context) => `Revenue: ${formatNumber(context.parsed.y)}`
                         }
                       }
                     },
                     scales: {
                       y: {
                         beginAtZero: true,
-                        ticks: { callback: (value) => '$' + formatNumber(value) },
+                        ticks: { callback: (value) => formatNumber(value) },
                         grid: { color: '#f3f4f6' }
                       },
                       x: { grid: { display: false } }
@@ -167,7 +167,7 @@ const CustomerAnalysis = () => {
                           label: (context) => {
                             const label = context.label || '';
                             const value = context.parsed || 0;
-                            return `${label}: $${formatNumber(value)}`;
+                            return `${label}: ${formatNumber(value)}`;
                           }
                         }
                       }
@@ -203,14 +203,14 @@ const CustomerAnalysis = () => {
                       legend: { display: false },
                       tooltip: {
                         callbacks: {
-                          label: (context) => `Profit: $${formatNumber(context.parsed.y)}`
+                          label: (context) => `Profit: ${formatNumber(context.parsed.y)}`
                         }
                       }
                     },
                     scales: {
                       y: {
                         beginAtZero: true,
-                        ticks: { callback: (value) => '$' + formatNumber(value) },
+                        ticks: { callback: (value) => formatNumber(value) },
                         grid: { color: '#f3f4f6' }
                       },
                       x: { grid: { display: false } }
@@ -252,7 +252,7 @@ const CustomerAnalysis = () => {
                           label: (context) => {
                             const label = context.label || '';
                             const value = context.parsed || 0;
-                            return `${label}: ${formatNumber(value)} units`;
+                            return `${label}: ${formatUnits(value)} units`;
                           }
                         }
                       }

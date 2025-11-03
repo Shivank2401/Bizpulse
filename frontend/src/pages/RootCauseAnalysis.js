@@ -257,7 +257,7 @@ const RootCauseAnalysis = () => {
                   scales: {
                     y: {
                       beginAtZero: true,
-                      ticks: { callback: (value) => '€' + formatNumber(value) }
+                      ticks: { callback: (value) => formatNumber(value) }
                     }
                   }
                 }}

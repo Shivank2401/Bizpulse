@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import ChartComponent from '@/components/ChartComponent';
 import { formatNumber } from '@/utils/formatters';
 import staticData from '@/data/staticData';
-import { Layers, TrendingUp, DollarSign } from 'lucide-react';
+import { Layers, TrendingUp, Euro } from 'lucide-react';
 
 const CategoryAnalysis = () => {
   const [data, setData] = useState(null);
@@ -66,7 +66,7 @@ const CategoryAnalysis = () => {
           <div className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium opacity-90">Total Revenue</h3>
-              <DollarSign className="w-8 h-8 opacity-80" />
+              <Euro className="w-8 h-8 opacity-80" />
             </div>
             <p className="text-3xl font-bold">{formatNumber(totalRevenue)}</p>
             <p className="text-sm opacity-80 mt-2">Across categories</p>
@@ -117,14 +117,14 @@ const CategoryAnalysis = () => {
                       legend: { display: false },
                       tooltip: {
                         callbacks: {
-                          label: (context) => `$${formatNumber(context.parsed.x)}`
+                          label: (context) => `${formatNumber(context.parsed.x)}`
                         }
                       }
                     },
                     scales: {
                       x: {
                         beginAtZero: true,
-                        ticks: { callback: (value) => '$' + formatNumber(value) },
+                        ticks: { callback: (value) => formatNumber(value) },
                         grid: { color: '#f3f4f6' }
                       },
                       y: { grid: { display: false } }
@@ -166,7 +166,7 @@ const CategoryAnalysis = () => {
                           label: (context) => {
                             const label = context.label || '';
                             const value = context.parsed || 0;
-                            return `${label}: $${formatNumber(value)}`;
+                            return `${label}: ${formatNumber(value)}`;
                           }
                         }
                       }
@@ -202,14 +202,14 @@ const CategoryAnalysis = () => {
                       legend: { display: false },
                       tooltip: {
                         callbacks: {
-                          label: (context) => `Profit: $${formatNumber(context.parsed.y)}`
+                          label: (context) => `Profit: ${formatNumber(context.parsed.y)}`
                         }
                       }
                     },
                     scales: {
                       y: {
                         beginAtZero: true,
-                        ticks: { callback: (value) => '$' + formatNumber(value) },
+                        ticks: { callback: (value) => formatNumber(value) },
                         grid: { color: '#f3f4f6' }
                       },
                       x: { 
@@ -248,14 +248,14 @@ const CategoryAnalysis = () => {
                       legend: { display: false },
                       tooltip: {
                         callbacks: {
-                          label: (context) => `Revenue: $${formatNumber(context.parsed.y)}`
+                          label: (context) => `Revenue: ${formatNumber(context.parsed.y)}`
                         }
                       }
                     },
                     scales: {
                       y: {
                         beginAtZero: true,
-                        ticks: { callback: (value) => '$' + formatNumber(value) },
+                        ticks: { callback: (value) => formatNumber(value) },
                         grid: { color: '#f3f4f6' }
                       },
                       x: { 
