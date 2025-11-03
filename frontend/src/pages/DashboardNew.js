@@ -7,7 +7,7 @@ import { formatNumber, formatUnits } from '@/utils/formatters';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
 import { 
-  TrendingUp, TrendingDown, DollarSign, Package, 
+  TrendingUp, TrendingDown, Euro, Package, 
   Users, Target, Activity, Lightbulb 
 } from 'lucide-react';
 
@@ -448,7 +448,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-blue-600" />
+              <Euro className="w-4 h-4 text-blue-600" />
               <span className="text-xs text-gray-600">Total Sales</span>
             </div>
             <p className="text-xl font-bold text-gray-900">{formatNumber(totalRevenue)}</p>

@@ -184,7 +184,7 @@ const ProjectsNew = () => {
           <div className="professional-card p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-                Budget Overview (K€)
+                Budget Overview (€ k)
               </h3>
               <Button
                 variant="ghost"
@@ -441,11 +441,11 @@ const ProjectsNew = () => {
                       <div className="grid grid-cols-2 gap-4 text-xs">
                         <div>
                           <span className="text-gray-600">Budget: </span>
-                          <span className="font-semibold text-gray-900">{formatNumber(initiative.budget / 1000)}K</span>
+                          <span className="font-semibold text-gray-900">{formatNumber(initiative.budget)}</span>
                         </div>
                         <div>
                           <span className="text-gray-600">Expected Revenue: </span>
-                          <span className="font-semibold text-gray-900">{formatNumber(initiative.revenue / 1000)}K</span>
+                          <span className="font-semibold text-gray-900">{formatNumber(initiative.revenue)}</span>
                         </div>
                       </div>
                     </div>
@@ -575,7 +575,7 @@ const ProjectsNew = () => {
             <h3 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
               {formatNumber(totalRevenue / 1000000)}M
             </h3>
-            <p className="text-xs text-gray-500 mt-1">{formatNumber(totalSpent / 1000)}K spent</p>
+            <p className="text-xs text-gray-500 mt-1">{formatNumber(totalSpent)} spent</p>
           </div>
 
           <div className="professional-card p-5">
@@ -613,7 +613,7 @@ const ProjectsNew = () => {
           <div className="professional-card p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-                Campaign Performance (K€)
+                Campaign Performance (€ k)
               </h3>
               <Button
                 variant="ghost"
@@ -864,8 +864,8 @@ const ProjectCard = ({ project, getStatusColor, getPriorityColor }) => {
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="p-3 rounded-lg bg-gray-50">
           <p className="text-xs text-gray-600 mb-0.5">Budget</p>
-          <p className="text-sm font-semibold text-gray-900">{formatNumber(project.budget / 1000)}K</p>
-          <p className="text-xs text-gray-500">{formatNumber(project.spent / 1000)}K spent</p>
+          <p className="text-sm font-semibold text-gray-900">{formatNumber(project.budget)}</p>
+          <p className="text-xs text-gray-500">{formatNumber(project.spent)} spent</p>
         </div>
         <div className="p-3 rounded-lg bg-gray-50">
           <p className="text-xs text-gray-600 mb-0.5">Expected ROI</p>
@@ -953,11 +953,11 @@ const CampaignCard = ({ campaign, getStatusColor }) => {
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="p-2 rounded-lg bg-blue-50">
           <p className="text-xs text-blue-600 mb-0.5">Budget</p>
-          <p className="text-sm font-semibold text-blue-900">{formatNumber(campaign.budget / 1000)}K</p>
+          <p className="text-sm font-semibold text-blue-900">{formatNumber(campaign.budget)}</p>
         </div>
         <div className="p-2 rounded-lg bg-green-50">
           <p className="text-xs text-green-600 mb-0.5">Revenue</p>
-          <p className="text-sm font-semibold text-green-900">{formatNumber(campaign.revenue / 1000)}K</p>
+          <p className="text-sm font-semibold text-green-900">{formatNumber(campaign.revenue)}</p>
         </div>
         <div className="p-2 rounded-lg bg-amber-50">
           <p className="text-xs text-amber-600 mb-0.5">ROI</p>
