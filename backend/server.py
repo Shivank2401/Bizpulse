@@ -547,39 +547,176 @@ async def get_customer_analysis(email: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/brand-analysis")
-async def get_brand_analysis(email: str = Depends(get_current_user)):
-    """Brand Analysis - Brand performance by category and channel"""
+async def get_brand_analysis(
+    years: str = None,
+    months: str = None,
+    businesses: str = None,
+    channels: str = None,
+    categories: str = None,
+    brands: str = None,
+    email: str = Depends(get_current_user),
+):
+    """Brand Analysis - Brand performance by category and channel with optional filters"""
     try:
-        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
-        df = pd.DataFrame(data)
-        
-        if df.empty:
-            return {"error": "No data available"}
-        
-        # Brand performance
-        brand_perf = df.groupby('Brand').agg({
-            'Gross_Profit': 'sum',
-            'Revenue': 'sum',
-            'Units': 'sum'
-        }).reset_index()
-        
-        # Brand by Business
-        brand_by_business = df.groupby(['Brand', 'Business']).agg({
-            'Gross_Profit': 'sum',
-            'Revenue': 'sum'
-        }).reset_index()
-        
-        # YoY Brand Growth
-        brand_yoy = df.groupby(['Brand', 'Year']).agg({
-            'Revenue': 'sum'
-        }).reset_index()
-        
+        def parse_list(value: Optional[str], cast=None):
+            if not value:
+                return []
+            items = []
+            for part in value.split(','):
+                part = part.strip()
+                if not part:
+                    continue
+                try:
+                    items.append(cast(part) if cast else part)
+                except Exception:
+                    continue
+            return items
+
+        query: Dict[str, Any] = {}
+
+        year_list = parse_list(years, int)
+        if year_list:
+            query['Year'] = {'$in': year_list}
+
+        month_list = parse_list(months)
+        if month_list:
+            query['Month_Name'] = {'$in': month_list}
+
+        business_list = parse_list(businesses)
+        if business_list:
+            query['Business'] = {'$in': business_list}
+
+        channel_list = parse_list(channels)
+        if channel_list:
+            query['Channel'] = {'$in': channel_list}
+
+        category_list = parse_list(categories)
+        if category_list:
+            query['Category'] = {'$in': category_list}
+
+        brand_list = parse_list(brands)
+        if brand_list:
+            query['Brand'] = {'$in': brand_list}
+
+        def match_stage():
+            return {"$match": query} if query else {"$match": {}}
+
+        def safe_float(value: Any) -> float:
+            try:
+                if value is None:
+                    return 0.0
+                if isinstance(value, (int, float)):
+                    if pd.isna(value) or pd.isnull(value):
+                        return 0.0
+                    return float(value)
+                return float(value)
+            except Exception:
+                return 0.0
+
+        # Brand performance aggregation
+        pipeline_brand = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": "$Brand",
+                    "Revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "Gross_Profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                    "Units": {"$sum": {"$toDouble": {"$ifNull": ["$Units", 0]}}},
+                }
+            },
+            {"$sort": {"Revenue": -1}},
+        ]
+        brand_results = await db.business_data.aggregate(pipeline_brand).to_list(200)
+        brand_performance = []
+        for item in brand_results:
+            brand_performance.append({
+                "Brand": str(item.get("_id")) if item.get("_id") else "Unknown",
+                "Revenue": safe_float(item.get("Revenue")),
+                "Gross_Profit": safe_float(item.get("Gross_Profit")),
+                "Units": safe_float(item.get("Units")),
+            })
+
+        # Brand by business aggregation
+        pipeline_brand_business = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": {
+                        "Brand": "$Brand",
+                        "Business": "$Business",
+                    },
+                    "Revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "Gross_Profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                }
+            },
+            {"$sort": {"Revenue": -1}},
+        ]
+        brand_business_results = await db.business_data.aggregate(pipeline_brand_business).to_list(500)
+        brand_by_business = []
+        for item in brand_business_results:
+            key = item.get("_id", {})
+            brand_by_business.append({
+                "Brand": str(key.get("Brand")) if key.get("Brand") else "Unknown",
+                "Business": str(key.get("Business")) if key.get("Business") else "Unknown",
+                "Revenue": safe_float(item.get("Revenue")),
+                "Gross_Profit": safe_float(item.get("Gross_Profit")),
+            })
+
+        # Brand Year-over-Year aggregation
+        pipeline_brand_yoy = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": {
+                        "Brand": "$Brand",
+                        "Year": "$Year",
+                    },
+                    "Revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                }
+            },
+            {"$sort": {"_id.Brand": 1, "_id.Year": 1}},
+        ]
+        brand_yoy_results = await db.business_data.aggregate(pipeline_brand_yoy).to_list(1000)
+        brand_yoy_growth = []
+        for item in brand_yoy_results:
+            key = item.get("_id", {})
+            brand_yoy_growth.append({
+                "Brand": str(key.get("Brand")) if key.get("Brand") else "Unknown",
+                "Year": int(key.get("Year")) if key.get("Year") else 0,
+                "Revenue": safe_float(item.get("Revenue")),
+            })
+
+        # Totals and active brands
+        pipeline_totals = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": None,
+                    "total_revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "total_profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                    "total_units": {"$sum": {"$toDouble": {"$ifNull": ["$Units", 0]}}},
+                }
+            },
+        ]
+        totals_result = await db.business_data.aggregate(pipeline_totals).to_list(1)
+        totals = totals_result[0] if totals_result else {}
+
+        active_brands = sum(
+            1 for item in brand_performance
+            if item["Brand"] != "Unknown" and item["Revenue"] > 0
+        )
+
         return {
-            "brand_performance": brand_perf.to_dict('records'),
-            "brand_by_business": brand_by_business.to_dict('records'),
-            "brand_yoy_growth": brand_yoy.to_dict('records')
+            "brand_performance": brand_performance,
+            "brand_by_business": brand_by_business,
+            "brand_yoy_growth": brand_yoy_growth,
+            "total_revenue": safe_float(totals.get("total_revenue", 0)),
+            "total_profit": safe_float(totals.get("total_profit", 0)),
+            "total_units": safe_float(totals.get("total_units", 0)),
+            "active_brands": active_brands,
         }
     except Exception as e:
+        logger.error(f"Brand analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/category-analysis")
