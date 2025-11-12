@@ -498,49 +498,155 @@ async def get_executive_overview(
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/customer-analysis")
-async def get_customer_analysis(email: str = Depends(get_current_user)):
-    """Customer Analysis - Channel and customer drilldowns"""
+async def get_customer_analysis(
+    years: str = None,
+    months: str = None,
+    businesses: str = None,
+    channels: str = None,
+    customers: str = None,
+    brands: str = None,
+    email: str = Depends(get_current_user),
+):
+    """Customer Analysis - Channel and customer drilldowns with optional filters"""
     try:
-        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
-        df = pd.DataFrame(data)
-        
-        if df.empty:
-            return {"error": "No data available"}
-        
-        # Ensure numeric columns
-        for col in ['Gross_Profit', 'Revenue', 'Units']:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-        
-        # Channel-wise analysis
-        channel_analysis = df.groupby('Channel').agg({
-            'Gross_Profit': 'sum',
-            'Revenue': 'sum',
-            'Units': 'sum'
-        }).reset_index()
-        
-        channel_analysis['Gross_Profit'] = channel_analysis['Gross_Profit'].astype(float).round(2)
-        channel_analysis['Revenue'] = channel_analysis['Revenue'].astype(float).round(2)
-        channel_analysis['Units'] = channel_analysis['Units'].astype(float).round(2)
-        
-        # Customer-wise analysis
-        customer_analysis = df.groupby('Customer').agg({
-            'Gross_Profit': 'sum',
-            'Revenue': 'sum',
-            'Units': 'sum'
-        }).reset_index()
-        
-        customer_analysis['Gross_Profit'] = customer_analysis['Gross_Profit'].astype(float).round(2)
-        customer_analysis['Revenue'] = customer_analysis['Revenue'].astype(float).round(2)
-        customer_analysis['Units'] = customer_analysis['Units'].astype(float).round(2)
-        
-        # Top 10 customers
-        top_customers = customer_analysis.nlargest(10, 'Revenue')
-        
+        def parse_list(value: Optional[str], cast=None):
+            if not value:
+                return []
+            items = []
+            for part in value.split(','):
+                part = part.strip()
+                if not part:
+                    continue
+                try:
+                    items.append(cast(part) if cast else part)
+                except Exception:
+                    continue
+            return items
+
+        query: Dict[str, Any] = {}
+
+        year_list = parse_list(years, int)
+        if year_list:
+            query['Year'] = {'$in': year_list}
+
+        month_list = parse_list(months)
+        if month_list:
+            query['Month_Name'] = {'$in': month_list}
+
+        business_list = parse_list(businesses)
+        if business_list:
+            query['Business'] = {'$in': business_list}
+
+        channel_list = parse_list(channels)
+        if channel_list:
+            query['Channel'] = {'$in': channel_list}
+
+        customer_list = parse_list(customers)
+        if customer_list:
+            query['Customer'] = {'$in': customer_list}
+
+        brand_list = parse_list(brands)
+        if brand_list:
+            query['Brand'] = {'$in': brand_list}
+
+        def match_stage():
+            return {"$match": query} if query else {"$match": {}}
+
+        def safe_float(value: Any) -> float:
+            try:
+                if value is None:
+                    return 0.0
+                if isinstance(value, (int, float)):
+                    if pd.isna(value) or pd.isnull(value):
+                        return 0.0
+                    return float(value)
+                return float(value)
+            except Exception:
+                return 0.0
+
+        # Channel performance aggregation
+        pipeline_channel = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": "$Channel",
+                    "Revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "Gross_Profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                    "Units": {"$sum": {"$toDouble": {"$ifNull": ["$Units", 0]}}},
+                }
+            },
+            {"$sort": {"Revenue": -1}},
+        ]
+        channel_results = await db.business_data.aggregate(pipeline_channel).to_list(200)
+        channel_performance = []
+        for item in channel_results:
+            channel_performance.append({
+                "Channel": str(item.get("_id")) if item.get("_id") else "Unknown",
+                "Revenue": safe_float(item.get("Revenue")),
+                "Gross_Profit": safe_float(item.get("Gross_Profit")),
+                "Units": safe_float(item.get("Units")),
+            })
+
+        # Customer performance aggregation
+        pipeline_customer = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": "$Customer",
+                    "Revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "Gross_Profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                    "Units": {"$sum": {"$toDouble": {"$ifNull": ["$Units", 0]}}},
+                }
+            },
+            {"$sort": {"Revenue": -1}},
+        ]
+        customer_results = await db.business_data.aggregate(pipeline_customer).to_list(1000)
+        customer_performance = []
+        for item in customer_results:
+            customer_performance.append({
+                "Customer": str(item.get("_id")) if item.get("_id") else "Unknown",
+                "Revenue": safe_float(item.get("Revenue")),
+                "Gross_Profit": safe_float(item.get("Gross_Profit")),
+                "Units": safe_float(item.get("Units")),
+            })
+
+        top_customers = customer_performance[:50]
+
+        # Channel profit margin
+        for item in channel_performance:
+            revenue = item.get("Revenue", 0)
+            profit = item.get("Gross_Profit", 0)
+            margin = (profit / revenue) * 100 if revenue else 0
+            item["Profit_Margin"] = margin
+
+        # Totals
+        pipeline_totals = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": None,
+                    "total_revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "total_profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                    "total_units": {"$sum": {"$toDouble": {"$ifNull": ["$Units", 0]}}},
+                }
+            },
+        ]
+        totals_result = await db.business_data.aggregate(pipeline_totals).to_list(1)
+        totals = totals_result[0] if totals_result else {}
+
+        active_channels = sum(
+            1 for item in channel_performance
+            if item["Channel"] != "Unknown" and item["Revenue"] > 0
+        )
+
         return {
-            "channel_performance": channel_analysis.to_dict('records'),
-            "customer_performance": customer_analysis.to_dict('records'),
-            "top_customers": top_customers.to_dict('records')
+            "channel_performance": channel_performance,
+            "customer_performance": customer_performance,
+            "top_customers": top_customers,
+            "total_revenue": safe_float(totals.get("total_revenue", 0)),
+            "total_profit": safe_float(totals.get("total_profit", 0)),
+            "total_units": safe_float(totals.get("total_units", 0)),
+            "active_channels": active_channels,
         }
     except Exception as e:
         logger.error(f"Customer analysis error: {str(e)}")
