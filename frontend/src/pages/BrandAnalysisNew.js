@@ -309,7 +309,7 @@ const [insightModal, setInsightModal] = useState({
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Brand Analysis</h1>
-          <p className="text-gray-600">Brand performance metrics and insights powered by live Azure data</p>
+          <p className="text-gray-600">Brand performance metrics and insights</p>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-5">

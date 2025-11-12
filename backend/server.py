@@ -720,43 +720,180 @@ async def get_brand_analysis(
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/category-analysis")
-async def get_category_analysis(email: str = Depends(get_current_user)):
-    """Category Analysis - Category and sub-category deep dives"""
+async def get_category_analysis(
+    years: str = None,
+    months: str = None,
+    businesses: str = None,
+    channels: str = None,
+    categories: str = None,
+    sub_categories: str = None,
+    email: str = Depends(get_current_user),
+):
+    """Category Analysis - Category and sub-category deep dives with optional filters"""
     try:
-        data = await db.business_data.find({}, {"_id": 0}).to_list(100000)
-        df = pd.DataFrame(data)
-        
-        if df.empty:
-            return {"error": "No data available"}
-        
-        # Category performance
-        category_perf = df.groupby('Category').agg({
-            'Gross_Profit': 'sum',
-            'Revenue': 'sum',
-            'Units': 'sum'
-        }).reset_index()
-        
-        # Sub-category performance
-        subcategory_perf = df.groupby('Sub_Category').agg({
-            'Gross_Profit': 'sum',
-            'Revenue': 'sum',
-            'Units': 'sum'
-        }).reset_index()
-        
-        # Board Category (check if column exists)
-        board_category_perf = []
-        if 'Board_Category' in df.columns:
-            board_category_perf = df.groupby('Board_Category').agg({
-                'Gross_Profit': 'sum',
-                'Revenue': 'sum'
-            }).reset_index().to_dict('records')
-        
+        def parse_list(value: Optional[str], cast=None):
+            if not value:
+                return []
+            items = []
+            for part in value.split(','):
+                part = part.strip()
+                if not part:
+                    continue
+                try:
+                    items.append(cast(part) if cast else part)
+                except Exception:
+                    continue
+            return items
+
+        query: Dict[str, Any] = {}
+
+        year_list = parse_list(years, int)
+        if year_list:
+            query['Year'] = {'$in': year_list}
+
+        month_list = parse_list(months)
+        if month_list:
+            query['Month_Name'] = {'$in': month_list}
+
+        business_list = parse_list(businesses)
+        if business_list:
+            query['Business'] = {'$in': business_list}
+
+        channel_list = parse_list(channels)
+        if channel_list:
+            query['Channel'] = {'$in': channel_list}
+
+        category_list = parse_list(categories)
+        if category_list:
+            query['Category'] = {'$in': category_list}
+
+        subcategory_list = parse_list(sub_categories)
+        if subcategory_list:
+            # Handle both Sub_Cat (normalized) and Sub_Category (legacy)
+            query['$or'] = [
+                {'Sub_Cat': {'$in': subcategory_list}},
+                {'Sub_Category': {'$in': subcategory_list}},
+            ]
+
+        def match_stage():
+            return {"$match": query} if query else {"$match": {}}
+
+        def safe_float(value: Any) -> float:
+            try:
+                if value is None:
+                    return 0.0
+                if isinstance(value, (int, float)):
+                    if pd.isna(value) or pd.isnull(value):
+                        return 0.0
+                    return float(value)
+                return float(value)
+            except Exception:
+                return 0.0
+
+        # Category performance aggregation
+        pipeline_category = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": "$Category",
+                    "Revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "Gross_Profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                    "Units": {"$sum": {"$toDouble": {"$ifNull": ["$Units", 0]}}},
+                }
+            },
+            {"$sort": {"Revenue": -1}},
+        ]
+        category_results = await db.business_data.aggregate(pipeline_category).to_list(200)
+        category_performance = []
+        for item in category_results:
+            category_performance.append({
+                "Category": str(item.get("_id")) if item.get("_id") else "Unknown",
+                "Revenue": safe_float(item.get("Revenue")),
+                "Gross_Profit": safe_float(item.get("Gross_Profit")),
+                "Units": safe_float(item.get("Units")),
+            })
+
+        # Sub-category performance aggregation (use Sub_Cat when available)
+        pipeline_subcategory = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": {
+                        "Sub_Cat": {"$ifNull": ["$Sub_Cat", "$Sub_Category"]},
+                        "Category": "$Category",
+                    },
+                    "Revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "Gross_Profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                    "Units": {"$sum": {"$toDouble": {"$ifNull": ["$Units", 0]}}},
+                }
+            },
+            {"$sort": {"Revenue": -1}},
+        ]
+        subcategory_results = await db.business_data.aggregate(pipeline_subcategory).to_list(500)
+        subcategory_performance = []
+        for item in subcategory_results:
+            key = item.get("_id", {})
+            subcategory_performance.append({
+                "Sub_Category": str(key.get("Sub_Cat")) if key.get("Sub_Cat") else "Unknown",
+                "Category": str(key.get("Category")) if key.get("Category") else "Unknown",
+                "Revenue": safe_float(item.get("Revenue")),
+                "Gross_Profit": safe_float(item.get("Gross_Profit")),
+                "Units": safe_float(item.get("Units")),
+            })
+
+        # Board category performance when available
+        pipeline_board = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": "$Board_Category",
+                    "Revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "Gross_Profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                }
+            },
+            {"$match": {"_id": {"$ne": None}}},
+            {"$sort": {"Revenue": -1}},
+        ]
+        board_results = await db.business_data.aggregate(pipeline_board).to_list(200)
+        board_category_performance = []
+        for item in board_results:
+            board_category_performance.append({
+                "Board_Category": str(item.get("_id")),
+                "Revenue": safe_float(item.get("Revenue")),
+                "Gross_Profit": safe_float(item.get("Gross_Profit")),
+            })
+
+        # Totals
+        pipeline_totals = [
+            match_stage(),
+            {
+                "$group": {
+                    "_id": None,
+                    "total_revenue": {"$sum": {"$toDouble": {"$ifNull": ["$Revenue", 0]}}},
+                    "total_profit": {"$sum": {"$toDouble": {"$ifNull": ["$Gross_Profit", 0]}}},
+                    "total_units": {"$sum": {"$toDouble": {"$ifNull": ["$Units", 0]}}},
+                }
+            },
+        ]
+        totals_result = await db.business_data.aggregate(pipeline_totals).to_list(1)
+        totals = totals_result[0] if totals_result else {}
+
+        active_categories = sum(
+            1 for item in category_performance
+            if item["Category"] != "Unknown" and item["Revenue"] > 0
+        )
+
         return {
-            "category_performance": category_perf.to_dict('records'),
-            "subcategory_performance": subcategory_perf.to_dict('records'),
-            "board_category_performance": board_category_perf
+            "category_performance": category_performance,
+            "subcategory_performance": subcategory_performance,
+            "board_category_performance": board_category_performance,
+            "total_revenue": safe_float(totals.get("total_revenue", 0)),
+            "total_profit": safe_float(totals.get("total_profit", 0)),
+            "total_units": safe_float(totals.get("total_units", 0)),
+            "active_categories": active_categories,
         }
     except Exception as e:
+        logger.error(f"Category analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/filters/options")
