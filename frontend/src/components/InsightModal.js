@@ -12,7 +12,7 @@ import remarkGfm from 'remark-gfm';
 
 const InsightModal = ({ isOpen, onClose, chartTitle, insights, recommendations, onExploreDeep, context }) => {
   const { token } = useAuth();
-  const INSIGHTS_API = process.env.REACT_APP_INSIGHTS_URL || 'https://beaconiqai.thrivebrands.ai';
+  const INSIGHTS_API = process.env.REACT_APP_INSIGHTS_URL || 'http://localhost:8005';
   const [messages, setMessages] = useState([
     {
       role: 'ai',
