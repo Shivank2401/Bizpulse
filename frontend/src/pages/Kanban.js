@@ -50,44 +50,142 @@ const Kanban = () => {
   
   const [initiatives, setInitiatives] = useState({
     recommended: [],
-    live: []
+    live: [],
+    past: []
   });
-  const [loadingRecommendations, setLoadingRecommendations] = useState(true);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [generatingRecommendations, setGeneratingRecommendations] = useState(false);
+  const [activeCampaignTab, setActiveCampaignTab] = useState('live'); // 'live' or 'past'
   const [showReasoning, setShowReasoning] = useState(null);
+  const [annualGoal, setAnnualGoal] = useState({
+    current: 0,
+    target: 100,
+    metric: '% Activated Customers',
+    progress: 0
+  });
 
-  // Fetch real AI recommendations from Azure data
+  // Load recommendations from MongoDB (does not generate new ones)
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const loadRecommendations = async () => {
       if (!token || activeTab !== 'strategic-kanban') {
-        setLoadingRecommendations(false);
         return;
       }
 
       try {
         setLoadingRecommendations(true);
-        const response = await axios.get(`${API}/analytics/strategic-recommendations`, {
+        const response = await axios.get(`${API}/kanban/recommendations`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        if (response.data && response.data.recommended) {
-          setInitiatives(prev => ({
-            ...prev,
+        if (response.data) {
+          setInitiatives({
             recommended: response.data.recommended || [],
-            live: response.data.live || prev.live // Keep existing live campaigns
-          }));
-          toast.success(`Loaded ${response.data.recommended.length} AI recommendations from your data`);
+            live: response.data.live || [],
+            past: response.data.past || []
+          });
         }
       } catch (error) {
         console.error('Failed to load recommendations:', error);
-        toast.error('Failed to load AI recommendations. Using default data.');
-        // Keep default static data as fallback
+        toast.error('Failed to load recommendations from database.');
       } finally {
         setLoadingRecommendations(false);
       }
     };
 
-    fetchRecommendations();
+    loadRecommendations();
   }, [token, activeTab]);
+
+  // Load annual goal data
+  useEffect(() => {
+    const loadAnnualGoal = async () => {
+      if (!token || activeTab !== 'strategic-kanban') {
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${API}/kanban/annual-goal`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data) {
+          setAnnualGoal({
+            current: response.data.current || 0,
+            target: response.data.target || 100,
+            metric: response.data.metric || '% Activated Customers',
+            progress: response.data.progress || 0
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load annual goal:', error);
+        // Keep default values on error
+      }
+    };
+
+    loadAnnualGoal();
+  }, [token, activeTab]);
+
+  // Generate new AI recommendations
+  const handleGenerateRecommendations = async () => {
+    if (!token) {
+      toast.error('Please login to generate recommendations');
+      return;
+    }
+
+    try {
+      setGeneratingRecommendations(true);
+      const response = await axios.get(`${API}/analytics/strategic-recommendations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data) {
+        setInitiatives({
+          recommended: response.data.recommended || [],
+          live: response.data.live || initiatives.live,
+          past: response.data.past || initiatives.past
+        });
+        toast.success(`Generated ${response.data.recommended.length} new AI recommendations!`);
+      }
+    } catch (error) {
+      console.error('Failed to generate recommendations:', error);
+      toast.error('Failed to generate recommendations. Please try again.');
+    } finally {
+      setGeneratingRecommendations(false);
+    }
+  };
+
+  // Accept a campaign (move from recommended to live)
+  const handleAccept = async (initiative) => {
+    if (!token) {
+      toast.error('Please login to accept campaigns');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${API}/kanban/accept`,
+        {
+          campaignId: initiative.id,
+          fromCollection: 'recommended'
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        // Remove from recommended and add to live
+        setInitiatives(prev => ({
+          ...prev,
+          recommended: prev.recommended.filter(rec => rec.id !== initiative.id),
+          live: [...prev.live, { ...initiative, status: 'live', acceptedAt: new Date().toISOString() }]
+        }));
+        toast.success(`Campaign "${initiative.title}" moved to Live!`);
+      }
+    } catch (error) {
+      console.error('Failed to accept campaign:', error);
+      toast.error('Failed to accept campaign. Please try again.');
+    }
+  };
 
   // Goals Management Data
   const [goals, setGoals] = useState({
@@ -570,28 +668,12 @@ const Kanban = () => {
   const systemLive = initiatives.live.filter(i => i.type === 'system').length;
   const customLive = initiatives.live.filter(i => i.type === 'custom').length;
   
-  const totalImpact = initiatives.live.reduce((sum, i) => sum + i.impact.value, 0);
-  const avgUplift = initiatives.live.reduce((sum, i) => sum + i.impact.percentage, 0) / initiatives.live.length;
+  const totalImpact = initiatives.live.reduce((sum, i) => sum + (i.impact?.value || 0), 0);
+  const avgUplift = initiatives.live.length > 0 
+    ? initiatives.live.reduce((sum, i) => sum + (i.impact?.percentage || 0), 0) / initiatives.live.length 
+    : 0;
   
-  const annualGoal = { current: 65.2, target: 70, metric: '% Activated Customers' };
-  const goalProgress = (annualGoal.current / annualGoal.target) * 100;
-
-  const handleAccept = (initiative) => {
-    // Move from recommended to live
-    setInitiatives(prev => ({
-      recommended: prev.recommended.filter(i => i.id !== initiative.id),
-      live: [
-        ...prev.live,
-        {
-          ...initiative,
-          status: 'running',
-          progress: 0,
-          startDate: new Date().toISOString().split('T')[0]
-        }
-      ]
-    }));
-    toast.success(`Initiative "${initiative.title}" activated successfully!`);
-  };
+  const goalProgress = annualGoal.target > 0 ? (annualGoal.current / annualGoal.target) * 100 : 0;
 
   const getCategoryColor = (category) => {
     switch (category) {
@@ -623,19 +705,33 @@ const Kanban = () => {
                 : 'Track and manage organizational goals and OKRs'}
             </p>
           </div>
-          <Button
-            className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
-            onClick={() => {
-              if (activeTab === 'goals-management') {
-                handleNewGoal('quarterly');
-              } else {
-                toast.info('Initiative creation coming soon!');
-              }
-            }}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {activeTab === 'strategic-kanban' ? 'New Initiative' : 'New Goal'}
-          </Button>
+          {activeTab === 'strategic-kanban' ? (
+            <Button
+              className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+              onClick={handleGenerateRecommendations}
+              disabled={generatingRecommendations}
+            >
+              {generatingRecommendations ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Discover AI Insights
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+              onClick={() => handleNewGoal('quarterly')}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Goal
+            </Button>
+          )}
         </div>
 
         {/* Tab Navigation */}
@@ -890,20 +986,42 @@ const Kanban = () => {
             </div>
           </div>
 
-          {/* Live Column */}
+          {/* Live/Past Campaigns Column */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-600" />
-                <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
-                  LIVE
-                </h3>
-                <span className="text-sm text-gray-500">({totalLive})</span>
-              </div>
+            {/* Tabs for Live/Past */}
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setActiveCampaignTab('live')}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
+                  activeCampaignTab === 'live'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Live ({initiatives.live.length})
+              </button>
+              <button
+                onClick={() => setActiveCampaignTab('past')}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
+                  activeCampaignTab === 'past'
+                    ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Past ({initiatives.past.length})
+              </button>
             </div>
 
             <div className="space-y-4 max-h-[800px] overflow-y-auto pr-2">
-              {initiatives.live.map((initiative) => {
+              {activeCampaignTab === 'live' ? (
+                initiatives.live.length === 0 ? (
+                  <div className="professional-card p-5">
+                    <div className="text-center py-8">
+                      <p className="text-gray-600">No live campaigns. Accept recommendations to add them here.</p>
+                    </div>
+                  </div>
+                ) : (
+                  initiatives.live.map((initiative) => {
                 const categoryInfo = getCategoryColor(initiative.category);
                 const typeInfo = getTypeColor(initiative.type);
                 const TypeIcon = typeInfo.icon;
@@ -952,37 +1070,39 @@ const Kanban = () => {
                         <span className="text-xs text-green-700 font-semibold">Current Impact</span>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-green-900">
-                            {formatNumber(initiative.impact.value)}
+                            {formatNumber(initiative.impact?.value || 0)}
                           </span>
-                          <span className="text-xs text-green-700">• {initiative.impact.percentage}%</span>
+                          <span className="text-xs text-green-700">• {initiative.impact?.percentage || 0}%</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Progress */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-gray-600">Progress</span>
-                        <span className="text-xs font-semibold text-gray-900">{initiative.progress}%</span>
+                    {initiative.progress !== undefined && (
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-600">Progress</span>
+                          <span className="text-xs font-semibold text-gray-900">{initiative.progress || 0}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full"
+                            style={{
+                              width: `${initiative.progress || 0}%`,
+                              background: (initiative.progress || 0) >= 75 
+                                ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
+                                : (initiative.progress || 0) >= 50
+                                ? 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)'
+                                : 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="h-2 rounded-full"
-                          style={{
-                            width: `${initiative.progress}%`,
-                            background: initiative.progress >= 75 
-                              ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
-                              : initiative.progress >= 50
-                              ? 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)'
-                              : 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
-                          }}
-                        />
-                      </div>
-                    </div>
+                    )}
 
                     {/* Channels */}
                     <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      {initiative.channels.map((channel, idx) => (
+                      {(initiative.channels || []).map((channel, idx) => (
                         <span
                           key={idx}
                           className="px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700 flex items-center gap-1"
@@ -1006,7 +1126,92 @@ const Kanban = () => {
                     </Button>
                   </div>
                 );
-              })}
+                  })
+                )
+              ) : (
+                // Past Campaigns
+                initiatives.past.length === 0 ? (
+                  <div className="professional-card p-5">
+                    <div className="text-center py-8">
+                      <p className="text-gray-600">No past campaigns yet. Expired live campaigns will appear here.</p>
+                    </div>
+                  </div>
+                ) : (
+                  initiatives.past.map((initiative) => {
+                    const categoryInfo = getCategoryColor(initiative.category);
+                    const typeInfo = getTypeColor(initiative.type);
+                    const TypeIcon = typeInfo.icon;
+
+                    return (
+                      <div key={`past-${initiative.id || initiative.title}`} className="professional-card p-5 hover:shadow-lg transition-shadow opacity-75">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="text-base font-semibold text-gray-900 flex-1" style={{ fontFamily: 'Space Grotesk' }}>
+                            {initiative.title}
+                          </h4>
+                          <div className="px-2 py-1 rounded text-xs bg-gray-200 text-gray-600">
+                            Expired
+                          </div>
+                        </div>
+
+                        {/* Tags */}
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <div
+                            className="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                            style={{ background: typeInfo.bg, color: typeInfo.text }}
+                          >
+                            <TypeIcon className="w-3 h-3" />
+                            {initiative.type}
+                          </div>
+                          <div
+                            className="px-3 py-1 rounded-full text-xs font-semibold"
+                            style={{ background: categoryInfo.bg, color: categoryInfo.text }}
+                          >
+                            {categoryInfo.label}
+                          </div>
+                        </div>
+
+                        {/* Date */}
+                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            {new Date(initiative.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {initiative.endDate ? ` - ${new Date(initiative.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ' - None'}
+                          </span>
+                        </div>
+
+                        {/* Impact */}
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 mb-3 border border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-700 font-semibold">Final Impact</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-gray-900">
+                                {formatNumber(initiative.impact?.value || 0)}
+                              </span>
+                              <span className="text-xs text-gray-700">• {initiative.impact?.percentage || 0}%</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Channels */}
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          {(initiative.channels || []).map((channel, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700 flex items-center gap-1"
+                            >
+                              {channel === 'Email' && <Mail className="w-3 h-3" />}
+                              {channel === 'Social Media' && <Share2 className="w-3 h-3" />}
+                              {channel === 'Video' && <Video className="w-3 h-3" />}
+                              {channel}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
+                )
+              )}
             </div>
           </div>
         </div>
@@ -1514,8 +1719,8 @@ const Kanban = () => {
                   </div>
                 );
               })}
-              </div>
             </div>
+          </div>
           </>
         )}
 

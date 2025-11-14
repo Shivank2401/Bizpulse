@@ -1227,7 +1227,7 @@ Provide insights with specific numbers when possible. Highlight good performance
 
 # Strategic Recommendations Model
 class StrategicRecommendation(BaseModel):
-    id: int
+    id: Optional[int] = None
     title: str
     description: str
     type: str = "system"
@@ -1239,16 +1239,242 @@ class StrategicRecommendation(BaseModel):
     reasoning: str
     channels: List[str]
     aiScore: int
+    acceptedAt: Optional[str] = None  # When it was accepted to live
+    status: Optional[str] = "recommended"  # recommended, live, past
 
 class StrategicRecommendationsResponse(BaseModel):
     recommended: List[StrategicRecommendation]
     live: List[StrategicRecommendation]
+    past: List[StrategicRecommendation] = []
+
+class AcceptCampaignRequest(BaseModel):
+    campaignId: int
+    fromCollection: str  # "recommended"
+
+# Helper function to move expired campaigns from live to past
+async def move_expired_campaigns():
+    """Move campaigns from live to past if their endDate has passed"""
+    try:
+        kanban_doc = await db.kanban.find_one({})
+        if not kanban_doc:
+            return
+        
+        live_campaigns = kanban_doc.get('live', [])
+        past_campaigns = kanban_doc.get('past', [])
+        
+        current_date = datetime.now(timezone.utc).date()
+        expired_campaigns = []
+        remaining_live = []
+        
+        for campaign in live_campaigns:
+            if campaign.get('endDate'):
+                try:
+                    end_date = datetime.fromisoformat(campaign['endDate'].replace('Z', '+00:00')).date()
+                    if end_date < current_date:
+                        # Campaign has expired, move to past
+                        campaign['status'] = 'past'
+                        campaign['expiredAt'] = datetime.now(timezone.utc).isoformat()
+                        expired_campaigns.append(campaign)
+                    else:
+                        remaining_live.append(campaign)
+                except Exception as e:
+                    logger.warning(f"Error parsing endDate for campaign {campaign.get('title')}: {e}")
+                    remaining_live.append(campaign)
+            else:
+                # No end date, keep in live
+                remaining_live.append(campaign)
+        
+        if expired_campaigns:
+            # Update MongoDB
+            past_campaigns.extend(expired_campaigns)
+            await db.kanban.update_one(
+                {},
+                {"$set": {
+                    "live": remaining_live,
+                    "past": past_campaigns,
+                    "last_updated": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            logger.info(f"Moved {len(expired_campaigns)} expired campaigns to past")
+    except Exception as e:
+        logger.error(f"Error moving expired campaigns: {str(e)}")
+
+@api_router.get("/kanban/annual-goal")
+async def get_annual_goal(email: str = Depends(get_current_user)):
+    """Get real annual goal metrics based on customer activation data"""
+    try:
+        # Get all business data
+        data = await db.business_data.find({}, {"_id": 0}).to_list(10000)
+        if not data:
+            return {
+                "current": 0,
+                "target": 100,
+                "metric": "% Activated Customers",
+                "progress": 0
+            }
+        
+        df = pd.DataFrame(data)
+        
+        if df.empty:
+            return {
+                "current": 0,
+                "target": 100,
+                "metric": "% Activated Customers",
+                "progress": 0
+            }
+        
+        # Calculate unique customers
+        unique_customers = df['Customer'].nunique() if 'Customer' in df.columns else 0
+        
+        # Calculate active customers (customers with transactions in current year)
+        current_year = datetime.now(timezone.utc).year
+        current_year_data = df[df['Year'] == current_year] if 'Year' in df.columns else df
+        active_customers = current_year_data['Customer'].nunique() if not current_year_data.empty and 'Customer' in current_year_data.columns else 0
+        
+        # Calculate activation percentage
+        # Activated customers = customers who made purchases in current year
+        # Target could be based on historical data or a growth target
+        if unique_customers > 0:
+            activation_percentage = (active_customers / unique_customers) * 100
+        else:
+            activation_percentage = 0
+        
+        # Set target (could be based on historical average or growth target)
+        # For now, use a reasonable target based on data
+        historical_years = df['Year'].unique() if 'Year' in df.columns else []
+        if len(historical_years) > 1:
+            # Calculate average activation across years
+            yearly_activation = []
+            for year in historical_years:
+                year_data = df[df['Year'] == year]
+                year_customers = year_data['Customer'].nunique() if 'Customer' in year_data.columns else 0
+                if unique_customers > 0:
+                    yearly_activation.append((year_customers / unique_customers) * 100)
+            
+            if yearly_activation:
+                avg_activation = sum(yearly_activation) / len(yearly_activation)
+                target = min(100, max(activation_percentage + 5, avg_activation + 10))  # Target is 10% above average or current + 5%
+            else:
+                target = min(100, activation_percentage + 10)  # Default: 10% above current
+        else:
+            target = min(100, activation_percentage + 10)  # Default: 10% above current
+        
+        return {
+            "current": round(activation_percentage, 1),
+            "target": round(target, 1),
+            "metric": "% Activated Customers",
+            "progress": round((activation_percentage / target * 100) if target > 0 else 0, 1),
+            "active_customers": active_customers,
+            "total_customers": unique_customers
+        }
+    except Exception as e:
+        logger.error(f"Error calculating annual goal: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        # Return default values on error
+        return {
+            "current": 0,
+            "target": 100,
+            "metric": "% Activated Customers",
+            "progress": 0
+        }
+
+@api_router.get("/kanban/recommendations", response_model=StrategicRecommendationsResponse)
+async def get_kanban_recommendations(email: str = Depends(get_current_user)):
+    """Load kanban recommendations from MongoDB (does not generate new ones)"""
+    try:
+        # Move expired campaigns first
+        await move_expired_campaigns()
+        
+        # Load from MongoDB
+        kanban_doc = await db.kanban.find_one({})
+        
+        if not kanban_doc:
+            # Initialize empty kanban document
+            initial_doc = {
+                "recommended": [],
+                "live": [],
+                "past": [],
+                "last_updated": datetime.now(timezone.utc).isoformat()
+            }
+            await db.kanban.insert_one(initial_doc)
+            return StrategicRecommendationsResponse(
+                recommended=[],
+                live=[],
+                past=[]
+            )
+        
+        # Convert to response model
+        recommended = [StrategicRecommendation(**rec) for rec in kanban_doc.get('recommended', [])]
+        live = [StrategicRecommendation(**camp) for camp in kanban_doc.get('live', [])]
+        past = [StrategicRecommendation(**camp) for camp in kanban_doc.get('past', [])]
+        
+        return StrategicRecommendationsResponse(
+            recommended=recommended,
+            live=live,
+            past=past
+        )
+    except Exception as e:
+        logger.error(f"Error loading kanban recommendations: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error loading recommendations: {str(e)}")
+
+@api_router.post("/kanban/accept")
+async def accept_campaign(request: AcceptCampaignRequest, email: str = Depends(get_current_user)):
+    """Move a campaign from recommended to live"""
+    try:
+        kanban_doc = await db.kanban.find_one({})
+        if not kanban_doc:
+            raise HTTPException(status_code=404, detail="Kanban data not found")
+        
+        recommended = kanban_doc.get('recommended', [])
+        live = kanban_doc.get('live', [])
+        
+        # Find the campaign in recommended
+        campaign_to_move = None
+        updated_recommended = []
+        
+        for campaign in recommended:
+            if campaign.get('id') == request.campaignId:
+                campaign_to_move = campaign
+            else:
+                updated_recommended.append(campaign)
+        
+        if not campaign_to_move:
+            raise HTTPException(status_code=404, detail="Campaign not found in recommended")
+        
+        # Add to live with acceptance timestamp
+        campaign_to_move['status'] = 'live'
+        campaign_to_move['acceptedAt'] = datetime.now(timezone.utc).isoformat()
+        live.append(campaign_to_move)
+        
+        # Update MongoDB
+        await db.kanban.update_one(
+            {},
+            {"$set": {
+                "recommended": updated_recommended,
+                "live": live,
+                "last_updated": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        logger.info(f"Campaign '{campaign_to_move.get('title')}' moved to live")
+        
+        return {"success": True, "message": "Campaign moved to live"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error accepting campaign: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error accepting campaign: {str(e)}")
 
 @api_router.get("/analytics/strategic-recommendations", response_model=StrategicRecommendationsResponse)
-async def get_strategic_recommendations(email: str = Depends(get_current_user)):
-    """Generate AI-powered strategic recommendations based on real Azure data"""
+async def generate_strategic_recommendations(email: str = Depends(get_current_user)):
+    """Generate NEW AI-powered strategic recommendations based on real Azure data and save to MongoDB"""
     try:
-        logger.info("🔍 Generating strategic recommendations from Azure data")
+        logger.info("🔍 Generating NEW strategic recommendations from Azure data")
         
         # Get comprehensive business data
         data = await db.business_data.find({}, {"_id": 0}).to_list(10000)
@@ -1300,6 +1526,22 @@ async def get_strategic_recommendations(email: str = Depends(get_current_user)):
             'Gross_Profit': 'sum'
         }).reset_index().sort_values('Revenue', ascending=False).head(5)
         
+        # Get past campaigns for AI analysis
+        kanban_doc = await db.kanban.find_one({})
+        past_campaigns = kanban_doc.get('past', []) if kanban_doc else []
+        
+        # Build past campaigns context for AI
+        past_context = ""
+        if past_campaigns:
+            past_context = "\n\nPAST CAMPAIGNS PERFORMANCE (for learning):\n"
+            for idx, past_camp in enumerate(past_campaigns[:10], 1):  # Limit to 10 most recent
+                past_context += f"{idx}. {past_camp.get('title', 'Unknown')}\n"
+                past_context += f"   Category: {past_camp.get('category', 'N/A')}\n"
+                past_context += f"   Budget: €{past_camp.get('budget', 0):,.2f}\n"
+                past_context += f"   Expected Impact: €{past_camp.get('impact', {}).get('value', 0):,.2f} ({past_camp.get('impact', {}).get('percentage', 0)}% uplift)\n"
+                past_context += f"   Period: {past_camp.get('startDate', 'N/A')} to {past_camp.get('endDate', 'N/A')}\n"
+                past_context += f"   Channels: {', '.join(past_camp.get('channels', []))}\n\n"
+        
         # Build data context for AI
         data_context = f"""
 Business Performance Data Analysis:
@@ -1329,6 +1571,7 @@ AVAILABLE DATA PERIODS:
 - Unique Channels: {df['Channel'].nunique() if not df.empty else 0}
 - Unique Brands: {df['Brand'].nunique() if not df.empty else 0}
 - Unique Customers: {df['Customer'].nunique() if not df.empty else 0}
+{past_context}
 """
         
         # Generate AI recommendations
@@ -1342,11 +1585,12 @@ REQUIREMENTS:
 1. Each recommendation must be specific, actionable, and data-driven
 2. Include realistic budget estimates (in Euros) based on the revenue scale
 3. Calculate expected impact (revenue increase in Euros and percentage uplift)
-4. Provide detailed reasoning based on the actual data patterns
+4. Provide detailed reasoning based on the actual data patterns AND past campaign performance (if available)
 5. Suggest appropriate marketing channels (e.g., Meta Ads, Google Ads, Email, Social Media, etc.)
 6. Assign an AI confidence score (0-100) based on data strength
 7. Categorize as 'acquisition', 'retention', or 'engagement'
 8. Include realistic start and end dates (3-6 month campaigns)
+9. If past campaigns are provided, learn from them - avoid repeating unsuccessful strategies and build on what worked
 
 OUTPUT FORMAT (JSON array):
 [
@@ -1397,13 +1641,45 @@ Return ONLY valid JSON array, no additional text.
                     impact=rec.get('impact', {'value': 100000, 'percentage': 10}),
                     reasoning=rec.get('reasoning', ''),
                     channels=rec.get('channels', ['Email']),
-                    aiScore=int(rec.get('aiScore', 75))
+                    aiScore=int(rec.get('aiScore', 75)),
+                    status='recommended'
                 ))
             
-            # For now, return empty live campaigns (can be extended later)
+            # Save to MongoDB (replace existing recommended, keep live and past)
+            kanban_doc = await db.kanban.find_one({})
+            if not kanban_doc:
+                # Create new document
+                kanban_doc = {
+                    "recommended": [rec.model_dump() for rec in recommendations],
+                    "live": [],
+                    "past": [],
+                    "last_updated": datetime.now(timezone.utc).isoformat()
+                }
+                await db.kanban.insert_one(kanban_doc)
+            else:
+                # Update only recommended field
+                await db.kanban.update_one(
+                    {},
+                    {"$set": {
+                        "recommended": [rec.model_dump() for rec in recommendations],
+                        "last_updated": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+            
+            # Move expired campaigns before returning
+            await move_expired_campaigns()
+            
+            # Load current state from MongoDB
+            updated_doc = await db.kanban.find_one({})
+            live_campaigns = [StrategicRecommendation(**camp) for camp in updated_doc.get('live', [])] if updated_doc else []
+            past_campaigns = [StrategicRecommendation(**camp) for camp in updated_doc.get('past', [])] if updated_doc else []
+            
+            logger.info(f"Generated {len(recommendations)} new recommendations and saved to MongoDB")
+            
             return StrategicRecommendationsResponse(
                 recommended=recommendations,
-                live=[]
+                live=live_campaigns,
+                past=past_campaigns
             )
             
         except json.JSONDecodeError as e:
