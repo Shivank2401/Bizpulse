@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { formatNumber } from '@/utils/formatters';
+import GoalFormModal from '@/components/GoalFormModal';
+import axios from 'axios';
+import { API, useAuth } from '@/App';
 import {
   Plus,
   Calendar,
@@ -34,6 +37,8 @@ import {
 import { toast } from 'sonner';
 
 const Kanban = () => {
+  const { token } = useAuth();
+  
   // Check if we need to navigate to a specific tab (from Cockpit insights)
   const initialTab = sessionStorage.getItem('kanbanActiveTab') || 'strategic-kanban';
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -42,109 +47,47 @@ const Kanban = () => {
   React.useEffect(() => {
     sessionStorage.removeItem('kanbanActiveTab');
   }, []);
+  
   const [initiatives, setInitiatives] = useState({
-    recommended: [
-      {
-        id: 1,
-        title: 'New Customer Acquisition - Lookalikes',
-        description: 'Leverage high-value customer data to create lookalike audiences across Meta and Google platforms. Focus on demographics and behaviors that mirror our best customers.',
-        type: 'system',
-        category: 'acquisition',
-        startDate: '2025-01-20',
-        endDate: '2025-03-20',
-        budget: 95000,
-        impact: { value: 312500, percentage: 12.5 },
-        reasoning: 'Historical data shows lookalike audiences from top 10% customers drive 3.2x higher conversion rates. Recommended budget allocation based on projected CAC of $45 and expected 2,100 new customers.',
-        channels: ['Meta Ads', 'Google Ads'],
-        aiScore: 78
-      },
-      {
-        id: 2,
-        title: 'Cross-Sell Product Bundles',
-        description: 'AI-driven product recommendations for existing customers based on purchase history and browsing behavior. Focus on complementary products with higher margins.',
-        type: 'system',
-        category: 'retention',
-        startDate: '2025-01-25',
-        endDate: '2025-03-25',
-        budget: 78000,
-        impact: { value: 245000, percentage: 15.8 },
-        reasoning: 'Purchase pattern analysis reveals 62% of customers who bought Category A also viewed Category B within 30 days. Targeting this cohort with personalized bundles shows 41% increase in AOV.',
-        channels: ['Email', 'In-App'],
-        aiScore: 82
-      },
-      {
-        id: 3,
-        title: 'Social Media Influence Campaign',
-        description: 'Partner with micro-influencers in relevant niches to drive brand awareness and acquisition. Focus on authentic content and user-generated reviews.',
-        type: 'system',
-        category: 'acquisition',
-        startDate: '2025-02-01',
-        endDate: '2025-04-30',
-        budget: 125000,
-        impact: { value: 420000, percentage: 18.2 },
-        reasoning: 'Influencer partnerships in Q4 2025 showed 5.8x ROI with micro-influencers (10k-50k followers) vs traditional advertising. Engagement rates 3x higher than brand content.',
-        channels: ['Social Media', 'Video', 'Influencer'],
-        aiScore: 80
-      },
-      {
-        id: 4,
-        title: 'Win-Back Email Sequence',
-        description: 'Automated email campaign targeting churned customers from the last 90 days with personalized offers and product recommendations.',
-        type: 'system',
-        category: 'retention',
-        startDate: '2025-01-15',
-        endDate: '2025-02-28',
-        budget: 42000,
-        impact: { value: 185000, percentage: 22.5 },
-        reasoning: 'Analysis of 3,200 churned customers shows 28% can be reactivated within 90 days with right incentive. Personalized win-back campaigns show 3.5x higher response vs generic offers.',
-        channels: ['Email', 'SMS'],
-        aiScore: 79
-      }
-    ],
-    live: [
-      {
-        id: 5,
-        title: 'Welcome Nudge',
-        type: 'custom',
-        category: 'retention',
-        startDate: '2025-07-10',
-        endDate: null,
-        budget: 31250,
-        impact: { value: 312500, percentage: 12.5 },
-        status: 'running',
-        progress: 68,
-        channels: ['Email', 'Push Notification']
-      },
-      {
-        id: 6,
-        title: 'VIP Experience',
-        type: 'custom',
-        category: 'retention',
-        startDate: '2025-07-10',
-        endDate: null,
-        budget: 9100,
-        impact: { value: 91000, percentage: 10.2 },
-        status: 'running',
-        progress: 82,
-        channels: ['Email', 'In-App']
-      },
-      {
-        id: 7,
-        title: 'Mobile App Push',
-        type: 'custom',
-        category: 'retention',
-        startDate: '2025-07-10',
-        endDate: null,
-        budget: 15600,
-        impact: { value: 156000, percentage: 8.9 },
-        status: 'running',
-        progress: 55,
-        channels: ['Push Notification', 'In-App']
-      }
-    ]
+    recommended: [],
+    live: []
   });
-
+  const [loadingRecommendations, setLoadingRecommendations] = useState(true);
   const [showReasoning, setShowReasoning] = useState(null);
+
+  // Fetch real AI recommendations from Azure data
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      if (!token || activeTab !== 'strategic-kanban') {
+        setLoadingRecommendations(false);
+        return;
+      }
+
+      try {
+        setLoadingRecommendations(true);
+        const response = await axios.get(`${API}/analytics/strategic-recommendations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data && response.data.recommended) {
+          setInitiatives(prev => ({
+            ...prev,
+            recommended: response.data.recommended || [],
+            live: response.data.live || prev.live // Keep existing live campaigns
+          }));
+          toast.success(`Loaded ${response.data.recommended.length} AI recommendations from your data`);
+        }
+      } catch (error) {
+        console.error('Failed to load recommendations:', error);
+        toast.error('Failed to load AI recommendations. Using default data.');
+        // Keep default static data as fallback
+      } finally {
+        setLoadingRecommendations(false);
+      }
+    };
+
+    fetchRecommendations();
+  }, [token, activeTab]);
 
   // Goals Management Data
   const [goals, setGoals] = useState({
@@ -428,7 +371,196 @@ const Kanban = () => {
     }));
   };
 
-  const [selectedQuarter, setSelectedQuarter] = useState(goals.quarters[0]);
+  const [selectedQuarterId, setSelectedQuarterId] = useState(1);
+  
+  // Get the selected quarter from goals state
+  const selectedQuarter = goals.quarters.find(q => q.id === selectedQuarterId) || goals.quarters[0];
+
+  // Goal Modal State
+  const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [goalType, setGoalType] = useState(null); // 'quarterly' or 'corporate'
+  const [goalDepartment, setGoalDepartment] = useState(null); // For corporate goals
+
+  // Load goals from localStorage on mount
+  useEffect(() => {
+    const savedGoals = localStorage.getItem('bizpulse_goals');
+    const savedCorporateGoals = localStorage.getItem('bizpulse_corporate_goals');
+    
+    if (savedGoals) {
+      try {
+        const parsed = JSON.parse(savedGoals);
+        setGoals(prev => ({ ...prev, quarters: parsed.quarters || prev.quarters }));
+      } catch (e) {
+        console.error('Failed to load saved goals:', e);
+      }
+    }
+    
+    if (savedCorporateGoals) {
+      try {
+        const parsed = JSON.parse(savedCorporateGoals);
+        // Restore icon components after parsing from localStorage
+        const iconMap = {
+          'sales': TrendingUp,
+          'operations': Target,
+          'finance': Euro,
+          'hr': UsersIcon,
+          'marketing': Sparkles,
+          'technology': Zap
+        };
+        
+        const restoredDepartments = (parsed.departments || []).map(dept => ({
+          ...dept,
+          icon: iconMap[dept.id] || null
+        }));
+        
+        setCorporateGoals(prev => ({ 
+          ...prev, 
+          departments: restoredDepartments.length > 0 ? restoredDepartments : prev.departments 
+        }));
+      } catch (e) {
+        console.error('Failed to load saved corporate goals:', e);
+      }
+    }
+  }, []);
+
+  // Save goals to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('bizpulse_goals', JSON.stringify(goals));
+  }, [goals]);
+
+  useEffect(() => {
+    // Save corporate goals but exclude icon functions (they can't be serialized)
+    const goalsToSave = {
+      ...corporateGoals,
+      departments: corporateGoals.departments.map(dept => {
+        const { icon, ...deptWithoutIcon } = dept;
+        return deptWithoutIcon;
+      })
+    };
+    localStorage.setItem('bizpulse_corporate_goals', JSON.stringify(goalsToSave));
+  }, [corporateGoals]);
+
+  const handleNewGoal = (type = 'quarterly', department = null) => {
+    setGoalType(type);
+    setGoalDepartment(department);
+    setEditingGoal(null);
+    setGoalModalOpen(true);
+  };
+
+  const handleEditGoal = (goal, type = 'quarterly', department = null) => {
+    setGoalType(type);
+    setGoalDepartment(department);
+    setEditingGoal(goal);
+    setGoalModalOpen(true);
+  };
+
+  const handleSaveGoal = (goalData, action) => {
+    if (goalType === 'quarterly') {
+      // Handle quarterly objectives
+      if (action === 'create') {
+        setGoals(prev => ({
+          ...prev,
+          quarters: prev.quarters.map(quarter => 
+            quarter.id === selectedQuarterId
+              ? { 
+                  ...quarter, 
+                  objectives: [...(quarter.objectives || []), goalData] 
+                }
+              : quarter
+          )
+        }));
+        toast.success('Goal created successfully!');
+      } else if (action === 'update') {
+        setGoals(prev => ({
+          ...prev,
+          quarters: prev.quarters.map(quarter => 
+            quarter.id === selectedQuarterId
+              ? {
+                  ...quarter,
+                  objectives: (quarter.objectives || []).map(obj => 
+                    obj.id === goalData.id ? goalData : obj
+                  )
+                }
+              : quarter
+          )
+        }));
+        toast.success('Goal updated successfully!');
+      }
+    } else if (goalType === 'corporate') {
+      // Handle corporate goals
+      const deptId = goalDepartment?.id || selectedDepartment?.id;
+      if (!deptId) {
+        toast.error('Department not found');
+        return;
+      }
+      
+      if (action === 'create') {
+        setCorporateGoals(prev => ({
+          ...prev,
+          departments: prev.departments.map(dept => 
+            dept.id === deptId
+              ? { 
+                  ...dept, 
+                  goals: [...(dept.goals || []), goalData],
+                  activeGoals: (dept.activeGoals || 0) + 1
+                }
+              : dept
+          )
+        }));
+        toast.success('Corporate goal created successfully!');
+      } else if (action === 'update') {
+        setCorporateGoals(prev => ({
+          ...prev,
+          departments: prev.departments.map(dept => 
+            dept.id === deptId
+              ? {
+                  ...dept,
+                  goals: (dept.goals || []).map(g => g.id === goalData.id ? goalData : g)
+                }
+              : dept
+          )
+        }));
+        toast.success('Corporate goal updated successfully!');
+      }
+    }
+  };
+
+  const handleDeleteGoal = (goalId, type = 'quarterly') => {
+    if (window.confirm('Are you sure you want to delete this goal?')) {
+      if (type === 'quarterly') {
+        setGoals(prev => ({
+          ...prev,
+          quarters: prev.quarters.map(quarter => 
+            quarter.id === selectedQuarterId
+              ? {
+                  ...quarter,
+                  objectives: (quarter.objectives || []).filter(obj => obj.id !== goalId)
+                }
+              : quarter
+          )
+        }));
+        toast.success('Goal deleted successfully!');
+      } else if (type === 'corporate') {
+        const deptId = goalDepartment?.id || selectedDepartment?.id;
+        if (deptId) {
+          setCorporateGoals(prev => ({
+            ...prev,
+            departments: prev.departments.map(dept => 
+              dept.id === deptId
+                ? {
+                    ...dept,
+                    goals: dept.goals.filter(g => g.id !== goalId),
+                    activeGoals: Math.max(0, dept.activeGoals - 1)
+                  }
+                : dept
+            )
+          }));
+          toast.success('Corporate goal deleted successfully!');
+        }
+      }
+    }
+  };
 
   // Calculate KPIs
   const totalRecommended = initiatives.recommended.length;
@@ -493,6 +625,13 @@ const Kanban = () => {
           </div>
           <Button
             className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+            onClick={() => {
+              if (activeTab === 'goals-management') {
+                handleNewGoal('quarterly');
+              } else {
+                toast.info('Initiative creation coming soon!');
+              }
+            }}
           >
             <Plus className="w-4 h-4 mr-2" />
             {activeTab === 'strategic-kanban' ? 'New Initiative' : 'New Goal'}
@@ -616,7 +755,21 @@ const Kanban = () => {
             </div>
 
             <div className="space-y-4 max-h-[800px] overflow-y-auto pr-2">
-              {initiatives.recommended.map((initiative) => {
+              {loadingRecommendations ? (
+                <div className="professional-card p-5">
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Generating AI recommendations from your data...</p>
+                  </div>
+                </div>
+              ) : initiatives.recommended.length === 0 ? (
+                <div className="professional-card p-5">
+                  <div className="text-center py-8">
+                    <p className="text-gray-600">No recommendations available. Please check your data connection.</p>
+                  </div>
+                </div>
+              ) : (
+                initiatives.recommended.map((initiative) => {
                 const categoryInfo = getCategoryColor(initiative.category);
                 const typeInfo = getTypeColor(initiative.type);
                 const TypeIcon = typeInfo.icon;
@@ -732,7 +885,8 @@ const Kanban = () => {
                     </div>
                   </div>
                 );
-              })}
+              })
+              )}
             </div>
           </div>
 
@@ -867,9 +1021,9 @@ const Kanban = () => {
               {goals.quarters.map((quarter) => (
                 <button
                   key={quarter.id}
-                  onClick={() => setSelectedQuarter(quarter)}
+                  onClick={() => setSelectedQuarterId(quarter.id)}
                   className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all whitespace-nowrap ${
-                    selectedQuarter.id === quarter.id
+                    selectedQuarterId === quarter.id
                       ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md'
                       : 'bg-white text-gray-700 border border-gray-200 hover:border-amber-300'
                   }`}
@@ -899,7 +1053,7 @@ const Kanban = () => {
                   <p className="text-sm font-semibold text-gray-700">On Track</p>
                 </div>
                 <h2 className="text-3xl font-bold text-green-600" style={{ fontFamily: 'Space Grotesk' }}>
-                  {selectedQuarter.objectives.filter(o => o.status === 'on-track').length}
+                  {selectedQuarter?.objectives?.filter(o => o.status === 'on-track').length || 0}
                 </h2>
                 <p className="text-xs text-gray-600 mt-1">Meeting targets</p>
               </div>
@@ -910,7 +1064,7 @@ const Kanban = () => {
                   <p className="text-sm font-semibold text-gray-700">At Risk</p>
                 </div>
                 <h2 className="text-3xl font-bold text-amber-600" style={{ fontFamily: 'Space Grotesk' }}>
-                  {selectedQuarter.objectives.filter(o => o.status === 'at-risk').length}
+                  {selectedQuarter?.objectives?.filter(o => o.status === 'at-risk').length || 0}
                 </h2>
                 <p className="text-xs text-gray-600 mt-1">Needs attention</p>
               </div>
@@ -921,7 +1075,9 @@ const Kanban = () => {
                   <p className="text-sm font-semibold text-gray-700">Avg Progress</p>
                 </div>
                 <h2 className="text-3xl font-bold text-purple-600" style={{ fontFamily: 'Space Grotesk' }}>
-                  {Math.round(selectedQuarter.objectives.reduce((sum, o) => sum + o.progress, 0) / selectedQuarter.objectives.length)}%
+                  {selectedQuarter?.objectives?.length > 0 
+                    ? Math.round(selectedQuarter.objectives.reduce((sum, o) => sum + o.progress, 0) / selectedQuarter.objectives.length)
+                    : 0}%
                 </h2>
                 <p className="text-xs text-gray-600 mt-1">Overall completion</p>
               </div>
@@ -980,14 +1136,24 @@ const Kanban = () => {
               {/* Department Goals View */}
               {selectedDepartment && (
                 <div className="space-y-4">
-                  {/* Back Button */}
-                  <button
-                    onClick={() => setSelectedDepartment(null)}
-                    className="flex items-center gap-2 text-gray-600 hover:text-amber-600 transition-colors mb-4"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                    Back to Departments
-                  </button>
+                  {/* Back Button and New Goal */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={() => setSelectedDepartment(null)}
+                      className="flex items-center gap-2 text-gray-600 hover:text-amber-600 transition-colors"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                      Back to Departments
+                    </button>
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+                      onClick={() => handleNewGoal('corporate', selectedDepartment)}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      New Goal
+                    </Button>
+                  </div>
 
                   {/* Department Header */}
                   <div className="professional-card p-6 border-l-4" style={{ borderLeftColor: selectedDepartment.color.border }}>
@@ -996,10 +1162,11 @@ const Kanban = () => {
                         className="w-16 h-16 rounded-lg flex items-center justify-center"
                         style={{ background: selectedDepartment.color.bg }}
                       >
-                        {React.createElement(selectedDepartment.icon, { 
-                          className: "w-8 h-8", 
-                          style: { color: selectedDepartment.color.icon } 
-                        })}
+                        {(() => {
+                          const IconComponent = selectedDepartment.icon;
+                          if (!IconComponent || typeof IconComponent !== 'function') return null;
+                          return <IconComponent className="w-8 h-8" style={{ color: selectedDepartment.color.icon }} />;
+                        })()}
                       </div>
                       <div>
                         <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Space Grotesk' }}>
@@ -1185,6 +1352,7 @@ const Kanban = () => {
                           <div className="flex gap-3">
                             <Button
                               className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+                              onClick={() => handleEditGoal(goal, 'corporate', selectedDepartment)}
                             >
                               <Edit className="w-4 h-4 mr-2" />
                               Edit Goal
@@ -1192,9 +1360,10 @@ const Kanban = () => {
                             <Button
                               variant="outline"
                               className="text-gray-700 border-gray-300"
+                              onClick={() => handleDeleteGoal(goal.id, 'corporate')}
                             >
-                              <Archive className="w-4 h-4 mr-2" />
-                              Archive
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
                             </Button>
                           </div>
                         </div>
@@ -1210,11 +1379,11 @@ const Kanban = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Space Grotesk' }}>
                 Quarterly Objectives & Key Results
               </h2>
-              <p className="text-gray-600 mb-6">Track progress on strategic objectives and their key results for {selectedQuarter.quarter}</p>
+              <p className="text-gray-600 mb-6">Track progress on strategic objectives and their key results for {selectedQuarter?.quarter || 'Selected Quarter'}</p>
               
               {/* Objectives List */}
               <div className="space-y-6">
-              {selectedQuarter.objectives.map((objective) => {
+              {(selectedQuarter?.objectives || []).map((objective) => {
                 const statusColors = {
                   'on-track': { bg: '#d1fae5', text: '#059669', border: '#10b981' },
                   'at-risk': { bg: '#fef3c7', text: '#d97706', border: '#f59e0b' },
@@ -1327,6 +1496,7 @@ const Kanban = () => {
                         variant="outline"
                         size="sm"
                         className="text-gray-700 border-gray-300"
+                        onClick={() => handleEditGoal(objective, 'quarterly')}
                       >
                         <Edit className="w-4 h-4 mr-1" />
                         Edit
@@ -1334,10 +1504,11 @@ const Kanban = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-blue-600 border-blue-300"
+                        className="text-red-600 border-red-300"
+                        onClick={() => handleDeleteGoal(objective.id, 'quarterly')}
                       >
-                        <ArrowUpRight className="w-4 h-4 mr-1" />
-                        View Details
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Delete
                       </Button>
                     </div>
                   </div>
@@ -1347,6 +1518,20 @@ const Kanban = () => {
             </div>
           </>
         )}
+
+        {/* Goal Form Modal */}
+        <GoalFormModal
+          isOpen={goalModalOpen}
+          onClose={() => {
+            setGoalModalOpen(false);
+            setEditingGoal(null);
+            setGoalType(null);
+            setGoalDepartment(null);
+          }}
+          goal={editingGoal}
+          quarter={selectedQuarter}
+          onSave={handleSaveGoal}
+        />
       </div>
     </Layout>
   );

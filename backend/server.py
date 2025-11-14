@@ -19,6 +19,9 @@ from contextlib import asynccontextmanager
 import openai
 import bcrypt
 import jwt
+import requests
+import json
+import asyncio
 
 ROOT_DIR = Path(__file__).parent
 # Load nearest .env (backend/.env preferred). This works even if cwd differs.
@@ -1105,6 +1108,60 @@ async def get_filter_options_test():
         logger.error(f"TEST: Error generating filter options: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Perplexity API helper function
+async def query_perplexity(prompt: str, conversation_history: Optional[List[Dict]] = None) -> str:
+    """Query Perplexity API for AI responses"""
+    
+    PPLX_API_KEY = os.getenv("PPLX_API_KEY1")
+    if not PPLX_API_KEY:
+        logger.error("PPLX_API_KEY1 environment variable is not set")
+        raise ValueError("PPLX_API_KEY1 environment variable is required")
+    
+    url = "https://api.perplexity.ai/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {PPLX_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    messages = [{
+        "role": "system",
+        "content": (
+            "You are Vector AI, a strategic business intelligence analyst for ThriveBrands. "
+            "Analyze the provided business data and generate strategic marketing and business recommendations. "
+            "All monetary values are in Euros (€). Be specific, data-driven, and actionable. "
+            "Focus on growth opportunities, customer acquisition, retention strategies, and revenue optimization. "
+            "Provide recommendations with clear reasoning, expected impact, and implementation channels."
+        )
+    }]
+    
+    if conversation_history:
+        messages.extend(conversation_history)
+    
+    messages.append({"role": "user", "content": prompt})
+    
+    payload = {
+        "model": "sonar-pro",
+        "messages": messages,
+        "max_tokens": 2000
+    }
+    
+    try:
+        # Use asyncio.to_thread to run synchronous requests in a thread pool
+        def make_request():
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            return response.json()['choices'][0]['message']['content']
+        
+        # Run the synchronous request in a thread pool
+        result = await asyncio.to_thread(make_request)
+        return result
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Perplexity API request error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Perplexity API request error: {str(e)}")
+    except Exception as e:
+        logger.error(f"Perplexity API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Perplexity API error: {str(e)}")
+
 @api_router.post("/ai/chat", response_model=AIChatResponse)
 async def ai_chat(request: AIChatRequest, email: str = Depends(get_current_user)):
     """AI Chat Assistant for business insights"""
@@ -1118,7 +1175,7 @@ async def ai_chat(request: AIChatRequest, email: str = Depends(get_current_user)
 You are VectorDeep AI, a business intelligence assistant for ThriveBrands. You have access to business data with the following structure:
 
 Data Overview:
-- Total Records: {len(df)}
+- Total Records: {len(df)} 
 - Years: {df['Year'].unique().tolist() if not df.empty else []}
 - Businesses: {df['Business'].unique().tolist() if not df.empty else []}
 - Brands: {df['Brand'].unique().tolist()[:10] if not df.empty else []} (showing first 10)
@@ -1167,6 +1224,213 @@ Provide insights with specific numbers when possible. Highlight good performance
     except Exception as e:
         logger.error(f"AI Chat error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Strategic Recommendations Model
+class StrategicRecommendation(BaseModel):
+    id: int
+    title: str
+    description: str
+    type: str = "system"
+    category: str
+    startDate: str
+    endDate: Optional[str] = None
+    budget: float
+    impact: Dict[str, Any]
+    reasoning: str
+    channels: List[str]
+    aiScore: int
+
+class StrategicRecommendationsResponse(BaseModel):
+    recommended: List[StrategicRecommendation]
+    live: List[StrategicRecommendation]
+
+@api_router.get("/analytics/strategic-recommendations", response_model=StrategicRecommendationsResponse)
+async def get_strategic_recommendations(email: str = Depends(get_current_user)):
+    """Generate AI-powered strategic recommendations based on real Azure data"""
+    try:
+        logger.info("🔍 Generating strategic recommendations from Azure data")
+        
+        # Get comprehensive business data
+        data = await db.business_data.find({}, {"_id": 0}).to_list(10000)
+        if not data:
+            raise HTTPException(status_code=404, detail="No data available")
+        
+        df = pd.DataFrame(data)
+        
+        # Check if DataFrame is empty or missing required columns
+        if df.empty:
+            logger.warning("DataFrame is empty")
+            raise HTTPException(status_code=404, detail="No data available in database")
+        
+        # Check for required columns
+        required_columns = ['Revenue', 'Gross_Profit', 'Units', 'Year', 'Business', 'Channel', 'Customer', 'Brand']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            logger.error(f"Missing required columns: {missing_columns}")
+            logger.error(f"Available columns: {df.columns.tolist()}")
+            raise HTTPException(status_code=500, detail=f"Missing required columns: {missing_columns}")
+        
+        # Calculate key metrics for context
+        total_revenue = float(df['Revenue'].sum()) if not df.empty else 0
+        total_profit = float(df['Gross_Profit'].sum()) if not df.empty else 0
+        total_units = float(df['Units'].sum()) if not df.empty else 0
+        
+        # Year-over-year analysis
+        yearly_data = df.groupby('Year').agg({
+            'Revenue': 'sum',
+            'Gross_Profit': 'sum',
+            'Units': 'sum'
+        }).reset_index()
+        
+        # Top performing businesses
+        business_perf = df.groupby('Business').agg({
+            'Revenue': 'sum',
+            'Gross_Profit': 'sum'
+        }).reset_index().sort_values('Revenue', ascending=False).head(5)
+        
+        # Top channels
+        channel_perf = df.groupby('Channel').agg({
+            'Revenue': 'sum',
+            'Gross_Profit': 'sum'
+        }).reset_index().sort_values('Revenue', ascending=False).head(5)
+        
+        # Top customers
+        customer_perf = df.groupby('Customer').agg({
+            'Revenue': 'sum',
+            'Gross_Profit': 'sum'
+        }).reset_index().sort_values('Revenue', ascending=False).head(5)
+        
+        # Build data context for AI
+        data_context = f"""
+Business Performance Data Analysis:
+
+OVERALL METRICS:
+- Total Revenue: €{total_revenue:,.2f}
+- Total Gross Profit: €{total_profit:,.2f}
+- Total Units Sold: {total_units:,.0f}
+- Profit Margin: {(total_profit/total_revenue*100) if total_revenue > 0 else 0:.2f}%
+
+YEAR-OVER-YEAR PERFORMANCE:
+{yearly_data.to_string(index=False) if not yearly_data.empty else 'No yearly data'}
+
+TOP 5 BUSINESSES BY REVENUE:
+{business_perf.to_string(index=False) if not business_perf.empty else 'No business data'}
+
+TOP 5 CHANNELS BY REVENUE:
+{channel_perf.to_string(index=False) if not channel_perf.empty else 'No channel data'}
+
+TOP 5 CUSTOMERS BY REVENUE:
+{customer_perf.to_string(index=False) if not customer_perf.empty else 'No customer data'}
+
+AVAILABLE DATA PERIODS:
+- Years: {sorted(df['Year'].unique().tolist()) if not df.empty else []}
+- Total Records: {len(df)}
+- Unique Businesses: {df['Business'].nunique() if not df.empty else 0}
+- Unique Channels: {df['Channel'].nunique() if not df.empty else 0}
+- Unique Brands: {df['Brand'].nunique() if not df.empty else 0}
+- Unique Customers: {df['Customer'].nunique() if not df.empty else 0}
+"""
+        
+        # Generate AI recommendations
+        ai_prompt = f"""
+Based on the following business data, generate 4-6 strategic marketing and business recommendations.
+
+DATA CONTEXT:
+{data_context}
+
+REQUIREMENTS:
+1. Each recommendation must be specific, actionable, and data-driven
+2. Include realistic budget estimates (in Euros) based on the revenue scale
+3. Calculate expected impact (revenue increase in Euros and percentage uplift)
+4. Provide detailed reasoning based on the actual data patterns
+5. Suggest appropriate marketing channels (e.g., Meta Ads, Google Ads, Email, Social Media, etc.)
+6. Assign an AI confidence score (0-100) based on data strength
+7. Categorize as 'acquisition', 'retention', or 'engagement'
+8. Include realistic start and end dates (3-6 month campaigns)
+
+OUTPUT FORMAT (JSON array):
+[
+  {{
+    "title": "Specific recommendation title",
+    "description": "Detailed description of the recommendation",
+    "category": "acquisition|retention|engagement",
+    "startDate": "YYYY-MM-DD",
+    "endDate": "YYYY-MM-DD",
+    "budget": 50000,
+    "impact": {{"value": 250000, "percentage": 15.5}},
+    "reasoning": "Detailed reasoning based on data patterns, specific numbers, and why this will work",
+    "channels": ["Channel1", "Channel2"],
+    "aiScore": 85
+  }}
+]
+
+Return ONLY valid JSON array, no additional text.
+"""
+        
+        try:
+            ai_response = await query_perplexity(ai_prompt)
+            
+            # Parse JSON from AI response (might have markdown code blocks)
+            ai_response_clean = ai_response.strip()
+            if ai_response_clean.startswith('```json'):
+                ai_response_clean = ai_response_clean[7:]
+            if ai_response_clean.startswith('```'):
+                ai_response_clean = ai_response_clean[3:]
+            if ai_response_clean.endswith('```'):
+                ai_response_clean = ai_response_clean[:-3]
+            ai_response_clean = ai_response_clean.strip()
+            
+            recommendations_data = json.loads(ai_response_clean)
+            
+            # Format recommendations
+            recommendations = []
+            for idx, rec in enumerate(recommendations_data[:6], 1):  # Limit to 6
+                recommendations.append(StrategicRecommendation(
+                    id=idx,
+                    title=rec.get('title', f'Recommendation {idx}'),
+                    description=rec.get('description', ''),
+                    type='system',
+                    category=rec.get('category', 'acquisition'),
+                    startDate=rec.get('startDate', '2025-01-20'),
+                    endDate=rec.get('endDate'),
+                    budget=float(rec.get('budget', 50000)),
+                    impact=rec.get('impact', {'value': 100000, 'percentage': 10}),
+                    reasoning=rec.get('reasoning', ''),
+                    channels=rec.get('channels', ['Email']),
+                    aiScore=int(rec.get('aiScore', 75))
+                ))
+            
+            # For now, return empty live campaigns (can be extended later)
+            return StrategicRecommendationsResponse(
+                recommended=recommendations,
+                live=[]
+            )
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse AI response as JSON: {e}")
+            logger.error(f"AI Response (first 500 chars): {ai_response[:500] if 'ai_response' in locals() else 'No response'}")
+            # Fallback to default recommendations if AI fails
+            return StrategicRecommendationsResponse(
+                recommended=[],
+                live=[]
+            )
+        except HTTPException:
+            # Re-raise HTTP exceptions
+            raise
+        except Exception as e:
+            logger.error(f"Error generating recommendations: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=f"Error generating recommendations: {str(e)}")
+            
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        logger.error(f"Strategic recommendations error: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Strategic recommendations error: {str(e)}")
 
 # Include the router in the main app
 app.include_router(api_router)
