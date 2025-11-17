@@ -30,7 +30,10 @@ const SalesAnalysis = () => {
   });
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      console.warn('No token available, skipping filter load');
+      return;
+    }
 
     const loadFilters = async () => {
       try {
@@ -40,7 +43,13 @@ const SalesAnalysis = () => {
         setFilters(res.data);
       } catch (error) {
         console.error('Failed to load filters', error);
-        toast.error('Unable to load filter options');
+        if (error.response?.status === 401) {
+          toast.error('Session expired. Please login again.');
+          // Optionally redirect to login
+          // window.location.href = '/login';
+        } else {
+          toast.error('Unable to load filter options');
+        }
         setFilters({
           years: [],
           months: [],
@@ -56,7 +65,10 @@ const SalesAnalysis = () => {
   }, [token]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      console.warn('No token available, skipping data load');
+      return;
+    }
 
     const loadData = async () => {
       try {
@@ -74,7 +86,13 @@ const SalesAnalysis = () => {
         setData(res.data);
       } catch (error) {
         console.error('Failed to load sales analysis', error);
-        toast.error('Failed to load sales analysis data');
+        if (error.response?.status === 401) {
+          toast.error('Session expired. Please login again.');
+          // Optionally redirect to login
+          // window.location.href = '/login';
+        } else {
+          toast.error('Failed to load sales analysis data');
+        }
         setData(null);
       } finally {
         setLoading(false);

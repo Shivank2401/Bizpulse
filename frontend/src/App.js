@@ -14,6 +14,7 @@ import SalesAnalysis from '@/pages/SalesAnalysis';
 import RootCauseAnalysis from '@/pages/RootCauseAnalysis';
 import ChartInsight from '@/pages/ChartInsight';
 import Kanban from '@/pages/Kanban';
+import Signup from '@/pages/Signup';
 import { Toaster } from '@/components/ui/sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
@@ -31,7 +32,29 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(() => {
+    // Check if token exists and is not expired
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      try {
+        // Basic check - decode without verification to check expiration
+        const payload = JSON.parse(atob(storedToken.split('.')[1]));
+        const exp = payload.exp * 1000; // Convert to milliseconds
+        if (exp < Date.now()) {
+          // Token expired
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          return null;
+        }
+      } catch (e) {
+        // Invalid token format
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return null;
+      }
+    }
+    return storedToken;
+  });
   const [user, setUser] = useState(localStorage.getItem('user'));
 
   const login = (newToken, email) => {
@@ -66,6 +89,14 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/signup"
+            element={
+              <PrivateRoute>
+                <Signup />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/"
             element={

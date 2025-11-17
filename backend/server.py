@@ -62,6 +62,10 @@ class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: str
     password_hash: str
+    name: Optional[str] = None
+    department: Optional[str] = None  # sales, operations, finance, hr, marketing, technology
+    role: Optional[str] = None  # VP, Director, Manager, Team Member
+    status: str = "active"  # active, inactive
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class LoginRequest(BaseModel):
@@ -263,21 +267,107 @@ api_router = APIRouter(prefix="/api")
 # Routes
 @api_router.post("/auth/login", response_model=LoginResponse)
 async def login(request: LoginRequest):
-    user_doc = await db.users.find_one({"email": request.email}, {"_id": 0})
+    # Make email matching case-insensitive
+    email_lower = request.email.lower().strip()
+    user_doc = await db.users.find_one({"email": {"$regex": f"^{email_lower}$", "$options": "i"}}, {"_id": 0})
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Use the actual email from database for consistency
+    actual_email = user_doc.get('email', request.email)
     
     if not bcrypt.checkpw(request.password.encode('utf-8'), user_doc['password_hash'].encode('utf-8')):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Create JWT token
     token = jwt.encode(
-        {"email": request.email, "exp": datetime.now(timezone.utc).timestamp() + 86400},
+        {"email": actual_email, "exp": datetime.now(timezone.utc).timestamp() + 86400},
         JWT_SECRET,
         algorithm=JWT_ALGORITHM
     )
     
-    return LoginResponse(token=token, email=request.email)
+    return LoginResponse(token=token, email=actual_email)
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+    name: str
+    department: str  # sales, operations, finance, hr, marketing, technology
+    role: str  # VP, Director, Manager, Team Member
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    name: Optional[str] = None
+    department: Optional[str] = None
+    role: Optional[str] = None
+    status: str
+
+@api_router.post("/auth/signup", response_model=UserResponse)
+async def signup(request: SignupRequest, email: str = Depends(get_current_user)):
+    """Development-only signup endpoint - requires authentication"""
+    # Check if in development mode
+    is_dev = os.getenv('ENVIRONMENT', 'development').lower() == 'development'
+    if not is_dev:
+        raise HTTPException(status_code=403, detail="Signup is only available in development mode")
+    
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": request.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User with this email already exists")
+    
+    # Validate department
+    valid_departments = ['sales', 'operations', 'finance', 'hr', 'marketing', 'technology']
+    if request.department.lower() not in valid_departments:
+        raise HTTPException(status_code=400, detail=f"Invalid department. Must be one of: {', '.join(valid_departments)}")
+    
+    # Hash password
+    password_hash = bcrypt.hashpw(request.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    # Create user
+    user = User(
+        email=request.email,
+        password_hash=password_hash,
+        name=request.name,
+        department=request.department.lower(),
+        role=request.role,
+        status="active"
+    )
+    user_dict = user.model_dump()
+    user_dict['created_at'] = user_dict['created_at'].isoformat()
+    await db.users.insert_one(user_dict)
+    
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        department=user.department,
+        role=user.role,
+        status=user.status
+    )
+
+@api_router.get("/users", response_model=List[UserResponse])
+async def get_users(email: str = Depends(get_current_user)):
+    """Get all users/team members"""
+    users = await db.users.find({"status": "active"}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    return [UserResponse(**user) for user in users]
+
+@api_router.get("/users/by-department/{department}", response_model=List[UserResponse])
+async def get_users_by_department(department: str, email: str = Depends(get_current_user)):
+    """Get users by department"""
+    users = await db.users.find(
+        {"department": department.lower(), "status": "active"},
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
+    return [UserResponse(**user) for user in users]
+
+@api_router.get("/users/me", response_model=UserResponse)
+async def get_current_user_info(email: str = Depends(get_current_user)):
+    """Get current logged-in user information"""
+    user = await db.users.find_one({"email": email}, {"_id": 0, "password_hash": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserResponse(**user)
 
 @api_router.get("/data/sync", response_model=SyncStatusResponse)
 async def trigger_sync(email: str = Depends(get_current_user)):
@@ -1419,6 +1509,482 @@ async def get_kanban_recommendations(email: str = Depends(get_current_user)):
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Error loading recommendations: {str(e)}")
+
+class GoalRequest(BaseModel):
+    campaignId: str
+    title: str
+    description: str
+    department: str
+    owners: List[str]  # List of user IDs
+    teamMembers: Optional[List[str]] = []
+    dependencies: Optional[List[str]] = []
+    metrics: Optional[List[str]] = []
+    keyResults: Optional[List[Dict]] = []
+    status: str = "on-track"
+    progress: int = 0
+
+class GenerateGoalsRequest(BaseModel):
+    campaignId: str
+    autoAssign: bool = False  # If True, AI assigns departments and owners
+
+class GoalResponse(BaseModel):
+    id: str
+    campaignId: str
+    title: str
+    description: str
+    department: str
+    owners: List[str]
+    teamMembers: List[str]
+    dependencies: List[str]
+    metrics: List[str]
+    keyResults: List[Dict]
+    status: str
+    progress: int
+    createdAt: str
+    tasks: Optional[List[Dict]] = []
+    lastUpdated: Optional[str] = None
+    lastUpdatedBy: Optional[str] = None
+
+@api_router.post("/kanban/generate-goals", response_model=List[GoalResponse])
+async def generate_goals_from_campaign(request: GenerateGoalsRequest, email: str = Depends(get_current_user)):
+    """Generate AI-powered goals from a campaign"""
+    try:
+        logger.info(f"Generating goals for campaign ID: {request.campaignId}")
+        
+        # Get campaign from MongoDB
+        kanban_doc = await db.kanban.find_one({})
+        if not kanban_doc:
+            logger.error("Kanban data not found in MongoDB")
+            raise HTTPException(status_code=404, detail="Kanban data not found")
+        
+        # Find campaign in live or recommended
+        campaign = None
+        live_campaigns = kanban_doc.get('live', [])
+        recommended_campaigns = kanban_doc.get('recommended', [])
+        logger.info(f"Searching in {len(live_campaigns)} live and {len(recommended_campaigns)} recommended campaigns")
+        
+        for camp in live_campaigns + recommended_campaigns:
+            camp_id = camp.get('id')
+            if camp_id == request.campaignId or str(camp_id) == str(request.campaignId):
+                campaign = camp
+                logger.info(f"Found campaign: {campaign.get('title', 'Unknown')}")
+                break
+        
+        if not campaign:
+            logger.error(f"Campaign with ID {request.campaignId} not found")
+            raise HTTPException(status_code=404, detail=f"Campaign not found: {request.campaignId}")
+        
+        # Get all team members for department assignment
+        try:
+            all_users = await db.users.find({"status": "active"}, {"_id": 0, "password_hash": 0}).to_list(1000)
+            logger.info(f"Found {len(all_users)} active users")
+        except Exception as user_error:
+            logger.error(f"Error fetching users: {str(user_error)}")
+            all_users = []
+        
+        users_by_dept = {}
+        for user in all_users:
+            dept = user.get('department')
+            if dept:
+                if dept not in users_by_dept:
+                    users_by_dept[dept] = []
+                users_by_dept[dept].append(user)
+        
+        logger.info(f"Users by department: {list(users_by_dept.keys())}")
+        
+        # Build AI prompt
+        budget = campaign.get('budget', 0)
+        if isinstance(budget, dict):
+            budget = budget.get('value', 0) if isinstance(budget.get('value'), (int, float)) else 0
+        elif not isinstance(budget, (int, float)):
+            budget = 0
+        
+        impact_value = 0
+        impact_percentage = 0
+        impact = campaign.get('impact', {})
+        if isinstance(impact, dict):
+            impact_value = impact.get('value', 0) if isinstance(impact.get('value'), (int, float)) else 0
+            impact_percentage = impact.get('percentage', 0) if isinstance(impact.get('percentage'), (int, float)) else 0
+        
+        channels = campaign.get('channels', [])
+        if not isinstance(channels, list):
+            channels = []
+        
+        campaign_context = f"""
+Campaign Title: {campaign.get('title', 'Unknown')}
+Campaign Description: {campaign.get('description', 'No description')}
+Category: {campaign.get('category', 'N/A')}
+Budget: €{budget:,.2f}
+Expected Impact: €{impact_value:,.2f} ({impact_percentage}% uplift)
+Channels: {', '.join(str(c) for c in channels)}
+Start Date: {campaign.get('startDate', 'N/A')}
+End Date: {campaign.get('endDate', 'N/A')}
+"""
+        
+        ai_prompt = f"""
+Based on the following campaign, generate 3-6 strategic goals that will help achieve this campaign's objectives.
+Each goal should be:
+1. Specific and actionable
+2. Assigned to appropriate departments (sales, operations, finance, hr, marketing, technology)
+3. Have clear owners (can be multiple)
+4. Include dependencies
+5. Have measurable metrics
+6. Include 2-3 key results with current/target values
+
+CAMPAIGN DETAILS:
+{campaign_context}
+
+AVAILABLE DEPARTMENTS AND TEAM MEMBERS:
+{json.dumps({dept: [{'name': u.get('name'), 'email': u.get('email'), 'role': u.get('role')} for u in users] for dept, users in users_by_dept.items()}, indent=2)}
+
+OUTPUT FORMAT (JSON array ONLY - no markdown, no code blocks, no explanations):
+You MUST return ONLY a valid JSON array. Do not include any markdown code blocks, explanations, or text outside the JSON array.
+The JSON must be valid with all property names in double quotes.
+
+Example format:
+[
+  {{
+    "title": "Goal title",
+    "description": "Detailed goal description",
+    "department": "sales",
+    "owners": ["user@example.com"],
+    "teamMembers": ["member@example.com"],
+    "dependencies": ["Dependency 1", "Dependency 2"],
+    "metrics": ["Metric 1", "Metric 2"],
+    "keyResults": [
+      {{"description": "KR 1", "current": 0, "target": 100}},
+      {{"description": "KR 2", "current": 0, "target": 50}}
+    ],
+    "status": "on-track",
+    "progress": 0
+  }}
+]
+
+CRITICAL: Return ONLY the JSON array. No markdown, no code blocks, no explanations. All property names must be in double quotes.
+Generate 3-6 goals that are realistic, measurable, and aligned with the campaign objectives.
+"""
+        
+        # Call Perplexity AI
+        logger.info("Calling Perplexity AI to generate goals...")
+        try:
+            ai_response = await query_perplexity(ai_prompt)
+            logger.info(f"AI response received, length: {len(ai_response)}")
+        except Exception as ai_error:
+            logger.error(f"Perplexity API error: {str(ai_error)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=f"AI service error: {str(ai_error)}")
+        
+        # Parse AI response (extract JSON)
+        # Note: json is already imported at module level
+        import re
+        
+        # Try to find JSON array in the response
+        json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
+        if not json_match:
+            # Try to find JSON object array with more flexible pattern
+            json_match = re.search(r'(\[[\s\S]*\])', ai_response)
+            if not json_match:
+                logger.error(f"AI response does not contain valid JSON array. Response: {ai_response[:1000]}")
+                raise HTTPException(status_code=500, detail="AI response format invalid - no JSON array found")
+        
+        # Use group(0) for the first pattern (no capture group) or group(1) for the second pattern (with capture group)
+        json_str = json_match.group(1) if json_match.lastindex else json_match.group(0)
+        
+        # Try to clean up common JSON issues
+        # Remove markdown code blocks if present
+        json_str = re.sub(r'```json\s*', '', json_str)
+        json_str = re.sub(r'```\s*', '', json_str)
+        json_str = json_str.strip()
+        
+        # Try to fix common JSON issues
+        # Replace single quotes with double quotes (but be careful with apostrophes)
+        # This is a simple fix - might need more sophisticated parsing
+        try:
+            ai_goals = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            logger.warning(f"First JSON parse attempt failed: {str(e)}")
+            logger.warning(f"JSON string (first 500 chars): {json_str[:500]}")
+            
+            # Try to fix common issues
+            # Fix unquoted property names (but this is risky)
+            # Instead, try to extract just the array content more carefully
+            try:
+                # Try to find the array boundaries more precisely
+                start_idx = json_str.find('[')
+                end_idx = json_str.rfind(']')
+                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                    json_str = json_str[start_idx:end_idx + 1]
+                    ai_goals = json.loads(json_str)
+                else:
+                    raise json.JSONDecodeError("Could not find array boundaries", json_str, 0)
+            except json.JSONDecodeError as e2:
+                logger.error(f"Second JSON parse attempt failed: {str(e2)}")
+                logger.error(f"Full AI response: {ai_response}")
+                logger.error(f"Extracted JSON string: {json_str}")
+                # Try one more time with ast.literal_eval as fallback (but it's less safe)
+                try:
+                    import ast
+                    # This won't work for JSON, but let's try a different approach
+                    # Actually, let's try to manually fix common issues
+                    # Replace single quotes around keys (but not in strings)
+                    fixed_json = re.sub(r"'(\w+)':", r'"\1":', json_str)
+                    fixed_json = re.sub(r":\s*'([^']*)'", r': "\1"', fixed_json)
+                    ai_goals = json.loads(fixed_json)
+                    logger.info("Successfully parsed JSON after fixing quotes")
+                except Exception as e3:
+                    logger.error(f"All JSON parsing attempts failed. Last error: {str(e3)}")
+                    raise HTTPException(
+                        status_code=500, 
+                        detail=f"AI response JSON parsing failed. The AI may have returned malformed JSON. Please try again or check the AI response format."
+                    )
+        
+        if not isinstance(ai_goals, list):
+            logger.error(f"AI response is not a list. Type: {type(ai_goals)}")
+            raise HTTPException(status_code=500, detail="AI response is not a list")
+        
+        if len(ai_goals) == 0:
+            logger.warning("AI generated empty goals list")
+            raise HTTPException(status_code=500, detail="AI generated no goals")
+        
+        # Convert to GoalResponse format
+        generated_goals = []
+        for idx, ai_goal in enumerate(ai_goals):
+            try:
+                # Map owner emails to user IDs
+                owner_ids = []
+                owners = ai_goal.get('owners', [])
+                if not isinstance(owners, list):
+                    owners = []
+                for owner_email in owners:
+                    if isinstance(owner_email, str):
+                        user = next((u for u in all_users if u.get('email') == owner_email), None)
+                        if user and user.get('id'):
+                            owner_ids.append(user.get('id'))
+                
+                team_member_ids = []
+                team_members = ai_goal.get('teamMembers', [])
+                if not isinstance(team_members, list):
+                    team_members = []
+                for member_email in team_members:
+                    if isinstance(member_email, str):
+                        user = next((u for u in all_users if u.get('email') == member_email), None)
+                        if user and user.get('id'):
+                            team_member_ids.append(user.get('id'))
+                
+                # Validate department
+                department = ai_goal.get('department', 'sales')
+                valid_departments = ['sales', 'operations', 'finance', 'hr', 'marketing', 'technology']
+                if department not in valid_departments:
+                    department = 'sales'  # Default fallback
+                
+                # Validate status
+                status = ai_goal.get('status', 'on-track')
+                valid_statuses = ['on-track', 'at-risk', 'not-started']
+                if status not in valid_statuses:
+                    status = 'on-track'
+                
+                # Validate progress
+                progress = ai_goal.get('progress', 0)
+                if not isinstance(progress, (int, float)):
+                    progress = 0
+                progress = max(0, min(100, int(progress)))
+                
+                goal = {
+                    "id": str(uuid.uuid4()),
+                    "campaignId": str(request.campaignId),
+                    "title": str(ai_goal.get('title', f'Untitled Goal {idx + 1}')),
+                    "description": str(ai_goal.get('description', '')),
+                    "department": department,
+                    "owners": owner_ids if owner_ids else [],  # Ensure it's a list
+                    "teamMembers": team_member_ids if team_member_ids else [],  # Ensure it's a list
+                    "dependencies": ai_goal.get('dependencies', []) if isinstance(ai_goal.get('dependencies'), list) else [],
+                    "metrics": ai_goal.get('metrics', []) if isinstance(ai_goal.get('metrics'), list) else [],
+                    "keyResults": ai_goal.get('keyResults', []) if isinstance(ai_goal.get('keyResults'), list) else [],
+                    "status": status,
+                    "progress": progress,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                generated_goals.append(goal)
+            except Exception as goal_error:
+                logger.error(f"Error processing goal {idx}: {str(goal_error)}")
+                continue  # Skip invalid goals
+        
+        if len(generated_goals) == 0:
+            raise HTTPException(status_code=500, detail="No valid goals could be generated from AI response")
+        
+        # Validate and convert to GoalResponse
+        validated_goals = []
+        for goal in generated_goals:
+            try:
+                validated_goal = GoalResponse(**goal)
+                validated_goals.append(validated_goal)
+            except Exception as validation_error:
+                logger.error(f"Goal validation error: {str(validation_error)}")
+                logger.error(f"Goal data: {goal}")
+                continue
+        
+        if len(validated_goals) == 0:
+            raise HTTPException(status_code=500, detail="No valid goals could be validated")
+        
+        logger.info(f"Successfully generated {len(validated_goals)} goals")
+        return validated_goals
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        logger.error(f"Error generating goals: {str(e)}")
+        import traceback
+        error_traceback = traceback.format_exc()
+        logger.error(f"Traceback: {error_traceback}")
+        raise HTTPException(status_code=500, detail=f"Error generating goals: {str(e)}")
+
+@api_router.post("/kanban/goals", response_model=GoalResponse)
+async def create_goal(request: GoalRequest, email: str = Depends(get_current_user)):
+    """Create a new goal linked to a campaign"""
+    try:
+        goal = {
+            "id": str(uuid.uuid4()),
+            "campaignId": request.campaignId,
+            "title": request.title,
+            "description": request.description,
+            "department": request.department,
+            "owners": request.owners,
+            "teamMembers": request.teamMembers or [],
+            "dependencies": request.dependencies or [],
+            "metrics": request.metrics or [],
+            "keyResults": request.keyResults or [],
+            "status": request.status,
+            "progress": request.progress,
+            "tasks": [],  # Initialize empty tasks array
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Store in goals collection
+        await db.goals.insert_one(goal)
+        
+        # Update campaign to include goal ID
+        kanban_doc = await db.kanban.find_one({})
+        if kanban_doc:
+            for camp in kanban_doc.get('live', []):
+                if camp.get('id') == request.campaignId:
+                    if 'goals' not in camp:
+                        camp['goals'] = []
+                    camp['goals'].append(goal['id'])
+                    await db.kanban.update_one(
+                        {"live.id": request.campaignId},
+                        {"$set": {"live.$[elem].goals": camp['goals']}},
+                        array_filters=[{"elem.id": request.campaignId}]
+                    )
+                    break
+        
+        return GoalResponse(**goal)
+    except Exception as e:
+        logger.error(f"Error creating goal: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating goal: {str(e)}")
+
+@api_router.get("/kanban/campaigns/{campaignId}/goals", response_model=List[GoalResponse])
+async def get_campaign_goals(campaignId: str, email: str = Depends(get_current_user)):
+    """Get all goals for a specific campaign"""
+    try:
+        goals = await db.goals.find({"campaignId": campaignId}, {"_id": 0}).to_list(1000)
+        return [GoalResponse(**goal) for goal in goals]
+    except Exception as e:
+        logger.error(f"Error fetching campaign goals: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching goals: {str(e)}")
+
+@api_router.get("/goals/by-department/{department}", response_model=List[GoalResponse])
+async def get_goals_by_department(department: str, email: str = Depends(get_current_user)):
+    """Get all goals for a specific department"""
+    try:
+        goals = await db.goals.find({"department": department.lower()}, {"_id": 0}).to_list(1000)
+        return [GoalResponse(**goal) for goal in goals]
+    except Exception as e:
+        logger.error(f"Error fetching department goals: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching goals: {str(e)}")
+
+class UpdateGoalRequest(BaseModel):
+    progress: Optional[int] = None
+    status: Optional[str] = None
+    keyResults: Optional[List[Dict]] = None
+    tasks: Optional[List[Dict]] = None  # New field for user tasks
+
+@api_router.get("/goals/{goalId}", response_model=GoalResponse)
+async def get_goal(goalId: str, email: str = Depends(get_current_user)):
+    """Get a specific goal by ID"""
+    try:
+        goal = await db.goals.find_one({"id": goalId}, {"_id": 0})
+        if not goal:
+            raise HTTPException(status_code=404, detail="Goal not found")
+        return GoalResponse(**goal)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching goal: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching goal: {str(e)}")
+
+@api_router.put("/goals/{goalId}", response_model=GoalResponse)
+async def update_goal(goalId: str, request: UpdateGoalRequest, email: str = Depends(get_current_user)):
+    """Update a goal - owners, team members, and admins can update"""
+    try:
+        # Get the goal
+        goal = await db.goals.find_one({"id": goalId}, {"_id": 0})
+        if not goal:
+            raise HTTPException(status_code=404, detail="Goal not found")
+        
+        # Get current user info
+        user_doc = await db.users.find_one({"email": email}, {"_id": 0})
+        if not user_doc:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_id = user_doc.get('id')
+        
+        # Check if user is owner, team member, or admin
+        owners = goal.get('owners', [])
+        team_members = goal.get('teamMembers', [])
+        user_role = user_doc.get('role', '').lower()
+        user_department = user_doc.get('department', '').lower()
+        is_admin = user_role == 'admin' or user_department == 'admin'
+        
+        if user_id not in owners and user_id not in team_members and not is_admin:
+            raise HTTPException(status_code=403, detail="You don't have permission to update this goal")
+        
+        # Update only provided fields
+        update_data = {}
+        if request.progress is not None:
+            update_data['progress'] = max(0, min(100, request.progress))
+        if request.status is not None:
+            valid_statuses = ['on-track', 'at-risk', 'not-started', 'completed']
+            if request.status in valid_statuses:
+                update_data['status'] = request.status
+        if request.keyResults is not None:
+            update_data['keyResults'] = request.keyResults
+        if request.tasks is not None:
+            update_data['tasks'] = request.tasks
+            update_data['lastUpdated'] = datetime.now(timezone.utc).isoformat()
+            update_data['lastUpdatedBy'] = user_id
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        
+        # Update the goal
+        await db.goals.update_one(
+            {"id": goalId},
+            {"$set": update_data}
+        )
+        
+        # Get updated goal
+        updated_goal = await db.goals.find_one({"id": goalId}, {"_id": 0})
+        return GoalResponse(**updated_goal)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating goal: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error updating goal: {str(e)}")
 
 @api_router.post("/kanban/accept")
 async def accept_campaign(request: AcceptCampaignRequest, email: str = Depends(get_current_user)):

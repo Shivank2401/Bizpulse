@@ -3,6 +3,8 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { formatNumber } from '@/utils/formatters';
 import GoalFormModal from '@/components/GoalFormModal';
+import CreateGoalsModal from '@/components/CreateGoalsModal';
+import GoalDetailModal from '@/components/GoalDetailModal';
 import axios from 'axios';
 import { API, useAuth } from '@/App';
 import {
@@ -63,6 +65,12 @@ const Kanban = () => {
     metric: '% Activated Customers',
     progress: 0
   });
+  const [expandedCampaigns, setExpandedCampaigns] = useState({});
+  const [campaignGoals, setCampaignGoals] = useState({});
+  const [createGoalsModalOpen, setCreateGoalsModalOpen] = useState(false);
+  const [selectedCampaignForGoals, setSelectedCampaignForGoals] = useState(null);
+  const [goalDetailModalOpen, setGoalDetailModalOpen] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState(null);
 
   // Load recommendations from MongoDB (does not generate new ones)
   useEffect(() => {
@@ -95,6 +103,37 @@ const Kanban = () => {
     loadRecommendations();
   }, [token, activeTab]);
 
+  // Load goals for all live campaigns when they're available
+  useEffect(() => {
+    if (!token || activeTab !== 'strategic-kanban' || !initiatives.live || initiatives.live.length === 0) {
+      return;
+    }
+
+    const loadAllCampaignGoals = async () => {
+      for (const campaign of initiatives.live) {
+        if (campaign.id) {
+          try {
+            const response = await axios.get(`${API}/kanban/campaigns/${campaign.id}/goals`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            setCampaignGoals(prev => ({
+              ...prev,
+              [campaign.id]: response.data || []
+            }));
+          } catch (error) {
+            console.error(`Failed to load goals for campaign ${campaign.id}:`, error);
+            setCampaignGoals(prev => ({
+              ...prev,
+              [campaign.id]: []
+            }));
+          }
+        }
+      }
+    };
+
+    loadAllCampaignGoals();
+  }, [token, activeTab, initiatives.live]);
+
   // Load annual goal data
   useEffect(() => {
     const loadAnnualGoal = async () => {
@@ -123,6 +162,71 @@ const Kanban = () => {
 
     loadAnnualGoal();
   }, [token, activeTab]);
+
+  // Load goals for a specific campaign
+  const loadCampaignGoals = async (campaignId) => {
+    if (!token) return;
+    try {
+      const response = await axios.get(`${API}/kanban/campaigns/${campaignId}/goals`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCampaignGoals(prev => ({
+        ...prev,
+        [campaignId]: response.data || []
+      }));
+    } catch (error) {
+      console.error('Failed to load campaign goals:', error);
+      setCampaignGoals(prev => ({
+        ...prev,
+        [campaignId]: []
+      }));
+    }
+  };
+
+  const handleGoalsCreated = () => {
+    // Reload goals for the selected campaign
+    if (selectedCampaignForGoals) {
+      loadCampaignGoals(selectedCampaignForGoals.id);
+    }
+    // Reload corporate goals to update counts
+    loadCorporateGoals();
+  };
+
+  // Load corporate goals by department
+  const loadCorporateGoals = async () => {
+    if (!token || activeTab !== 'goals-management') return;
+    
+    const departments = ['sales', 'operations', 'finance', 'hr', 'marketing', 'technology'];
+    
+    try {
+      const goalsByDept = {};
+      for (const dept of departments) {
+        const response = await axios.get(`${API}/goals/by-department/${dept}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        goalsByDept[dept] = response.data || [];
+      }
+      
+      // Update corporate goals state with real data
+      setCorporateGoals(prev => ({
+        ...prev,
+        departments: prev.departments.map(dept => ({
+          ...dept,
+          activeGoals: goalsByDept[dept.id]?.length || 0,
+          goals: goalsByDept[dept.id] || []
+        }))
+      }));
+    } catch (error) {
+      console.error('Failed to load corporate goals:', error);
+    }
+  };
+
+  // Load corporate goals when goals management tab is active
+  useEffect(() => {
+    if (activeTab === 'goals-management' && token) {
+      loadCorporateGoals();
+    }
+  }, [activeTab, token]);
 
   // Generate new AI recommendations
   const handleGenerateRecommendations = async () => {
@@ -1115,15 +1219,92 @@ const Kanban = () => {
                       ))}
                     </div>
 
-                    {/* Timeline Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-gray-700 border-gray-300"
-                    >
-                      <Clock className="w-4 h-4 mr-2" />
-                      Timeline
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setSelectedCampaignForGoals(initiative);
+                          setCreateGoalsModalOpen(true);
+                        }}
+                        size="sm"
+                        className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Goals
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          const isExpanded = expandedCampaigns[initiative.id];
+                          setExpandedCampaigns(prev => ({
+                            ...prev,
+                            [initiative.id]: !isExpanded
+                          }));
+                          // Load goals if expanding
+                          if (!isExpanded) {
+                            loadCampaignGoals(initiative.id);
+                          }
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-gray-700 border-gray-300"
+                      >
+                        {expandedCampaigns[initiative.id] ? (
+                          <>
+                            <ChevronUp className="w-4 h-4 mr-2" />
+                            Hide Goals
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-4 h-4 mr-2" />
+                            View Goals ({campaignGoals[initiative.id]?.length || 0})
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Expanded Goals Section */}
+                    {expandedCampaigns[initiative.id] && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <h5 className="text-sm font-semibold text-gray-900 mb-3">Campaign Goals</h5>
+                        {campaignGoals[initiative.id]?.length > 0 ? (
+                          <div className="space-y-3">
+                            {campaignGoals[initiative.id].map((goal) => (
+                              <div
+                                key={goal.id}
+                                onClick={() => {
+                                  setSelectedGoal(goal);
+                                  setGoalDetailModalOpen(true);
+                                }}
+                                className="p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 hover:border-indigo-300 transition"
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h6 className="font-semibold text-gray-900 text-sm">{goal.title}</h6>
+                                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">{goal.description}</p>
+                                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                                        {goal.department}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        {goal.status === 'on-track' ? '✓ On Track' : goal.status === 'at-risk' ? '⚠ At Risk' : goal.status === 'completed' ? '✓ Completed' : '○ Not Started'}
+                                      </span>
+                                      <span className="text-xs text-gray-500">{goal.progress}%</span>
+                                      {goal.owners?.length > 0 && (
+                                        <span className="text-xs text-gray-500">{goal.owners.length} owner{goal.owners.length !== 1 ? 's' : ''}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-sm text-gray-500">
+                            No goals created yet. Click "Create Goals" to get started.
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
                   })
@@ -1736,6 +1917,30 @@ const Kanban = () => {
           goal={editingGoal}
           quarter={selectedQuarter}
           onSave={handleSaveGoal}
+        />
+        <CreateGoalsModal
+          isOpen={createGoalsModalOpen}
+          onClose={() => {
+            setCreateGoalsModalOpen(false);
+            setSelectedCampaignForGoals(null);
+          }}
+          campaign={selectedCampaignForGoals}
+          onGoalsCreated={handleGoalsCreated}
+        />
+        <GoalDetailModal
+          isOpen={goalDetailModalOpen}
+          onClose={() => {
+            setGoalDetailModalOpen(false);
+            setSelectedGoal(null);
+          }}
+          goal={selectedGoal}
+          onUpdate={() => {
+            // Reload goals after update
+            if (selectedGoal?.campaignId) {
+              loadCampaignGoals(selectedGoal.campaignId);
+            }
+            loadCorporateGoals();
+          }}
         />
       </div>
     </Layout>
