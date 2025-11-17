@@ -1235,22 +1235,71 @@ async def query_perplexity(prompt: str, conversation_history: Optional[List[Dict
         "max_tokens": 2000
     }
     
-    try:
-        # Use asyncio.to_thread to run synchronous requests in a thread pool
-        def make_request():
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
-            response.raise_for_status()
-            return response.json()['choices'][0]['message']['content']
-        
-        # Run the synchronous request in a thread pool
-        result = await asyncio.to_thread(make_request)
-        return result
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Perplexity API request error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Perplexity API request error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Perplexity API error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Perplexity API error: {str(e)}")
+    # Retry logic with exponential backoff
+    max_retries = 3
+    retry_delay = 1  # Start with 1 second
+    
+    for attempt in range(max_retries):
+        try:
+            # Use asyncio.to_thread to run synchronous requests in a thread pool
+            def make_request():
+                response = requests.post(url, headers=headers, json=payload, timeout=60)  # Increased timeout to 60s
+                response.raise_for_status()
+                result = response.json()
+                if 'choices' not in result or len(result['choices']) == 0:
+                    raise ValueError("Invalid response format from Perplexity API")
+                return result['choices'][0]['message']['content']
+            
+            # Run the synchronous request in a thread pool
+            result = await asyncio.to_thread(make_request)
+            logger.info(f"Perplexity API call successful on attempt {attempt + 1}")
+            return result
+            
+        except requests.exceptions.Timeout as e:
+            logger.warning(f"Perplexity API timeout on attempt {attempt + 1}/{max_retries}: {str(e)}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+                continue
+            else:
+                logger.error(f"Perplexity API timeout after {max_retries} attempts")
+                raise HTTPException(status_code=500, detail="AI service timeout. Please try again.")
+                
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Perplexity API request error on attempt {attempt + 1}/{max_retries}: {str(e)}")
+            if attempt < max_retries - 1:
+                # Check if it's a rate limit or server error (5xx) - retry these
+                if hasattr(e, 'response') and e.response is not None:
+                    status_code = e.response.status_code
+                    if status_code >= 500 or status_code == 429:  # Server error or rate limit
+                        await asyncio.sleep(retry_delay)
+                        retry_delay *= 2
+                        continue
+                # For other errors, don't retry
+                logger.error(f"Perplexity API non-retryable error: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
+            else:
+                logger.error(f"Perplexity API request failed after {max_retries} attempts: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"AI service error after retries: {str(e)}")
+                
+        except (KeyError, ValueError) as e:
+            logger.error(f"Perplexity API response parsing error: {str(e)}")
+            # Don't retry parsing errors
+            raise HTTPException(status_code=500, detail=f"AI service response format error: {str(e)}")
+            
+        except Exception as e:
+            logger.error(f"Unexpected Perplexity API error on attempt {attempt + 1}: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
+                continue
+            else:
+                raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
+    
+    # Should never reach here, but just in case
+    raise HTTPException(status_code=500, detail="AI service error: Max retries exceeded")
 
 @api_router.post("/ai/chat", response_model=AIChatResponse)
 async def ai_chat(request: AIChatRequest, email: str = Depends(get_current_user)):
@@ -1668,28 +1717,51 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
         logger.info("Calling Perplexity AI to generate goals...")
         try:
             ai_response = await query_perplexity(ai_prompt)
+            if not ai_response or len(ai_response.strip()) == 0:
+                logger.error("Perplexity API returned empty response")
+                raise HTTPException(status_code=500, detail="AI service returned empty response. Please try again.")
             logger.info(f"AI response received, length: {len(ai_response)}")
+        except HTTPException:
+            # Re-raise HTTP exceptions as-is
+            raise
         except Exception as ai_error:
             logger.error(f"Perplexity API error: {str(ai_error)}")
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
-            raise HTTPException(status_code=500, detail=f"AI service error: {str(ai_error)}")
+            raise HTTPException(status_code=500, detail=f"AI service error: {str(ai_error)}. Please try again.")
         
         # Parse AI response (extract JSON)
         # Note: json is already imported at module level
         import re
         
-        # Try to find JSON array in the response
-        json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
-        if not json_match:
-            # Try to find JSON object array with more flexible pattern
-            json_match = re.search(r'(\[[\s\S]*\])', ai_response)
-            if not json_match:
-                logger.error(f"AI response does not contain valid JSON array. Response: {ai_response[:1000]}")
-                raise HTTPException(status_code=500, detail="AI response format invalid - no JSON array found")
+        # Try to find JSON array in the response with multiple strategies
+        json_str = None
+        json_match = None
         
-        # Use group(0) for the first pattern (no capture group) or group(1) for the second pattern (with capture group)
-        json_str = json_match.group(1) if json_match.lastindex else json_match.group(0)
+        # Strategy 1: Simple array pattern
+        json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(0)
+        
+        # Strategy 2: More flexible pattern with capture group
+        if not json_str:
+            json_match = re.search(r'(\[[\s\S]*\])', ai_response)
+            if json_match:
+                json_str = json_match.group(1) if json_match.lastindex else json_match.group(0)
+        
+        # Strategy 3: Find array boundaries manually
+        if not json_str:
+            start_idx = ai_response.find('[')
+            end_idx = ai_response.rfind(']')
+            if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                json_str = ai_response[start_idx:end_idx + 1]
+        
+        if not json_str:
+            logger.error(f"AI response does not contain valid JSON array. Response length: {len(ai_response)}, First 1000 chars: {ai_response[:1000]}")
+            raise HTTPException(
+                status_code=500, 
+                detail="AI response format invalid - no JSON array found. The AI service may have returned an unexpected format. Please try again."
+            )
         
         # Try to clean up common JSON issues
         # Remove markdown code blocks if present

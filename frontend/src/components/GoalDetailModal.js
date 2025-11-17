@@ -18,6 +18,9 @@ const GoalDetailModal = ({ isOpen, onClose, goal, onUpdate }) => {
   const [goalProgress, setGoalProgress] = useState(0);
   const [goalStatus, setGoalStatus] = useState('on-track');
   const [canEdit, setCanEdit] = useState(false);
+  const [owners, setOwners] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
     if (isOpen && goal && token) {
@@ -56,11 +59,45 @@ const GoalDetailModal = ({ isOpen, onClose, goal, onUpdate }) => {
       setTasks(goalData.tasks || []);
       setGoalProgress(goalData.progress || 0);
       setGoalStatus(goalData.status || 'on-track');
+      
+      // Load owner and team member details
+      await loadUserDetails(goalData.owners || [], goalData.teamMembers || []);
     } catch (error) {
       console.error('Failed to load goal details:', error);
       toast.error('Failed to load goal details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUserDetails = async (ownerIds, teamMemberIds) => {
+    if (!token || (!ownerIds.length && !teamMemberIds.length)) {
+      setOwners([]);
+      setTeamMembers([]);
+      return;
+    }
+
+    try {
+      setLoadingUsers(true);
+      // Get all users to find owner and team member details
+      const response = await axios.get(`${API}/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const allUsers = response.data || [];
+      
+      // Find owners
+      const ownerUsers = allUsers.filter(user => ownerIds.includes(user.id));
+      setOwners(ownerUsers);
+      
+      // Find team members
+      const teamMemberUsers = allUsers.filter(user => teamMemberIds.includes(user.id));
+      setTeamMembers(teamMemberUsers);
+    } catch (error) {
+      console.error('Failed to load user details:', error);
+      setOwners([]);
+      setTeamMembers([]);
+    } finally {
+      setLoadingUsers(false);
     }
   };
 
@@ -233,6 +270,47 @@ const GoalDetailModal = ({ isOpen, onClose, goal, onUpdate }) => {
                     </Select>
                   </div>
                 )}
+
+                {/* Owners and Team Members */}
+                <div className="mb-4">
+                  {owners.length > 0 && (
+                    <div className="mb-3">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Owners</label>
+                      <div className="flex flex-wrap gap-2">
+                        {owners.map((owner) => (
+                          <div
+                            key={owner.id}
+                            className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium"
+                          >
+                            {owner.name || owner.email} {owner.role && `(${owner.role})`}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {teamMembers.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Team Members</label>
+                      <div className="flex flex-wrap gap-2">
+                        {teamMembers.map((member) => (
+                          <div
+                            key={member.id}
+                            className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium"
+                          >
+                            {member.name || member.email} {member.role && `(${member.role})`}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {owners.length === 0 && teamMembers.length === 0 && (
+                    <div className="text-sm text-gray-500 italic">
+                      No owners or team members assigned
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Tasks Section */}
