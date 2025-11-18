@@ -1728,22 +1728,37 @@ CRITICAL: Return ONLY the JSON array. No markdown, no code blocks, no explanatio
 Generate 3-6 goals that are realistic, measurable, and aligned with the campaign objectives.
 """
         
-        # Call Perplexity AI
+        # Call Perplexity AI with retry logic
         logger.info("Calling Perplexity AI to generate goals...")
-        try:
-            ai_response = await query_perplexity(ai_prompt)
-            if not ai_response or len(ai_response.strip()) == 0:
-                logger.error("Perplexity API returned empty response")
-                raise HTTPException(status_code=500, detail="AI service returned empty response. Please try again.")
-            logger.info(f"AI response received, length: {len(ai_response)}")
-        except HTTPException:
-            # Re-raise HTTP exceptions as-is
-            raise
-        except Exception as ai_error:
-            logger.error(f"Perplexity API error: {str(ai_error)}")
-            import traceback
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            raise HTTPException(status_code=500, detail=f"AI service error: {str(ai_error)}. Please try again.")
+        ai_response = None
+        max_ai_retries = 2
+        for ai_attempt in range(max_ai_retries):
+            try:
+                ai_response = await query_perplexity(ai_prompt)
+                if not ai_response or len(ai_response.strip()) == 0:
+                    if ai_attempt < max_ai_retries - 1:
+                        logger.warning(f"Perplexity API returned empty response, retrying... (attempt {ai_attempt + 1}/{max_ai_retries})")
+                        await asyncio.sleep(1)  # Wait 1 second before retry
+                        continue
+                    logger.error("Perplexity API returned empty response after retries")
+                    raise HTTPException(status_code=500, detail="AI service returned empty response. Please try again.")
+                logger.info(f"AI response received, length: {len(ai_response)}")
+                break  # Success, exit retry loop
+            except HTTPException:
+                # Re-raise HTTP exceptions as-is
+                raise
+            except Exception as ai_error:
+                if ai_attempt < max_ai_retries - 1:
+                    logger.warning(f"Perplexity API error on attempt {ai_attempt + 1}/{max_ai_retries}: {str(ai_error)}, retrying...")
+                    await asyncio.sleep(1)  # Wait 1 second before retry
+                    continue
+                logger.error(f"Perplexity API error after {max_ai_retries} attempts: {str(ai_error)}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                raise HTTPException(status_code=500, detail=f"AI service error: {str(ai_error)}. Please try again.")
+        
+        if not ai_response:
+            raise HTTPException(status_code=500, detail="Failed to get AI response after retries. Please try again.")
         
         # Parse AI response (extract JSON)
         # Note: json is already imported at module level
@@ -1779,10 +1794,21 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
             )
         
         # Try to clean up common JSON issues
-        # Remove markdown code blocks if present
-        json_str = re.sub(r'```json\s*', '', json_str)
+        # Remove markdown code blocks if present (more aggressive)
+        json_str = re.sub(r'```json\s*', '', json_str, flags=re.IGNORECASE)
         json_str = re.sub(r'```\s*', '', json_str)
+        # Remove any leading/trailing whitespace and newlines
         json_str = json_str.strip()
+        
+        # Additional cleanup: Remove any text before the first [ and after the last ]
+        if json_str:
+            first_bracket = json_str.find('[')
+            last_bracket = json_str.rfind(']')
+            if first_bracket != -1 and last_bracket != -1 and last_bracket > first_bracket:
+                json_str = json_str[first_bracket:last_bracket + 1]
+                logger.info(f"Cleaned JSON: extracted array from position {first_bracket} to {last_bracket}")
+        
+        logger.info(f"JSON string length after cleanup: {len(json_str)}, first 200 chars: {json_str[:200]}")
         
         # Try to fix common JSON issues
         try:
@@ -1840,14 +1866,21 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
                     logger.info("Successfully parsed JSON after aggressive fixing")
                 except json.JSONDecodeError as e3:
                     logger.error(f"Third JSON parse attempt failed: {str(e3)}")
-                    logger.error(f"Error at position: {e3.pos if hasattr(e3, 'pos') else 'unknown'}")
-                    logger.error(f"JSON string around error (chars {max(0, (e3.pos if hasattr(e3, 'pos') else 0) - 50)} to {(e3.pos if hasattr(e3, 'pos') else 0) + 50}):")
-                    if hasattr(e3, 'pos'):
-                        start_pos = max(0, e3.pos - 100)
-                        end_pos = min(len(json_str), e3.pos + 100)
+                    error_pos = e3.pos if hasattr(e3, 'pos') else 0
+                    logger.error(f"Error at position: {error_pos}")
+                    if error_pos > 0:
+                        start_pos = max(0, error_pos - 200)
+                        end_pos = min(len(json_str), error_pos + 200)
+                        logger.error(f"JSON string around error (chars {start_pos} to {end_pos}):")
                         logger.error(f"Context: ...{json_str[start_pos:end_pos]}...")
-                    logger.error(f"Full AI response (first 2000 chars): {ai_response[:2000]}")
-                    logger.error(f"Extracted JSON string (first 1000 chars): {json_str[:1000]}")
+                        # Also log the problematic line
+                        lines = json_str[:error_pos].split('\n')
+                        if lines:
+                            logger.error(f"Error on line {len(lines)}: {lines[-1][-150:]}")
+                    logger.error(f"Full AI response (first 3000 chars): {ai_response[:3000]}")
+                    logger.error(f"Extracted JSON string (first 2000 chars): {json_str[:2000]}")
+                    if len(json_str) > 2000:
+                        logger.error(f"Extracted JSON string (last 500 chars): ...{json_str[-500:]}")
                     
                     # Last resort: Try to extract just the array and use a more lenient parser
                     try:
@@ -1887,10 +1920,89 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
                             logger.info("Successfully parsed JSON after manual aggressive fixing")
                         except Exception as e5:
                             logger.error(f"Manual extraction also failed: {str(e5)}")
-                            raise HTTPException(
-                                status_code=500, 
-                                detail=f"AI response JSON parsing failed at position {e3.pos if hasattr(e3, 'pos') else 'unknown'}: {str(e3)}. The AI may have returned malformed JSON. Please try again."
-                            )
+                            # Last resort: Try to extract goals manually using regex
+                            try:
+                                logger.warning("Attempting manual goal extraction using regex patterns")
+                                # Try multiple patterns to extract goal information
+                                ai_goals = []
+                                
+                                # Pattern 1: Extract titles (with or without quotes, case-insensitive)
+                                title_patterns = [
+                                    r'"title"\s*:\s*"([^"]+)"',  # Quoted title
+                                    r"'title'\s*:\s*'([^']+)'",  # Single-quoted title
+                                    r'title\s*:\s*"([^"]+)"',    # Unquoted key, quoted value
+                                    r'title\s*:\s*\'([^\']+)\'', # Unquoted key, single-quoted value
+                                ]
+                                
+                                titles = []
+                                for pattern in title_patterns:
+                                    found = re.findall(pattern, json_str, re.IGNORECASE)
+                                    if found:
+                                        titles.extend(found)
+                                        break
+                                
+                                # Pattern 2: Extract descriptions
+                                desc_patterns = [
+                                    r'"description"\s*:\s*"([^"]+)"',
+                                    r"'description'\s*:\s*'([^']+)'",
+                                    r'description\s*:\s*"([^"]+)"',
+                                ]
+                                
+                                descriptions = []
+                                for pattern in desc_patterns:
+                                    found = re.findall(pattern, json_str, re.IGNORECASE)
+                                    if found:
+                                        descriptions.extend(found)
+                                        break
+                                
+                                # Pattern 3: Extract departments
+                                dept_patterns = [
+                                    r'"department"\s*:\s*"([^"]+)"',
+                                    r"'department'\s*:\s*'([^']+)'",
+                                    r'department\s*:\s*"([^"]+)"',
+                                ]
+                                
+                                departments = []
+                                for pattern in dept_patterns:
+                                    found = re.findall(pattern, json_str, re.IGNORECASE)
+                                    if found:
+                                        departments.extend(found)
+                                        break
+                                
+                                if titles:
+                                    logger.info(f"Found {len(titles)} goal titles via regex, creating minimal goals")
+                                    # Create minimal goal structures
+                                    for i, title in enumerate(titles[:6]):  # Max 6 goals
+                                        desc = descriptions[i] if i < len(descriptions) else f"Goal for {title}"
+                                        dept = departments[i] if i < len(departments) else "sales"
+                                        ai_goals.append({
+                                            "title": title,
+                                            "description": desc,
+                                            "department": dept,
+                                            "owners": [],
+                                            "teamMembers": [],
+                                            "dependencies": [],
+                                            "metrics": [],
+                                            "keyResults": [
+                                                {"description": "Key Result 1", "current": 0, "target": 100}
+                                            ],
+                                            "status": "on-track",
+                                            "progress": 0
+                                        })
+                                    logger.info(f"Created {len(ai_goals)} minimal goals from regex extraction")
+                                else:
+                                    raise HTTPException(
+                                        status_code=500, 
+                                        detail=f"AI response JSON parsing failed. Could not extract any goals. Please try again."
+                                    )
+                            except Exception as e6:
+                                logger.error(f"Regex extraction also failed: {str(e6)}")
+                                logger.error(f"Full AI response (first 3000 chars): {ai_response[:3000]}")
+                                logger.error(f"Extracted JSON string (first 1500 chars): {json_str[:1500]}")
+                                raise HTTPException(
+                                    status_code=500, 
+                                    detail=f"AI response JSON parsing failed at position {e3.pos if hasattr(e3, 'pos') else 'unknown'}: {str(e3)}. The AI may have returned malformed JSON. Please try again."
+                                )
                     except Exception as e4:
                         logger.error(f"All JSON parsing attempts failed. Last error: {str(e4)}")
                         raise HTTPException(
