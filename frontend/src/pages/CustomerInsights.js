@@ -110,7 +110,6 @@ const CustomerInsights = () => {
   const hourlyPatterns = data.hourlyPatterns || [];
   const countryDistribution = data.countryDistribution || [];
   const smsSubscription = data.smsSubscription || [];
-  const orderReturnAnalysis = data.orderReturnAnalysis || [];
   const mediumAnalysis = data.mediumAnalysis || [];
   const topProducts = data.topProducts || [];
   const dayOfWeekAnalysis = data.dayOfWeekAnalysis || [];
@@ -296,22 +295,6 @@ const CustomerInsights = () => {
     ],
   };
 
-  const orderReturnChart = {
-    labels: orderReturnAnalysis.length > 0 ? orderReturnAnalysis.map((item) => item.type || 'Unknown') : ['No Data'],
-    datasets: [
-      {
-        label: 'Total Sales (€)',
-        data: orderReturnAnalysis.length > 0 ? orderReturnAnalysis.map((item) => item.total_sales || 0) : [0],
-        backgroundColor: '#10b981',
-      },
-      {
-        label: 'Returns (€)',
-        data: orderReturnAnalysis.length > 0 ? orderReturnAnalysis.map((item) => Math.abs(item.total_returns || 0)) : [0],
-        backgroundColor: '#ef4444',
-      },
-    ],
-  };
-
   const mediumAnalysisChart = {
     labels: mediumAnalysis.length > 0 ? mediumAnalysis.map((item) => item.medium || 'Unknown') : ['No Data'],
     datasets: [
@@ -435,7 +418,7 @@ const CustomerInsights = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Orders</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{formatNumber(summary.totalOrders || 0)}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{formatUnits(summary.totalOrders || 0)}</p>
               </div>
               <ShoppingCart className="w-10 h-10 text-green-600 opacity-50" />
             </div>
@@ -650,23 +633,6 @@ const CustomerInsights = () => {
           >
             <div className="h-64">
               <ChartComponent type="pie" data={smsSubscriptionChart} options={chartOptions} />
-            </div>
-          </ChartCard>
-
-          {/* Order vs Return Analysis */}
-          <ChartCard
-            title="Order vs Return Analysis"
-            icon={AlertTriangle}
-            onViewInsight={() =>
-              handleViewInsight(
-                'Order vs Return',
-                [{ type: 'positive', text: 'Orders significantly outweigh returns' }],
-                ['Monitor return trends', 'Improve product quality to reduce returns']
-              )
-            }
-          >
-            <div className="h-64">
-              <ChartComponent type="bar" data={orderReturnChart} options={chartOptions} />
             </div>
           </ChartCard>
 
