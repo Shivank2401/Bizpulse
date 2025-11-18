@@ -403,8 +403,10 @@ const GoalDetailModal = ({ isOpen, onClose, goal, onUpdate }) => {
                 <div className="mb-6">
                   <h4 className="text-lg font-semibold text-gray-900 mb-3">Key Results</h4>
                   <div className="space-y-3">
-                    {goal.keyResults.map((kr, idx) => (
-                      <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    {goal.keyResults.map((kr, idx) => {
+                      const krKey = kr.id || kr.description || `kr-${goal.id}-${idx}`;
+                      return (
+                      <div key={krKey} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <p className="text-sm text-gray-900 mb-2">{kr.description}</p>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-600">
@@ -420,7 +422,8 @@ const GoalDetailModal = ({ isOpen, onClose, goal, onUpdate }) => {
                           </div>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

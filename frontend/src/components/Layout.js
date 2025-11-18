@@ -17,7 +17,8 @@ import {
   ChevronRight,
   TrendingUp,
   AlertCircle,
-  Trello
+  Trello,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AIAssistant from '@/components/AIAssistant';
@@ -33,6 +34,7 @@ const Layout = ({ children }) => {
     { path: '/kanban', icon: Trello, label: 'Strategic Kanban' },
     { path: '/compass', icon: LayoutDashboard, label: 'Business Compass' },
     { path: '/customers', icon: Users, label: 'Customers' },
+    { path: '/customer-insights', icon: BarChart3, label: 'Customer Insights' },
     { path: '/brands', icon: Tag, label: 'Brands' },
     { path: '/categories', icon: Layers, label: 'Categories' },
     { path: '/sales-analysis', icon: TrendingUp, label: 'Sales Analysis' },

@@ -245,8 +245,15 @@ async def lifespan(app: FastAPI):
     yield
     
     # Shutdown
-    scheduler.shutdown()
-    client.close()
+    try:
+        if scheduler.running:
+            scheduler.shutdown()
+    except Exception as e:
+        logger.warning(f"Error shutting down scheduler: {str(e)}")
+    try:
+        client.close()
+    except Exception as e:
+        logger.warning(f"Error closing MongoDB client: {str(e)}")
     logger.info("Application shutdown")
 
 # Create the main app
@@ -1598,6 +1605,7 @@ class GoalResponse(BaseModel):
 async def generate_goals_from_campaign(request: GenerateGoalsRequest, email: str = Depends(get_current_user)):
     """Generate AI-powered goals from a campaign"""
     try:
+        import traceback
         logger.info(f"Generating goals for campaign ID: {request.campaignId}")
         
         # Get campaign from MongoDB
@@ -1688,9 +1696,16 @@ AVAILABLE DEPARTMENTS AND TEAM MEMBERS:
 
 OUTPUT FORMAT (JSON array ONLY - no markdown, no code blocks, no explanations):
 You MUST return ONLY a valid JSON array. Do not include any markdown code blocks, explanations, or text outside the JSON array.
-The JSON must be valid with all property names in double quotes.
+The JSON must be valid with ALL property names enclosed in double quotes. Do NOT use single quotes or unquoted property names.
 
-Example format:
+CRITICAL JSON RULES:
+1. All property names MUST be in double quotes: "title" not title or 'title'
+2. All string values MUST be in double quotes: "value" not 'value' or value
+3. No trailing commas before closing braces or brackets
+4. No comments or explanations outside the JSON
+5. No markdown code blocks (no ```json or ```)
+
+Example format (copy this structure exactly):
 [
   {{
     "title": "Goal title",
@@ -1709,7 +1724,7 @@ Example format:
   }}
 ]
 
-CRITICAL: Return ONLY the JSON array. No markdown, no code blocks, no explanations. All property names must be in double quotes.
+CRITICAL: Return ONLY the JSON array. No markdown, no code blocks, no explanations. All property names and string values MUST be in double quotes.
 Generate 3-6 goals that are realistic, measurable, and aligned with the campaign objectives.
 """
         
@@ -1770,8 +1785,6 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
         json_str = json_str.strip()
         
         # Try to fix common JSON issues
-        # Replace single quotes with double quotes (but be careful with apostrophes)
-        # This is a simple fix - might need more sophisticated parsing
         try:
             ai_goals = json.loads(json_str)
         except json.JSONDecodeError as e:
@@ -1779,37 +1792,111 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
             logger.warning(f"JSON string (first 500 chars): {json_str[:500]}")
             
             # Try to fix common issues
-            # Fix unquoted property names (but this is risky)
-            # Instead, try to extract just the array content more carefully
             try:
-                # Try to find the array boundaries more precisely
-                start_idx = json_str.find('[')
-                end_idx = json_str.rfind(']')
-                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                    json_str = json_str[start_idx:end_idx + 1]
-                    ai_goals = json.loads(json_str)
-                else:
-                    raise json.JSONDecodeError("Could not find array boundaries", json_str, 0)
+                # Strategy: Fix unquoted property names
+                # This regex finds property names that aren't quoted and quotes them
+                # Pattern: word characters followed by colon (not already quoted)
+                # Handle both inline and multiline cases
+                fixed_json = re.sub(r'([{,]\s*|^\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', json_str, flags=re.MULTILINE)
+                
+                # Fix single quotes to double quotes (but be careful with apostrophes in strings)
+                # First, protect strings with single quotes by temporarily replacing them
+                # This is a simplified approach - replace single quotes around keys and values
+                fixed_json = re.sub(r"'([^']*)':", r'"\1":', fixed_json)  # Keys with single quotes
+                fixed_json = re.sub(r":\s*'([^']*)'", r': "\1"', fixed_json)  # String values with single quotes
+                
+                # Try parsing again
+                ai_goals = json.loads(fixed_json)
+                logger.info("Successfully parsed JSON after fixing quotes and property names")
             except json.JSONDecodeError as e2:
-                logger.error(f"Second JSON parse attempt failed: {str(e2)}")
-                logger.error(f"Full AI response: {ai_response}")
-                logger.error(f"Extracted JSON string: {json_str}")
-                # Try one more time with ast.literal_eval as fallback (but it's less safe)
+                logger.warning(f"Second JSON parse attempt failed: {str(e2)}")
                 try:
-                    import ast
-                    # This won't work for JSON, but let's try a different approach
-                    # Actually, let's try to manually fix common issues
-                    # Replace single quotes around keys (but not in strings)
-                    fixed_json = re.sub(r"'(\w+)':", r'"\1":', json_str)
-                    fixed_json = re.sub(r":\s*'([^']*)'", r': "\1"', fixed_json)
+                    # Strategy: More aggressive fixing
+                    # Remove any markdown code blocks completely
+                    fixed_json = re.sub(r'```[a-z]*\s*', '', json_str)
+                    fixed_json = re.sub(r'```\s*', '', fixed_json)
+                    fixed_json = fixed_json.strip()
+                    
+                    # Find array boundaries
+                    start_idx = fixed_json.find('[')
+                    end_idx = fixed_json.rfind(']')
+                    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                        fixed_json = fixed_json[start_idx:end_idx + 1]
+                    
+                    # Fix unquoted property names more aggressively
+                    # Match: word at start of line or after comma/brace, followed by colon
+                    # But avoid matching already quoted keys
+                    fixed_json = re.sub(r'([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', fixed_json)
+                    
+                    # Also fix keys that might be at the start of the JSON (not after { or ,)
+                    # This handles cases like: {title: "value"} where title is the first key
+                    fixed_json = re.sub(r'{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'{"\1":', fixed_json)
+                    
+                    # Fix trailing commas
+                    fixed_json = re.sub(r',\s*}', '}', fixed_json)
+                    fixed_json = re.sub(r',\s*]', ']', fixed_json)
+                    
                     ai_goals = json.loads(fixed_json)
-                    logger.info("Successfully parsed JSON after fixing quotes")
-                except Exception as e3:
-                    logger.error(f"All JSON parsing attempts failed. Last error: {str(e3)}")
-                    raise HTTPException(
-                        status_code=500, 
-                        detail=f"AI response JSON parsing failed. The AI may have returned malformed JSON. Please try again or check the AI response format."
-                    )
+                    logger.info("Successfully parsed JSON after aggressive fixing")
+                except json.JSONDecodeError as e3:
+                    logger.error(f"Third JSON parse attempt failed: {str(e3)}")
+                    logger.error(f"Error at position: {e3.pos if hasattr(e3, 'pos') else 'unknown'}")
+                    logger.error(f"JSON string around error (chars {max(0, (e3.pos if hasattr(e3, 'pos') else 0) - 50)} to {(e3.pos if hasattr(e3, 'pos') else 0) + 50}):")
+                    if hasattr(e3, 'pos'):
+                        start_pos = max(0, e3.pos - 100)
+                        end_pos = min(len(json_str), e3.pos + 100)
+                        logger.error(f"Context: ...{json_str[start_pos:end_pos]}...")
+                    logger.error(f"Full AI response (first 2000 chars): {ai_response[:2000]}")
+                    logger.error(f"Extracted JSON string (first 1000 chars): {json_str[:1000]}")
+                    
+                    # Last resort: Try to extract just the array and use a more lenient parser
+                    try:
+                        import json5  # More lenient JSON parser
+                        ai_goals = json5.loads(json_str)
+                        logger.info("Successfully parsed JSON using json5")
+                    except ImportError:
+                        logger.warning("json5 not available, trying manual extraction")
+                        # Last resort: Try to manually fix the most common issues
+                        try:
+                            # More aggressive regex to fix unquoted keys
+                            # This handles cases like: {title: "value"} -> {"title": "value"}
+                            fixed_json = json_str
+                            
+                            # Step 1: Fix unquoted property names (most common issue)
+                            # Match unquoted identifiers before colon (after { or , or whitespace at start of line)
+                            # This handles: {title: "value"} and also cases where there's whitespace
+                            fixed_json = re.sub(r'([{,]\s*|^\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', fixed_json, flags=re.MULTILINE)
+                            
+                            # Step 2: Fix single quotes in keys
+                            fixed_json = re.sub(r"'([^']+)':", r'"\1":', fixed_json)
+                            
+                            # Step 3: Fix single quotes in string values (but be careful)
+                            # Only replace if it's a simple string value (not containing escaped quotes)
+                            fixed_json = re.sub(r":\s*'([^']*)'([,\]}])", r': "\1"\2', fixed_json)
+                            
+                            # Step 4: Remove trailing commas
+                            fixed_json = re.sub(r',(\s*[}\]])', r'\1', fixed_json)
+                            
+                            # Step 5: Ensure array boundaries are correct
+                            start_idx = fixed_json.find('[')
+                            end_idx = fixed_json.rfind(']')
+                            if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                                fixed_json = fixed_json[start_idx:end_idx + 1]
+                            
+                            ai_goals = json.loads(fixed_json)
+                            logger.info("Successfully parsed JSON after manual aggressive fixing")
+                        except Exception as e5:
+                            logger.error(f"Manual extraction also failed: {str(e5)}")
+                            raise HTTPException(
+                                status_code=500, 
+                                detail=f"AI response JSON parsing failed at position {e3.pos if hasattr(e3, 'pos') else 'unknown'}: {str(e3)}. The AI may have returned malformed JSON. Please try again."
+                            )
+                    except Exception as e4:
+                        logger.error(f"All JSON parsing attempts failed. Last error: {str(e4)}")
+                        raise HTTPException(
+                            status_code=500, 
+                            detail=f"AI response JSON parsing failed: {str(e4)}. The AI may have returned malformed JSON. Please try again or check the AI response format."
+                        )
         
         if not isinstance(ai_goals, list):
             logger.error(f"AI response is not a list. Type: {type(ai_goals)}")
@@ -1823,6 +1910,11 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
         generated_goals = []
         for idx, ai_goal in enumerate(ai_goals):
             try:
+                # Ensure ai_goal is a dict
+                if not isinstance(ai_goal, dict):
+                    logger.warning(f"Goal {idx} is not a dictionary, skipping")
+                    continue
+                
                 # Map owner emails to user IDs
                 owner_ids = []
                 owners = ai_goal.get('owners', [])
@@ -1862,6 +1954,20 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
                     progress = 0
                 progress = max(0, min(100, int(progress)))
                 
+                # Ensure keyResults is properly formatted
+                key_results = ai_goal.get('keyResults', [])
+                if not isinstance(key_results, list):
+                    key_results = []
+                # Validate each key result has required fields
+                validated_key_results = []
+                for kr in key_results:
+                    if isinstance(kr, dict):
+                        validated_key_results.append({
+                            "description": str(kr.get('description', '')),
+                            "current": int(kr.get('current', 0)) if isinstance(kr.get('current'), (int, float)) else 0,
+                            "target": int(kr.get('target', 0)) if isinstance(kr.get('target'), (int, float)) else 0
+                        })
+                
                 goal = {
                     "id": str(uuid.uuid4()),
                     "campaignId": str(request.campaignId),
@@ -1872,14 +1978,17 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
                     "teamMembers": team_member_ids if team_member_ids else [],  # Ensure it's a list
                     "dependencies": ai_goal.get('dependencies', []) if isinstance(ai_goal.get('dependencies'), list) else [],
                     "metrics": ai_goal.get('metrics', []) if isinstance(ai_goal.get('metrics'), list) else [],
-                    "keyResults": ai_goal.get('keyResults', []) if isinstance(ai_goal.get('keyResults'), list) else [],
+                    "keyResults": validated_key_results,
                     "status": status,
                     "progress": progress,
-                    "createdAt": datetime.now(timezone.utc).isoformat()
+                    "createdAt": datetime.now(timezone.utc).isoformat(),
+                    "tasks": []  # Initialize tasks array
                 }
                 generated_goals.append(goal)
             except Exception as goal_error:
                 logger.error(f"Error processing goal {idx}: {str(goal_error)}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
                 continue  # Skip invalid goals
         
         if len(generated_goals) == 0:
@@ -1889,11 +1998,30 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
         validated_goals = []
         for goal in generated_goals:
             try:
-                validated_goal = GoalResponse(**goal)
+                # Ensure all required fields are present and properly formatted
+                goal_dict = {
+                    "id": goal.get("id", str(uuid.uuid4())),
+                    "campaignId": goal.get("campaignId", str(request.campaignId)),
+                    "title": str(goal.get("title", "Untitled Goal")),
+                    "description": str(goal.get("description", "")),
+                    "department": str(goal.get("department", "sales")),
+                    "owners": goal.get("owners", []) if isinstance(goal.get("owners"), list) else [],
+                    "teamMembers": goal.get("teamMembers", []) if isinstance(goal.get("teamMembers"), list) else [],
+                    "dependencies": goal.get("dependencies", []) if isinstance(goal.get("dependencies"), list) else [],
+                    "metrics": goal.get("metrics", []) if isinstance(goal.get("metrics"), list) else [],
+                    "keyResults": goal.get("keyResults", []) if isinstance(goal.get("keyResults"), list) else [],
+                    "status": str(goal.get("status", "on-track")),
+                    "progress": int(goal.get("progress", 0)),
+                    "createdAt": goal.get("createdAt", datetime.now(timezone.utc).isoformat()),
+                    "tasks": goal.get("tasks", []) if isinstance(goal.get("tasks"), list) else []
+                }
+                validated_goal = GoalResponse(**goal_dict)
                 validated_goals.append(validated_goal)
             except Exception as validation_error:
                 logger.error(f"Goal validation error: {str(validation_error)}")
                 logger.error(f"Goal data: {goal}")
+                import traceback
+                logger.error(f"Validation traceback: {traceback.format_exc()}")
                 continue
         
         if len(validated_goals) == 0:
@@ -1901,16 +2029,17 @@ Generate 3-6 goals that are realistic, measurable, and aligned with the campaign
         
         logger.info(f"Successfully generated {len(validated_goals)} goals")
         return validated_goals
-        
     except HTTPException:
         # Re-raise HTTP exceptions as-is
         raise
     except Exception as e:
-        logger.error(f"Error generating goals: {str(e)}")
+        logger.error(f"Unexpected error in generate_goals_from_campaign: {str(e)}")
         import traceback
-        error_traceback = traceback.format_exc()
-        logger.error(f"Traceback: {error_traceback}")
-        raise HTTPException(status_code=500, detail=f"Error generating goals: {str(e)}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate goals: {str(e)}. Please check server logs for details."
+        )
 
 @api_router.post("/kanban/goals", response_model=GoalResponse)
 async def create_goal(request: GoalRequest, email: str = Depends(get_current_user)):
@@ -2345,6 +2474,399 @@ Return ONLY valid JSON array, no additional text.
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Strategic recommendations error: {str(e)}")
+
+@api_router.get("/analytics/customer-insights")
+async def get_customer_insights(email: str = Depends(get_current_user)):
+    """Customer Insights from Shopify data - Multiple visualizations"""
+    try:
+        # Load Shopify_customer_df.csv
+        csv_path = ROOT_DIR / 'Shopify_customer_df.csv'
+        if not csv_path.exists():
+            raise HTTPException(status_code=404, detail="Shopify_customer_df.csv file not found")
+        
+        df = pd.read_csv(csv_path)
+        if df.empty:
+            raise HTTPException(status_code=500, detail="Customer Shopify data is empty")
+        
+        # Convert date columns
+        if 'Day' in df.columns:
+            try:
+                df['Day'] = pd.to_datetime(df['Day'], errors='coerce')
+                df['Year'] = df['Day'].dt.year
+                df['Month'] = df['Day'].dt.month
+                df['MonthName'] = df['Day'].dt.strftime('%B')
+            except Exception as e:
+                logger.warning(f"Error processing date columns: {str(e)}")
+                df['Year'] = None
+                df['Month'] = None
+                df['MonthName'] = None
+        
+        # Ensure numeric columns
+        numeric_cols = ['Net sales', 'Gross sales', 'Total sales', 'Orders', 'Orders (first-time)', 
+                       'Orders (returning)', 'Quantity ordered', 'Customer number of orders']
+        for col in numeric_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        
+        # 1. Customer Acquisition vs Retention (New vs Returning)
+        new_vs_returning = df.groupby('New or returning customer').agg({
+            'Orders': 'sum',
+            'Total sales': 'sum',
+            'Customer email': 'nunique'
+        }).reset_index()
+        new_vs_returning.columns = ['type', 'orders', 'sales', 'unique_customers']
+        
+        # 2. Sales Channel Performance (use Order or return to show order vs return as channels)
+        # Since there's no Sales channel column, we'll use Order or return as a proxy
+        channel_perf = df.groupby('Order or return').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Customer email': 'nunique'
+        }).reset_index()
+        channel_perf.columns = ['channel', 'sales', 'orders', 'customers']
+        channel_perf = channel_perf.sort_values('sales', ascending=False)
+        
+        # 3. Geographic Distribution (Top Regions)
+        region_perf = df.groupby('Shipping region').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Customer email': 'nunique'
+        }).reset_index()
+        region_perf.columns = ['region', 'sales', 'orders', 'customers']
+        region_perf = region_perf.sort_values('sales', ascending=False).head(10)
+        
+        # 4. Traffic Source Analysis
+        traffic_source = df.groupby('Referring channel').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Customer email': 'nunique'
+        }).reset_index()
+        traffic_source.columns = ['source', 'sales', 'orders', 'customers']
+        traffic_source = traffic_source[traffic_source['source'].notna()].sort_values('sales', ascending=False).head(10)
+        
+        # 5. Customer Lifetime Value (by number of orders)
+        clv_buckets = pd.cut(df['Customer number of orders'], 
+                            bins=[0, 1, 3, 5, 10, 20, float('inf')],
+                            labels=['1', '2-3', '4-5', '6-10', '11-20', '20+'])
+        clv_analysis = df.groupby(clv_buckets).agg({
+            'Total sales': 'sum',
+            'Customer email': 'nunique',
+            'Orders': 'sum'
+        }).reset_index()
+        clv_analysis.columns = ['order_bucket', 'total_sales', 'unique_customers', 'total_orders']
+        clv_analysis['avg_sales_per_customer'] = clv_analysis['total_sales'] / clv_analysis['unique_customers']
+        
+        # 6. Monthly/Daily Trend - Group by day to show trends within the month
+        # Also include previous month data if available
+        if 'Day' in df.columns and df['Day'].notna().any():
+            # Daily trends within the current month
+            try:
+                daily_trend = df.groupby('Day').agg({
+                    'Total sales': 'sum',
+                    'Orders': 'sum',
+                    'Customer email': 'nunique',
+                    'Orders (first-time)': 'sum',
+                    'Orders (returning)': 'sum'
+                }).reset_index()
+                daily_trend = daily_trend.sort_values('Day')
+                daily_trend['Year'] = daily_trend['Day'].dt.year
+                daily_trend['Month'] = daily_trend['Day'].dt.month
+                daily_trend['MonthName'] = daily_trend['Day'].dt.strftime('%B')
+                daily_trend['day_label'] = daily_trend['Day'].dt.strftime('%b %d, %Y')
+                daily_trend['month_label'] = daily_trend['MonthName'] + ' ' + daily_trend['Year'].astype(str)
+                
+                # Monthly aggregation (for months with data)
+                # Filter out rows where Year or Month is null
+                df_valid_dates = df[(df['Year'].notna()) & (df['Month'].notna())]
+                if not df_valid_dates.empty:
+                    monthly_trend = df_valid_dates.groupby(['Year', 'Month']).agg({
+                        'Total sales': 'sum',
+                        'Orders': 'sum',
+                        'Customer email': 'nunique',
+                        'Orders (first-time)': 'sum',
+                        'Orders (returning)': 'sum'
+                    }).reset_index()
+                else:
+                    monthly_trend = pd.DataFrame(columns=['Year', 'Month', 'Total sales', 'Orders', 'Customer email', 'Orders (first-time)', 'Orders (returning)'])
+                
+                # Add month names
+                monthly_trend['MonthName'] = pd.to_datetime(monthly_trend[['Year', 'Month']].assign(Day=1)).dt.strftime('%B')
+                monthly_trend = monthly_trend.sort_values(['Year', 'Month'])
+                monthly_trend['month_label'] = monthly_trend['MonthName'] + ' ' + monthly_trend['Year'].astype(str)
+                
+                # If we have previous month data columns, aggregate them for comparison
+                if 'Total sales (previous_month)' in df.columns and not df_valid_dates.empty:
+                    try:
+                        prev_month_data = df_valid_dates.groupby(['Year', 'Month']).agg({
+                            'Total sales (previous_month)': 'sum',
+                            'Orders (previous_month)': 'sum',
+                            'Orders first time (previous_month)': 'sum',
+                            'Orders returning (previous_month)': 'sum'
+                        }).reset_index()
+                        
+                        # Calculate previous month year/month
+                        prev_month_data['PrevYear'] = prev_month_data['Year']
+                        prev_month_data['PrevMonth'] = prev_month_data['Month'] - 1
+                        prev_month_data.loc[prev_month_data['PrevMonth'] == 0, 'PrevMonth'] = 12
+                        prev_month_data.loc[prev_month_data['PrevMonth'] == 12, 'PrevYear'] = prev_month_data['PrevYear'] - 1
+                        prev_month_data['PrevMonthName'] = pd.to_datetime(prev_month_data[['PrevYear', 'PrevMonth']].assign(Day=1)).dt.strftime('%B')
+                        prev_month_data['prev_month_label'] = prev_month_data['PrevMonthName'] + ' ' + prev_month_data['PrevYear'].astype(str)
+                        
+                        # Add previous month data to monthly trend
+                        prev_month_rows = []
+                        for idx, row in prev_month_data.iterrows():
+                            prev_sales = row.get('Total sales (previous_month)', 0)
+                            if pd.notna(prev_sales) and prev_sales > 0:
+                                prev_month_rows.append({
+                                    'Year': int(row['PrevYear']),
+                                    'Month': int(row['PrevMonth']),
+                                    'MonthName': str(row['PrevMonthName']),
+                                    'month_label': str(row['prev_month_label']),
+                                    'Total sales': float(prev_sales),
+                                    'Orders': float(row.get('Orders (previous_month)', 0) or 0),
+                                    'Customer email': 0,  # Not available in prev month data
+                                    'Orders (first-time)': float(row.get('Orders first time (previous_month)', 0) or 0),
+                                    'Orders (returning)': float(row.get('Orders returning (previous_month)', 0) or 0)
+                                })
+                        
+                        if prev_month_rows:
+                            prev_df = pd.DataFrame(prev_month_rows)
+                            monthly_trend = pd.concat([monthly_trend, prev_df], ignore_index=True)
+                    except Exception as e:
+                        logger.warning(f"Error processing previous month data: {str(e)}")
+                        # Continue without previous month data
+                
+                # Sort again after adding previous month data
+                monthly_trend = monthly_trend.sort_values(['Year', 'Month']).reset_index(drop=True)
+                
+                # Use daily trend for more granular view if only one month, otherwise use monthly
+                # Check if we have multiple months - if so, use monthly aggregation
+                unique_months = monthly_trend[['Year', 'Month']].drop_duplicates()
+                if len(unique_months) <= 1:  # If we have only 1 month, show daily trends
+                    monthly_trend = daily_trend.copy()
+                    monthly_trend['month_label'] = monthly_trend['day_label']  # Use day labels for daily view
+                # Otherwise, keep monthly aggregation (which we already have)
+            except Exception as e:
+                logger.error(f"Error processing daily/monthly trends: {str(e)}")
+                # Fallback to simple monthly grouping
+                df_valid_dates = df[(df['Year'].notna()) & (df['Month'].notna())]
+                if not df_valid_dates.empty:
+                    monthly_trend = df_valid_dates.groupby(['Year', 'Month']).agg({
+                        'Total sales': 'sum',
+                        'Orders': 'sum',
+                        'Customer email': 'nunique',
+                        'Orders (first-time)': 'sum',
+                        'Orders (returning)': 'sum'
+                    }).reset_index()
+                    monthly_trend['MonthName'] = pd.to_datetime(monthly_trend[['Year', 'Month']].assign(Day=1)).dt.strftime('%B')
+                    monthly_trend = monthly_trend.sort_values(['Year', 'Month'])
+                    monthly_trend['month_label'] = monthly_trend['MonthName'] + ' ' + monthly_trend['Year'].astype(str)
+                else:
+                    monthly_trend = pd.DataFrame(columns=['Year', 'Month', 'MonthName', 'month_label', 'Total sales', 'Orders', 'Customer email', 'Orders (first-time)', 'Orders (returning)'])
+        else:
+            # Fallback to monthly grouping if Day column not available
+            df_valid_dates = df[(df['Year'].notna()) & (df['Month'].notna())]
+            if not df_valid_dates.empty:
+                monthly_trend = df_valid_dates.groupby(['Year', 'Month']).agg({
+                    'Total sales': 'sum',
+                    'Orders': 'sum',
+                    'Customer email': 'nunique',
+                    'Orders (first-time)': 'sum',
+                    'Orders (returning)': 'sum'
+                }).reset_index()
+                monthly_trend['MonthName'] = pd.to_datetime(monthly_trend[['Year', 'Month']].assign(Day=1)).dt.strftime('%B')
+                monthly_trend = monthly_trend.sort_values(['Year', 'Month'])
+                monthly_trend['month_label'] = monthly_trend['MonthName'] + ' ' + monthly_trend['Year'].astype(str)
+            else:
+                monthly_trend = pd.DataFrame(columns=['Year', 'Month', 'MonthName', 'month_label', 'Total sales', 'Orders', 'Customer email', 'Orders (first-time)', 'Orders (returning)'])
+        
+        # Rename columns to ensure consistent keys in JSON response
+        if not monthly_trend.empty and 'Total sales' in monthly_trend.columns:
+            monthly_trend = monthly_trend.rename(columns={
+                'Total sales': 'Total_sales',
+                'Orders (first-time)': 'Orders_first_time',
+                'Orders (returning)': 'Orders_returning',
+                'Customer email': 'Customer_email'
+            })
+        
+        # 7. Email Subscription Status
+        subscription_status = df.groupby('Customer email subscription status').agg({
+            'Customer email': 'nunique',
+            'Total sales': 'sum',
+            'Orders': 'sum'
+        }).reset_index()
+        subscription_status.columns = ['status', 'unique_customers', 'sales', 'orders']
+        
+        # 8. Top Customers by Sales
+        top_customers = df.groupby(['Customer email', 'Customer name']).agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Customer number of orders': 'max'
+        }).reset_index()
+        top_customers.columns = ['email', 'name', 'total_sales', 'total_orders', 'lifetime_orders']
+        top_customers = top_customers.sort_values('total_sales', ascending=False).head(20)
+        
+        # 9. Platform/Medium Analysis
+        platform_analysis = df.groupby('Referring platform').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Customer email': 'nunique'
+        }).reset_index()
+        platform_analysis.columns = ['platform', 'sales', 'orders', 'customers']
+        platform_analysis = platform_analysis[platform_analysis['platform'].notna()].sort_values('sales', ascending=False).head(10)
+        
+        # 10. Traffic Type Performance
+        traffic_type = df.groupby('Traffic type').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Customer email': 'nunique'
+        }).reset_index()
+        traffic_type.columns = ['type', 'sales', 'orders', 'customers']
+        traffic_type = traffic_type[traffic_type['type'].notna()].sort_values('sales', ascending=False)
+        
+        # 11. Hour of Day Shopping Patterns
+        try:
+            hourly_patterns = df[df['Hour of day'].notna()].groupby('Hour of day').agg({
+                'Total sales': 'sum',
+                'Orders': 'sum',
+                'Customer email': 'nunique'
+            }).reset_index()
+            hourly_patterns.columns = ['hour', 'sales', 'orders', 'customers']
+            hourly_patterns = hourly_patterns.sort_values('hour')
+            hourly_patterns['hour'] = hourly_patterns['hour'].astype(int)
+        except Exception as e:
+            logger.warning(f"Error processing hourly patterns: {str(e)}")
+            hourly_patterns = pd.DataFrame(columns=['hour', 'sales', 'orders', 'customers'])
+        
+        # 12. Country Distribution
+        country_dist = df.groupby('Shipping country').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Customer email': 'nunique'
+        }).reset_index()
+        country_dist.columns = ['country', 'sales', 'orders', 'customers']
+        country_dist = country_dist.sort_values('sales', ascending=False)
+        
+        # 13. SMS Subscription Status
+        sms_subscription = df[df['Customer SMS subscription status'].notna()].groupby('Customer SMS subscription status').agg({
+            'Customer email': 'nunique',
+            'Total sales': 'sum',
+            'Orders': 'sum'
+        }).reset_index()
+        sms_subscription.columns = ['status', 'unique_customers', 'sales', 'orders']
+        
+        # 14. Order vs Return Analysis
+        order_return_analysis = df.groupby('Order or return').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Net returns': 'sum',
+            'Total returns': 'sum'
+        }).reset_index()
+        order_return_analysis.columns = ['type', 'total_sales', 'orders', 'net_returns', 'total_returns']
+        
+        # 15. Referring Medium Analysis
+        medium_analysis = df[df['Referring medium'].notna()].groupby('Referring medium').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Customer email': 'nunique'
+        }).reset_index()
+        medium_analysis.columns = ['medium', 'sales', 'orders', 'customers']
+        medium_analysis = medium_analysis.sort_values('sales', ascending=False)
+        
+        # 16. Top Products by Sales
+        top_products = df[df['Product variant SKU'].notna()].groupby('Product variant SKU').agg({
+            'Total sales': 'sum',
+            'Orders': 'sum',
+            'Quantity ordered': 'sum'
+        }).reset_index()
+        top_products.columns = ['sku', 'sales', 'orders', 'quantity']
+        top_products = top_products.sort_values('sales', ascending=False).head(15)
+        
+        # 17. Day of Week Analysis
+        if 'Day' in df.columns:
+            try:
+                df['DayOfWeek'] = pd.to_datetime(df['Day'], errors='coerce').dt.day_name()
+                day_of_week = df[df['DayOfWeek'].notna()].groupby('DayOfWeek').agg({
+                    'Total sales': 'sum',
+                    'Orders': 'sum',
+                    'Customer email': 'nunique'
+                }).reset_index()
+                day_of_week.columns = ['day', 'sales', 'orders', 'customers']
+                # Order by day of week
+                day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+                day_of_week['day_order'] = day_of_week['day'].map({day: i for i, day in enumerate(day_order)})
+                day_of_week = day_of_week[day_of_week['day_order'].notna()].sort_values('day_order').drop('day_order', axis=1)
+            except Exception as e:
+                logger.warning(f"Error processing day of week analysis: {str(e)}")
+                day_of_week = pd.DataFrame(columns=['day', 'sales', 'orders', 'customers'])
+        else:
+            day_of_week = pd.DataFrame(columns=['day', 'sales', 'orders', 'customers'])
+        
+        # 18. Return Rate Trend (monthly)
+        if 'Day' in df.columns:
+            try:
+                return_data = df[df['Order or return'] == 'return']
+                if not return_data.empty:
+                    return_trend = return_data.groupby(['Year', 'Month']).agg({
+                        'Total returns': 'sum',
+                        'Orders': 'sum'
+                    }).reset_index()
+                    monthly_sales = df.groupby(['Year', 'Month'])['Total sales'].sum().reset_index()
+                    return_trend = return_trend.merge(monthly_sales, on=['Year', 'Month'], how='left', suffixes=('', '_total'))
+                    return_trend['MonthName'] = pd.to_datetime(return_trend[['Year', 'Month']].assign(Day=1)).dt.strftime('%B')
+                    return_trend = return_trend.sort_values(['Year', 'Month'])
+                    return_trend['month_label'] = return_trend['MonthName'] + ' ' + return_trend['Year'].astype(str)
+                    return_trend['return_rate'] = (return_trend['Total returns'].abs() / return_trend['Total sales_total'].replace(0, 1) * 100).fillna(0)
+                    return_trend = return_trend.drop('Total sales_total', axis=1)
+                else:
+                    return_trend = pd.DataFrame(columns=['Year', 'Month', 'MonthName', 'month_label', 'Total returns', 'Orders', 'return_rate'])
+            except Exception as e:
+                logger.warning(f"Error processing return trend: {str(e)}")
+                return_trend = pd.DataFrame(columns=['Year', 'Month', 'MonthName', 'month_label', 'Total returns', 'Orders', 'return_rate'])
+        else:
+            return_trend = pd.DataFrame(columns=['Year', 'Month', 'MonthName', 'month_label', 'Total returns', 'Orders', 'return_rate'])
+        
+        # Ensure all dataframes are not empty - convert to dict with empty list fallback
+        def safe_to_dict(df, default=[]):
+            if df is None or df.empty:
+                return default
+            return df.to_dict('records')
+        
+        return {
+            "newVsReturning": safe_to_dict(new_vs_returning),
+            "channelPerformance": safe_to_dict(channel_perf),
+            "regionPerformance": safe_to_dict(region_perf),
+            "trafficSource": safe_to_dict(traffic_source),
+            "customerLifetimeValue": safe_to_dict(clv_analysis),
+            "monthlyTrend": safe_to_dict(monthly_trend),
+            "subscriptionStatus": safe_to_dict(subscription_status),
+            "topCustomers": safe_to_dict(top_customers),
+            "platformAnalysis": safe_to_dict(platform_analysis),
+            "trafficType": safe_to_dict(traffic_type),
+            "hourlyPatterns": safe_to_dict(hourly_patterns),
+            "countryDistribution": safe_to_dict(country_dist),
+            "smsSubscription": safe_to_dict(sms_subscription),
+            "orderReturnAnalysis": safe_to_dict(order_return_analysis),
+            "mediumAnalysis": safe_to_dict(medium_analysis),
+            "topProducts": safe_to_dict(top_products),
+            "dayOfWeekAnalysis": safe_to_dict(day_of_week),
+            "returnTrend": safe_to_dict(return_trend),
+            "summary": {
+                "totalCustomers": int(df['Customer email'].nunique()),
+                "totalOrders": int(df['Orders'].sum()),
+                "totalSales": float(df['Total sales'].sum()),
+                "avgOrderValue": float(df['Total sales'].sum() / df['Orders'].sum() if df['Orders'].sum() > 0 else 0),
+                "newCustomers": int((df['New or returning customer'] == 'New').sum()),
+                "returningCustomers": int((df['New or returning customer'] == 'Returning').sum())
+            }
+        }
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="customer_shopify.csv file not found")
+    except Exception as e:
+        logger.error(f"Error processing customer insights: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error processing customer insights: {str(e)}")
 
 # Include the router in the main app
 app.include_router(api_router)

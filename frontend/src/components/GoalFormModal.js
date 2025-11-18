@@ -272,7 +272,7 @@ const GoalFormModal = ({ isOpen, onClose, goal = null, quarter = null, onSave })
 
             <div className="space-y-4">
               {formData.keyResults.map((kr, index) => (
-                <div key={kr.id} className="border rounded-lg p-4 space-y-3">
+                <div key={kr.id || `kr-form-${index}`} className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold">Key Result {index + 1}</Label>
                     {formData.keyResults.length > 1 && (

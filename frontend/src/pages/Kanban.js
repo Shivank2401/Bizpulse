@@ -1052,7 +1052,7 @@ const Kanban = () => {
                     <div className="flex items-center gap-2 mb-3 flex-wrap">
                       {initiative.channels.map((channel, idx) => (
                         <span
-                          key={idx}
+                          key={`channel-${initiative.id}-${idx}-${channel}`}
                           className="px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700 flex items-center gap-1"
                         >
                           {channel === 'Email' && <Mail className="w-3 h-3" />}
@@ -1208,7 +1208,7 @@ const Kanban = () => {
                     <div className="flex items-center gap-2 mb-3 flex-wrap">
                       {(initiative.channels || []).map((channel, idx) => (
                         <span
-                          key={idx}
+                          key={`channel-past-${initiative.id}-${idx}-${channel}`}
                           className="px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700 flex items-center gap-1"
                         >
                           {channel === 'Email' && <Mail className="w-3 h-3" />}
@@ -1268,9 +1268,9 @@ const Kanban = () => {
                         <h5 className="text-sm font-semibold text-gray-900 mb-3">Campaign Goals</h5>
                         {campaignGoals[initiative.id]?.length > 0 ? (
                           <div className="space-y-3">
-                            {campaignGoals[initiative.id].map((goal) => (
+                            {campaignGoals[initiative.id].map((goal, goalIdx) => (
                               <div
-                                key={goal.id}
+                                key={goal.id || `goal-${initiative.id}-${goalIdx}`}
                                 onClick={() => {
                                   setSelectedGoal(goal);
                                   setGoalDetailModalOpen(true);
@@ -1378,7 +1378,7 @@ const Kanban = () => {
                         <div className="flex items-center gap-2 mb-3 flex-wrap">
                           {(initiative.channels || []).map((channel, idx) => (
                             <span
-                              key={idx}
+                              key={`past-channel-${initiative.id}-${idx}`}
                               className="px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700 flex items-center gap-1"
                             >
                               {channel === 'Email' && <Mail className="w-3 h-3" />}
@@ -1564,9 +1564,9 @@ const Kanban = () => {
                   </div>
 
                   {/* Goals List */}
-                  {selectedDepartment.goals.map((goal) => (
+                  {selectedDepartment.goals.map((goal, goalIdx) => (
                     <div
-                      key={goal.id}
+                      key={goal.id || `dept-goal-${selectedDepartment.id}-${goalIdx}`}
                       className="professional-card p-6 border-l-4"
                       style={{ borderLeftColor: selectedDepartment.color.border }}
                     >
@@ -1652,7 +1652,7 @@ const Kanban = () => {
                             </label>
                             <div className="space-y-2">
                               {goal.dependencies.map((dep, idx) => (
-                                <div key={idx} className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
+                                <div key={`dep-${goal.id}-${idx}`} className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
                                   <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
                                   <span className="text-sm text-gray-900 flex-1">{dep}</span>
                                   <button className="text-red-500 hover:text-red-700">
@@ -1679,7 +1679,7 @@ const Kanban = () => {
                             </label>
                             <div className="space-y-2">
                               {goal.metrics.map((metric, idx) => (
-                                <div key={idx} className="flex items-center gap-2 bg-blue-50 rounded-lg p-3">
+                                <div key={`member-${goal.id}-${idx}`} className="flex items-center gap-2 bg-blue-50 rounded-lg p-3">
                                   <Target className="w-4 h-4 text-blue-600 flex-shrink-0" />
                                   <span className="text-sm text-gray-900 flex-1">{metric}</span>
                                 </div>
@@ -1698,8 +1698,8 @@ const Kanban = () => {
                             <div className="mb-4">
                               <h5 className="text-sm font-semibold text-amber-800 mb-2">Recommended Owners</h5>
                               <div className="space-y-1">
-                                {goal.aiRecommendations.owners.map((owner, idx) => (
-                                  <div key={idx} className="flex items-center gap-2 text-sm text-amber-900">
+                                {goal.aiRecommendations?.owners?.map((owner, idx) => (
+                                  <div key={`owner-rec-${goal.id}-${idx}`} className="flex items-center gap-2 text-sm text-amber-900">
                                     <Zap className="w-3 h-3 text-amber-600" />
                                     <span>{owner}</span>
                                   </div>
@@ -1711,8 +1711,8 @@ const Kanban = () => {
                             <div className="mb-4">
                               <h5 className="text-sm font-semibold text-amber-800 mb-2">Suggested Dependencies</h5>
                               <div className="space-y-1">
-                                {goal.aiRecommendations.dependencies.map((dep, idx) => (
-                                  <div key={idx} className="flex items-center gap-2 text-sm text-amber-900">
+                                {goal.aiRecommendations?.dependencies?.map((dep, idx) => (
+                                  <div key={`dep-rec-${goal.id}-${idx}`} className="flex items-center gap-2 text-sm text-amber-900">
                                     <Zap className="w-3 h-3 text-amber-600" />
                                     <span>{dep}</span>
                                   </div>
@@ -1724,8 +1724,8 @@ const Kanban = () => {
                             <div>
                               <h5 className="text-sm font-semibold text-amber-800 mb-2">How to Achieve This Goal</h5>
                               <div className="space-y-1">
-                                {goal.aiRecommendations.metrics.map((metric, idx) => (
-                                  <div key={idx} className="flex items-start gap-2 text-sm text-amber-900">
+                                {goal.aiRecommendations?.metrics?.map((metric, idx) => (
+                                  <div key={`metric-rec-${goal.id}-${idx}`} className="flex items-start gap-2 text-sm text-amber-900">
                                     <Zap className="w-3 h-3 text-amber-600 flex-shrink-0 mt-0.5" />
                                     <span>{metric}</span>
                                   </div>
@@ -1845,8 +1845,8 @@ const Kanban = () => {
                         Key Results ({objective.keyResults.length})
                       </h4>
                       <div className="space-y-3">
-                        {objective.keyResults.map((kr) => (
-                          <div key={kr.id} className="bg-gray-50 rounded-lg p-4">
+                        {objective.keyResults.map((kr, krIdx) => (
+                          <div key={kr.id || `kr-${objective.id}-${krIdx}`} className="bg-gray-50 rounded-lg p-4">
                             <div className="flex items-start justify-between mb-2">
                               <p className="text-sm text-gray-900 flex-1">{kr.description}</p>
                               <span className="text-sm font-semibold text-gray-900 ml-4">{kr.progress}%</span>

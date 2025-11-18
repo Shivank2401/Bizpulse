@@ -303,9 +303,9 @@ const CreateGoalsModal = ({ isOpen, onClose, campaign, onGoalsCreated }) => {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {generatedGoals.map((goal) => (
+                      {generatedGoals.map((goal, index) => (
                         <div
-                          key={goal.id}
+                          key={goal.id || `goal-${index}-${goal.title}`}
                           className={`p-4 border-2 rounded-lg cursor-pointer transition ${
                             selectedGoals.includes(goal.id)
                               ? 'border-indigo-500 bg-indigo-50'

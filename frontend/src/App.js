@@ -5,6 +5,7 @@ import '@/App.css';
 import Login from '@/pages/Login';
 import DashboardNew from '@/pages/DashboardNew';
 import CustomerAnalysisNew from '@/pages/CustomerAnalysisNew';
+import CustomerInsights from '@/pages/CustomerInsights';
 import BrandAnalysisNew from '@/pages/BrandAnalysisNew';
 import CategoryAnalysisNew from '@/pages/CategoryAnalysisNew';
 import Reports from '@/pages/Reports';
@@ -126,6 +127,14 @@ function App() {
             element={
               <PrivateRoute>
                 <CustomerAnalysisNew />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/customer-insights"
+            element={
+              <PrivateRoute>
+                <CustomerInsights />
               </PrivateRoute>
             }
           />
