@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import axios from 'axios';
 import '@/App.css';
 import Login from '@/pages/Login';
+import LoginVariations from '@/pages/LoginVariations';
 import DashboardNew from '@/pages/DashboardNew';
 import CustomerAnalysisNew from '@/pages/CustomerAnalysisNew';
 import CustomerInsights from '@/pages/CustomerInsights';
@@ -90,6 +91,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/login-variations" element={<LoginVariations />} />
           <Route
             path="/signup"
             element={
