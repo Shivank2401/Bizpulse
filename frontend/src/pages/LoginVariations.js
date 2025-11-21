@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { LogIn, Sparkles, Mail, Lock, Eye, EyeOff, Zap, Shield, TrendingUp } from 'lucide-react';
+import { Globe } from '@/components/Globe';
 
 const LoginVariations = () => {
   const [activeTab, setActiveTab] = useState(1);
@@ -41,6 +42,7 @@ const LoginVariations = () => {
     { id: 4, name: 'Login 4', desc: 'Minimalist' },
     { id: 5, name: 'Login 5', desc: 'Dark Neon' },
     { id: 6, name: 'Login 6', desc: '3D Card' },
+    { id: 7, name: 'Login 7', desc: 'Animated Globe' },
   ];
 
   return (
@@ -89,6 +91,9 @@ const LoginVariations = () => {
         
         {/* Login 6: 3D Card */}
         {activeTab === 6 && <Login6 email={email} setEmail={setEmail} password={password} setPassword={setPassword} showPassword={showPassword} setShowPassword={setShowPassword} loading={loading} handleLogin={handleLogin} />}
+        
+        {/* Login 7: Animated Globe */}
+        {activeTab === 7 && <Login7 email={email} setEmail={setEmail} password={password} setPassword={setPassword} showPassword={showPassword} setShowPassword={setShowPassword} loading={loading} handleLogin={handleLogin} />}
       </div>
     </div>
   );
@@ -1888,6 +1893,222 @@ const Login6 = ({ email, setEmail, password, setPassword, showPassword, setShowP
           </form>
         </div>
       </div>
+    </div>
+  );
+};
+
+// Login 7: Animated Globe with Changing Logo/Text
+const Login7 = ({ email, setEmail, password, setPassword, showPassword, setShowPassword, loading, handleLogin }) => {
+  const [currentDisplay, setCurrentDisplay] = useState(0);
+  
+  // Static branding - no longer changing
+  const brand = { logo: 'B', name: 'BeaconIQ' };
+
+  const features = [
+    { text: 'AI-Powered Analytics', icon: Zap },
+    { text: 'Enterprise Security', icon: Shield },
+    { text: 'Real-Time Insights', icon: TrendingUp },
+  ];
+
+  // Create display items: logo, feature1, logo, feature2, logo, feature3
+  const displayItems = [
+    { type: 'logo' },
+    { type: 'feature', ...features[0] },
+    { type: 'logo' },
+    { type: 'feature', ...features[1] },
+    { type: 'logo' },
+    { type: 'feature', ...features[2] },
+  ];
+
+  useEffect(() => {
+    const displayInterval = setInterval(() => {
+      setCurrentDisplay((prev) => (prev + 1) % displayItems.length);
+    }, 3000); // Change every 3 seconds
+
+    return () => clearInterval(displayInterval);
+  }, []);
+
+  return (
+    <div className="min-h-screen flex bg-white">
+      {/* Left Side - Globe */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gray-50">
+        <div className="absolute inset-0 flex items-center justify-center">
+          {/* Globe container with overflow hidden to prevent spreading */}
+          <div 
+            className="relative flex items-center justify-center"
+            style={{ 
+              width: '550px', 
+              height: '550px',
+            }}
+          >
+            <Globe className="w-full h-full relative z-10" />
+            
+            {/* Features text or logo positioned just above globe */}
+            <div 
+              className="absolute z-20"
+              style={{
+                top: '-120px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+              }}
+            >
+              <div 
+                key={currentDisplay}
+                className="animate-fade-in flex items-center justify-center"
+                style={{ minHeight: '144px' }}
+              >
+                {displayItems[currentDisplay].type === 'logo' ? (
+                  <img 
+                    src="/Vector AI Studio Black.svg" 
+                    alt="Vector AI Studio" 
+                    className="h-36 w-auto"
+                    style={{ display: 'block' }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center gap-4 whitespace-nowrap">
+                    {React.createElement(displayItems[currentDisplay].icon, { className: "w-8 h-8 text-black" })}
+                    <p className="text-2xl font-bold text-black">{displayItems[currentDisplay].text}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Small logo in bottom left */}
+        <div className="absolute bottom-6 left-6 z-10">
+          <div className="w-10 h-10 bg-gray-900 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">{brand.logo}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 bg-gray-50">
+        <div className="w-full max-w-md mx-auto">
+          {/* Static Logo and Text at top */}
+          <div className="mb-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-900 flex items-center justify-center">
+                <span className="text-white font-bold text-xl">{brand.logo}</span>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">{brand.name}</h1>
+            </div>
+          </div>
+
+          {/* Login Card */}
+          <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
+            <p className="text-xl font-semibold text-gray-900 mb-2">Sign In</p>
+            <p className="text-sm text-gray-600 mb-8">Enter your credentials to access your account</p>
+
+            <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email7" className="text-gray-900 font-medium text-sm">
+                Email Address <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  id="email7"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  className="pl-10 h-11 border-gray-300 focus:border-gray-900 focus:ring-gray-900 transition-all duration-300 bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password7" className="text-gray-900 font-medium text-sm">
+                Password <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  id="password7"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  className="pl-10 pr-10 h-11 border-gray-300 focus:border-gray-900 focus:ring-gray-900 transition-all duration-300 bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="remember7"
+                  className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+                />
+                <Label htmlFor="remember7" className="ml-2 text-sm text-gray-600 cursor-pointer">
+                  Remember me
+                </Label>
+              </div>
+              <a href="#" className="text-sm text-gray-600 hover:text-gray-900">
+                Forgot password?
+              </a>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 text-base font-semibold bg-gray-900 hover:bg-gray-800 text-white shadow-md transition-all duration-300"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                  Signing In...
+                </span>
+              ) : (
+                <>
+                  <LogIn className="mr-2 w-5 h-5" />
+                  Sign In
+                </>
+              )}
+            </Button>
+
+            <p className="text-center text-sm text-gray-500 mt-6">
+              Don't have an account? Contact your administrator
+            </p>
+          </form>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile: Show logo at bottom */}
+      <div className="lg:hidden absolute bottom-6 left-6 z-10">
+        <div className="w-10 h-10 bg-gray-900 flex items-center justify-center">
+          <span className="text-white font-bold text-lg">{brand.logo}</span>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
